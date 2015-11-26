@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="col-md-4 col-md-offset-4">
+        <h1>Login</h1>
+        <form class="form-horizontal login-form" method="POST" action="/login">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                <input type="text" class="form-control" name="username" placeholder="Username">
+            </div>
+
+            <div class="input-group">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                <input type="password" class="form-control" name="password" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <div class="col-sm-12 controls">
+                    <button type="submit" class="btn btn-primary pull-right"><i class="glyphicon glyphicon-log-in"></i> login</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+{% endblock %}

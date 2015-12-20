@@ -46,7 +46,7 @@
         <tr>
         <form method="post" 
               action="{{ app.request.baseurl }}/todo/add">
-            <td colspan="3">
+            <td colspan="4">
 
                 <!-- server validation -->
                 {% if empty_description is defined %}
@@ -72,5 +72,12 @@
         </form>
         </tr>
     </table>
+
+    {% for message in app.session.getFlashBag.get('success_confirmation') %}
+    <div class="alert alert-success">
+        {{ message }}
+    </div>
+    {% endfor %}
+
 </div>
 {% endblock %}

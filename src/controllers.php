@@ -76,7 +76,7 @@ $app->get( '/todo/{id}/json', function ($id) use ($app) {
             }
 
             if ( $id ) {
-                 // Make sure we added user_id to query so users can only view their own
+                // Make sure we added user_id to query so users can only view their own
                 $sql = "SELECT * FROM todos WHERE id = ? AND user_id = ?";
                 $todo = $app['db']->fetchAssoc( $sql, [(int) $id, $user['id']] );
 
@@ -101,7 +101,12 @@ $app->post( '/todo/add', function (Request $request) use ($app) {
     }
 
     $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate( $sql );
+    $operation_status = $app['db']->executeUpdate( $sql );
+
+    if ( $operation_status ) {
+        $app['session']->getFlashBag()->add( 'success_confirmation', 'Successfully added todo' );
+    }
+
 
     return $app->redirect( '/todo' );
 } );
@@ -132,8 +137,13 @@ $app->post( '/todo/update/{id}', function (Request $request, $id) use ($app) {
 
 $app->match( '/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate( $sql );
+    $sql = "DELETE FROM todos WHERE id = ?";
+    $operation_status = $app['db']->executeUpdate( $sql, [(int) $id] );
+
+    if ( $operation_status ) {
+        $app['session']->getFlashBag()->add( 'success_confirmation', 'Successfully deleted todo' );
+    }
+
 
     return $app->redirect( '/todo' );
 } );

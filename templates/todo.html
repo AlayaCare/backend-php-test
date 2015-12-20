@@ -35,6 +35,11 @@
             </td>
         </tr>
     </table>
+     {% for message in app.session.getFlashBag.get('success_confirmation') %}
+    <div class="alert alert-success">
+        {{ message }}
+    </div>
+    {% endfor %}
 </div>
 
 {% endblock %}

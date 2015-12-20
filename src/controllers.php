@@ -90,6 +90,25 @@ $app->post( '/todo/add', function (Request $request) use ($app) {
     return $app->redirect( '/todo' );
 } );
 
+$app->post( '/todo/update/{id}', function (Request $request, $id) use ($app) {
+            if ( null === $user = $app['session']->get( 'user' ) ) {
+                return $app->redirect( '/login' );
+            }
+
+            $int_id = (int) $id;
+            $completed = $request->request->get( 'completed' );
+
+            if ( $completed === 'c' ) {
+                $sql = "UPDATE todos SET status = 'c' WHERE id = ?";
+                //Protect against SQL injection though we already casted to int above
+                $app['db']->executeUpdate( $sql, [$int_id] );
+            }
+
+            return $app->redirect( "/todo/$int_id" );
+        } )
+        ->value( 'id', null );
+
+
 
 $app->match( '/todo/delete/{id}', function ($id) use ($app) {
 

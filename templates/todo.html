@@ -5,10 +5,24 @@
     <h1>Todo:</h1>
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
+        <th></th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
+            <td>
+                {% if not todo.status %}
+                <form method="post" 
+                      action="{{ app.request.baseurl }}/todo/update/{{ todo.id }}">
+                    <input type="hidden" name="completed" value="c"/>
+                    <button type="submit" class="btn btn-xs btn-success">
+                        <span class="glyphicon glyphicon-ok glyphicon-white"></span>
+                    </button>
+                </form>
+                {% else %}
+                Completed
+                {% endif %}
+            </td>
             <td>
                 <form method="post"
                       action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">

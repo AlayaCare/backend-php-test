@@ -1,0 +1,1 @@
+ALTER TABLE `todos` ADD `status` VARCHAR(1) NOT NULL AFTER `description`;

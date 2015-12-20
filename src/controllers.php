@@ -76,12 +76,14 @@ $app->get( '/todo/{id}/json', function ($id) use ($app) {
             }
 
             if ( $id ) {
-                $sql = "SELECT * FROM todos WHERE id = ?";
-                $todo = $app['db']->fetchAssoc( $sql, [(int) $id] );
+                 // Make sure we added user_id to query so users can only view their own
+                $sql = "SELECT * FROM todos WHERE id = ? AND user_id = ?";
+                $todo = $app['db']->fetchAssoc( $sql, [(int) $id, $user['id']] );
 
                 header( 'Content-Type: application/json' );
                 return json_encode( $todo );
             }
+            return $app->redirect( '/todo' );
         } )
         ->value( 'id', null );
 
@@ -108,17 +110,21 @@ $app->post( '/todo/update/{id}', function (Request $request, $id) use ($app) {
             if ( null === $user = $app['session']->get( 'user' ) ) {
                 return $app->redirect( '/login' );
             }
+            if ( $id ) {
+                $int_id = (int) $id;
 
-            $int_id = (int) $id;
-            $completed = $request->request->get( 'completed' );
+                $completed = $request->request->get( 'completed' );
 
-            if ( $completed === 'c' ) {
-                $sql = "UPDATE todos SET status = 'c' WHERE id = ?";
-                //Protect against SQL injection though we already casted to int above
-                $app['db']->executeUpdate( $sql, [$int_id] );
+                if ( $completed === 'c' ) {
+                    // Make sure we added user_id to query so users can only change their own
+                    $sql = 'UPDATE todos SET status = "c" WHERE id = ? AND user_id = ?';
+                    // Protect against SQL injection
+                    $app['db']->executeUpdate( $sql, [$int_id, $user['id']] );
+                }
+
+                return $app->redirect( "/todo/$int_id" );
             }
-
-            return $app->redirect( "/todo/$int_id" );
+            return $app->redirect( '/todo' );
         } )
         ->value( 'id', null );
 

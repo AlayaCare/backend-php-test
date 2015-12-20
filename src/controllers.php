@@ -46,16 +46,19 @@ $app->get( '/todo/{id}', function (Request $request, $id) use ($app) {
                 return $app->redirect( '/login' );
             }
 
+            $user_id = (int) $user['id'];
+            $todo = new Todo( $app );
+
             if ( $id ) {
-                $sql = "SELECT * FROM todos WHERE id = '$id'";
-                $todo = $app['db']->fetchAssoc( $sql );
+
+                $todo = $todo->get( ['id' => $id, 'user_id' => $user_id] );
 
                 return $app['twig']->render( 'todo.html', [
                             'todo' => $todo,
                         ] );
             } else {
-                $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-                $todos = $app['db']->fetchAll( $sql );
+
+                $todos = $todo->get( ['user_id' => $user_id] );
 
                 $template_data = [
                     'todos' => $todos,
@@ -92,21 +95,19 @@ $app->post( '/todo/add', function (Request $request) use ($app) {
         return $app->redirect( '/login' );
     }
 
-    $user_id = $user['id'];
+    $user_id = (int) $user['id'];
     $description = $request->get( 'description' );
 
     // if is empty description send back to todo and display error
     if ( !$description ) {
         return $app->redirect( '/todo?empty_description=true' );
     }
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $operation_status = $app['db']->executeUpdate( $sql );
+    $todo = new Todo( $app );
+    $operation_status = $todo->create( ['user_id' => $user_id, 'description' => $description] );
 
     if ( $operation_status ) {
         $app['session']->getFlashBag()->add( 'success_confirmation', 'Successfully added todo' );
     }
-
 
     return $app->redirect( '/todo' );
 } );
@@ -133,17 +134,15 @@ $app->post( '/todo/update/{id}', function (Request $request, $id) use ($app) {
         } )
         ->value( 'id', null );
 
-
-
 $app->match( '/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = ?";
-    $operation_status = $app['db']->executeUpdate( $sql, [(int) $id] );
-
+    if ( null === $user = $app['session']->get( 'user' ) ) {
+        return $app->redirect( '/login' );
+    }
+    $todo = new Todo( $app );
+    $operation_status = $todo->delete( ['id' => $id, 'user_id' => $user['id']] );
     if ( $operation_status ) {
         $app['session']->getFlashBag()->add( 'success_confirmation', 'Successfully deleted todo' );
     }
-
-
     return $app->redirect( '/todo' );
 } );

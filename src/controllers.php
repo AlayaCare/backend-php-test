@@ -70,6 +70,20 @@ $app->get( '/todo/{id}', function (Request $request, $id) use ($app) {
         } )
         ->value( 'id', null );
 
+$app->get( '/todo/{id}/json', function ($id) use ($app) {
+            if ( null === $user = $app['session']->get( 'user' ) ) {
+                return $app->redirect( '/login' );
+            }
+
+            if ( $id ) {
+                $sql = "SELECT * FROM todos WHERE id = ?";
+                $todo = $app['db']->fetchAssoc( $sql, [(int) $id] );
+
+                header( 'Content-Type: application/json' );
+                return json_encode( $todo );
+            }
+        } )
+        ->value( 'id', null );
 
 $app->post( '/todo/add', function (Request $request) use ($app) {
     if ( null === $user = $app['session']->get( 'user' ) ) {

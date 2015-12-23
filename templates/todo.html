@@ -4,11 +4,17 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
+            <td>
+                <form method="post" action="{{ app.request.baseurl }}/todo/edit/{{ todo.id }}">
+                    <!-- it's better to disable this button if the todo is already completed-->
+                    <button type="submit" class="btn btn-sm btn-primary">done</button>
+                </form>
+            </td>
             <td>
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

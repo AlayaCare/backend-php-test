@@ -6,7 +6,7 @@
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
         {% for todo in todos %}
-            <tr>
+            <tr class="todo{{ todo.completed }}">
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>

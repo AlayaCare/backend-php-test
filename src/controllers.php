@@ -89,3 +89,10 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+$app->match('/todo/edit/{id}', function ($id) use ($app) {
+    $sql = "UPDATE todos SET completed=true WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});

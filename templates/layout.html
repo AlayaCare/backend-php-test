@@ -33,6 +33,12 @@
 
     <div class="container">
       <div class="row">
+      {% if app.session.flashbag.peek('message') %}
+         {% for flash in app.session.flashbag.get('message') %}
+            <div class="alert alert-{{ flash.type }}" role="alert">{{ flash.content }}</div>
+         {% endfor %}
+        {% endif %}
+        
         {% block content %}{% endblock %}
       </div>
     </div>

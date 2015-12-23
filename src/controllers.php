@@ -58,13 +58,12 @@ $app->get('/todos/{id}', function ($id) use ($app) {
     $currentPage = $id;
     $startTodo = $todoperPage * ($currentPage-1);
     $pagesNumber = (intval($all)/$todoperPage);
-    
     $todos = $todoModel->findFromTo($user['id'], $startTodo, $todoperPage);
     
 
     return $app['twig']->render('todos.html', [
     'todos' => $todos,
-    'pagesNumber' => $pagesNumber
+    'pagesNumber' => intval($pagesNumber)
     ]);
 })
 ->value('id', null);

@@ -18,7 +18,9 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li><a href="/todos">Todo list</a></li>
+            {% if user %}
+              <li><a href="/todos">Todo list</a></li>
+            {% endif %}
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if user %}

@@ -27,7 +27,7 @@ $app->match('/login', function (Request $request) use ($app) {
 
         if ($user){
             $app['session']->set('user', $user);
-            return $app->redirect('/todo');
+            return $app->redirect('/todos');
         }
     }
 
@@ -41,26 +41,44 @@ $app->get('/logout', function () use ($app) {
 });
 
 
+$app->get('/todos/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    if (! $id){
+      $id = 1;
+    }
+    
+    $sql = "SELECT count(*) as pages FROM todos WHERE user_id = '${user['id']}'";
+    $all = $app['db']->fetchAll($sql);
+    $all = $all[0]["pages"];
+    
+    $todoperPage = 5;
+    $currentPage = $id;
+    $startTodo = $todoperPage * ($currentPage-1);
+    $pagesNumber = (intval($all)/$todoperPage);
+    
+    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT ${startTodo},${todoperPage}";
+    $todos = $app['db']->fetchAll($sql);
+
+    return $app['twig']->render('todos.html', [
+    'todos' => $todos,
+    'pagesNumber' => $pagesNumber
+    ]);
+})
+->value('id', null);
+
 $app->get('/todo/{id}', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+    $sql = "SELECT * FROM todos WHERE id = '$id'";
+    $todo = $app['db']->fetchAssoc($sql);
 
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
-    }
+    return $app['twig']->render('todo.html', [
+        'todo' => $todo,
+    ]);
 })
 ->value('id', null);
 

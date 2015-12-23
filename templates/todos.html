@@ -32,5 +32,13 @@
             </form>
         </tr>
     </table>
+    
+    <nav>
+      <ul class="pagination">
+        {% for i in 1.. pagesNumber+1 %}
+          <li><a href="{{ app.request.baseurl }}/todos/{{i}}">{{ i }}</a></li>   
+        {% endfor %}
+      </ul>
+    </nav>
 </div>
 {% endblock %}

@@ -76,11 +76,17 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
     
     $todoModel = new Todo($app);
-    $todo = $todoModel->find($id);
-
-    return $app['twig']->render('todo.html', [
+    $todoModel->id = $id;
+    if($todoModel->hasAcces($user['id'])){
+      $todo = $todoModel->find($id);
+      return $app['twig']->render('todo.html', [
         'todo' => $todo,
-    ]);
+      ]);
+    }else{
+       $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"Access denied"));
+      return $app->redirect('/todos');
+    }
+    
 })
 ->value('id', null);
 
@@ -89,8 +95,14 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
+    
     $todoModel = new Todo($app);
-    $todo = $todoModel->find($id);
+    $todoModel->id = $id;
+    if($todoModel->hasAcces($user['id'])){
+      $todo = $todoModel->find($id);
+    }else{
+      $todo = "access denied";
+    }
     
     return $app->json($todo, 200);
 })
@@ -117,22 +129,39 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    
     $todoModel = new Todo($app);
     $todoModel->id = $id;
-    if ($todoModel->delete()){
-      $app['session']->getFlashBag()->add('message',array('type'=>"sucess",'content'=>"your todo has been deleted"));
-    }else{
-      $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"your todo hasn't been deleted"));
+    if($todoModel->hasAcces($user['id'])){
 
+      if ($todoModel->delete()){
+        $app['session']->getFlashBag()->add('message',array('type'=>"sucess",'content'=>"your todo has been deleted"));
+      }else{
+        $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"your todo hasn't been deleted"));
+      }
+    }else{
+      $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"Access denied"));
     }
 
     return $app->redirect('/todos');
 });
 
 $app->match('/todo/edit/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
     
     $todoModel = new Todo($app, $id);
-    $todoModel->completed = true;
-    $todoModel->save();
+    if($todoModel->hasAcces($user['id'])){
+      $todoModel->completed = true;
+      $todoModel->save();
+      $app['session']->getFlashBag()->add('message',array('type'=>"success",'content'=>"your todo has been modified"));
+    }else{
+      $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"Access denied"));
+    }
+    
     return $app->redirect('/todos');
 });

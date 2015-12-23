@@ -53,4 +53,10 @@ class Todo{
     return $this->app['db']->fetchAll($sql);
   }
   
+  function hasAcces($userId){
+    $sql = "SELECT count(*) as pages FROM todos WHERE user_id = '$userId' and id='$this->id'";
+    $all = $this->app['db']->fetchAll($sql);
+    return intval($all[0]["pages"]);
+  }
+  
 }

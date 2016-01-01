@@ -6,7 +6,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th>Delete</th><th>Completed</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Completed</th><th>Delete</th><th>Mark As Completed</th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -16,6 +16,12 @@
                        {{ todo.description }}
                     </a>
                 </td>
+                <td>
+                    {% if todo.completed %}
+                    YES</td>
+                    {% else %}
+                    NO </td>
+                    {% endif %}
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

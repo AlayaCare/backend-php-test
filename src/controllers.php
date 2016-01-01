@@ -64,6 +64,29 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+        $json = json_encode($todo);
+        return $app['twig']->render('todojson.html', [
+            'json' => $json,
+        ]);
+    } else {
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $todos = $app['db']->fetchAll($sql);
+
+        return $app['twig']->render('todos.html', [
+            'todos' => $todos,
+        ]);
+    }
+})
+    ->value('id', null);
+
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {

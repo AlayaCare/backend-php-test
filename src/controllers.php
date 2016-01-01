@@ -84,6 +84,14 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 });
 
 
+$app->match('/todo/completed/{id}', function ($id) use ($app) {
+
+    $sql = "UPDATE todos SET completed = 1 WHERE id ='$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";

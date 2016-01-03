@@ -30,4 +30,6 @@ $app->register(new DoctrineServiceProvider, array(
     ),
 ));
 
+$app->register(new \Repository\RepositoryServiceProvider());
+
 return $app;

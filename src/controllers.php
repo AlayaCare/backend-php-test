@@ -22,8 +22,7 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = $app['repository.user']->findOneBy(array('username' => $username, 'password' => $password));
 
         if ($user){
             $app['session']->set('user', $user);
@@ -49,26 +48,18 @@ $app->get('/todo/{page}', function ($page) use ($app) {
     //Number of todos per page defined in config.yml
     $todosPerPage = intval($app['config']['paginate']['todo_per_page'], 10);
 
-    $sqlCount = 'SELECT count(*) AS nb FROM todos WHERE user_id ='. $user['id'];
-    $recordCount = $app['db']->fetchAssoc($sqlCount);
-    $totalTodos = $recordCount['nb'];
+    $totalTodos = $app['repository.todo']->count(array('user_id' => $user->getId()));
 
     $lastPage = ceil($totalTodos / $todosPerPage);
     $previousPage = ($page > 1) ? $page - 1 : 1;
     $nextPage = ($page < $lastPage) ? $page + 1 : $lastPage;
+    $offset = ($page - 1) * $todosPerPage;
 
-    $qb = $app['db']->createQueryBuilder();
-
-    $qb->select('*');
-    $qb->from('todos', 't');
-    $qb->where('t.user_id = :userId');
-    $qb->setParameter('userId', $user['id']);
-    $qb->orderBy('t.id', 'ASC');
-    $qb->setMaxResults($todosPerPage);
-    $qb->setFirstResult(($page - 1) * $todosPerPage);
-
-    $stmt = $qb->execute();
-    $todos = $stmt->fetchAll();
+    $todos = $app['repository.todo']->findBy(
+        array('user_id' => $user->getId()),
+        array('id' => 'ASC'),
+        $todosPerPage,
+        $offset);
 
     return $app['twig']->render('todos.html',
         array(
@@ -88,8 +79,7 @@ $app->get('/todo/show/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app['repository.todo']->find($id);
 
         //Avoid id invalid
         if (!$todo) {
@@ -112,15 +102,21 @@ $app->get('/todo/show/{id}/json', function (Request $request) use ($app) {
 
     if ($request->attributes->has('id')){
         $id = $request->get('id');
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app['repository.todo']->find($id);
 
         //Avoid id invalid
         if (!$todo) {
             return $app->json(null, 404);
         }
 
-        return $app->json($todo, 200);
+        $data = array(
+            'id' => $todo->getId(),
+            'description' => $todo->getDescription(),
+            'user_id' => $todo->getUserId(),
+            'completed' => $todo->isCompleted()
+        );
+
+        return $app->json($data, 200);
     }
 
     return $app->abort(404);
@@ -132,7 +128,6 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
     $description = $request->get('description');
 
     //we avoid to insert a description with only spaces
@@ -140,8 +135,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     //we avoid to create a new todo with a description empty
     if (!empty($description)) {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $todo = new \Entity\Todo();
+        $todo->setDescription($description);
+        $todo->setUserId($user->getId());
+
+        $app['repository.todo']->insert($todo);
 
         $app['session']->getFlashBag()->add('success', 'Todo "' . $description . '" added');
     } else {
@@ -154,8 +152,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $app['repository.todo']->deleteById($id);
 
     $app['session']->getFlashBag()->add('success', 'Todo #' . $id . ' deleted');
 
@@ -166,11 +163,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 $app->put('/todo/update/{id}', function (Request $request) use ($app) {
 
     if ($request->attributes->has('id') && $request->request->has('completed') ) {
-        $completed = $request->request->get('completed');
-        $id = $request->get('id');
-
-        $sql = "UPDATE todos set completed = '$completed' WHERE id = '$id'";
-        $app['db']->executeUpdate($sql);
+        $app['repository.todo']->markCompleted($request->get('id'), $request->request->get('completed'));
     }
 
     return new Response('OK', 200);

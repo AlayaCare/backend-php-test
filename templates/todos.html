@@ -8,7 +8,7 @@
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
+                <td>{{ todo.userId }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/show/{{ todo.id }}">
                        {{ todo.description }}

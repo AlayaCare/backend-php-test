@@ -93,3 +93,17 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+//Method used to mark a todo completed
+$app->put('/todo/update/{id}', function (Request $request) use ($app) {
+
+    if ($request->attributes->has('id') && $request->request->has('completed') ) {
+        $completed = $request->request->get('completed');
+        $id = $request->get('id');
+
+        $sql = "UPDATE todos set completed = '$completed' WHERE id = '$id'";
+        $app['db']->executeUpdate($sql);
+    }
+
+    return new Response('OK', 200);
+});

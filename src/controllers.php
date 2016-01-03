@@ -64,6 +64,27 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+//Get the json of a todo
+$app->get('/todo/{id}/json', function (Request $request) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($request->attributes->has('id')){
+        $id = $request->get('id');
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        if (!$todo) {
+            return $app->json(null, 404);
+        }
+
+        return $app->json($todo, 200);
+    }
+
+    return $app->abort(404);
+});
+
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {

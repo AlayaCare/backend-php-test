@@ -41,7 +41,48 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    //Number of todos per page defined in config.yml
+    $todosPerPage = intval($app['config']['paginate']['todo_per_page'], 10);
+
+    $sqlCount = 'SELECT count(*) AS nb FROM todos WHERE user_id ='. $user['id'];
+    $recordCount = $app['db']->fetchAssoc($sqlCount);
+    $totalTodos = $recordCount['nb'];
+
+    $lastPage = ceil($totalTodos / $todosPerPage);
+    $previousPage = ($page > 1) ? $page - 1 : 1;
+    $nextPage = ($page < $lastPage) ? $page + 1 : $lastPage;
+
+    $qb = $app['db']->createQueryBuilder();
+
+    $qb->select('*');
+    $qb->from('todos', 't');
+    $qb->where('t.user_id = :userId');
+    $qb->setParameter('userId', $user['id']);
+    $qb->orderBy('t.id', 'ASC');
+    $qb->setMaxResults($todosPerPage);
+    $qb->setFirstResult(($page - 1) * $todosPerPage);
+
+    $stmt = $qb->execute();
+    $todos = $stmt->fetchAll();
+
+    return $app['twig']->render('todos.html',
+        array(
+            'todos' => $todos,
+            'lastPage' => $lastPage,
+            'previousPage' => $previousPage,
+            'currentPage' => $page,
+            'nextPage' => $nextPage
+        )
+    );
+
+})->value('page', 1);
+
+$app->get('/todo/show/{id}', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -50,22 +91,21 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
 
+        //Avoid id invalid
+        if (!$todo) {
+            return $app->abort(404);
+        }
+
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
     }
-})
-->value('id', null);
+
+    return $app->abort(404);
+});
 
 //Get the json of a todo
-$app->get('/todo/{id}/json', function (Request $request) use ($app) {
+$app->get('/todo/show/{id}/json', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -75,6 +115,7 @@ $app->get('/todo/{id}/json', function (Request $request) use ($app) {
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
 
+        //Avoid id invalid
         if (!$todo) {
             return $app->json(null, 404);
         }

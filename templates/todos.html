@@ -10,7 +10,7 @@
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                    <a href="{{ app.request.baseurl }}/todo/show/{{ todo.id }}">
                        {{ todo.description }}
                     </a>
                 </td>
@@ -21,7 +21,7 @@
                     <img src="{{ app.request.basepath }}/img/open.png" alt="open" title="open" />
                     {% endif %}
                 </td>
-                <td><a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" title="Get todo json" role="button" target="_blank" class="btn btn-sm btn-info">JSON</a></td>
+                <td><a href="{{ app.request.baseurl }}/todo/show/{{ todo.id }}/json" title="Get todo json" role="button" target="_blank" class="btn btn-sm btn-info">JSON</a></td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
@@ -40,6 +40,45 @@
             </form>
         </tr>
     </table>
+
+    {% if lastPage > 1 %}
+        <nav>
+            <ul class="pagination">
+                {% if currentPage == 1 %}
+                    <li class="disabled">
+                        <span aria-hidden="true">&laquo;</span>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ app.request.baseurl }}/todo/{{ previousPage }}" aria-label="Previous Page">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for page in 1..lastPage %}
+                    {% if page == currentPage %}
+                        <li class="active"><span>{{ page }}</span></li>
+                    {% else %}
+                        <li><a href="{{ app.request.baseurl }}/todo/{{ page }}">{{ page }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if currentPage == lastPage %}
+                    <li class="disabled">
+                        <span aria-hidden="true">&raquo;</span>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ app.request.baseurl }}/todo/{{ nextPage }}" aria-label="Next Page">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+
 </div>
 
 <script src="{{ app.request.baseurl }}/js/todo.js"></script>

@@ -16,7 +16,7 @@
                 <img src="{{ app.request.basepath }}/img/open.png" alt="open" title="open" />
                 {% endif %}
             </td>
-            <td><a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" title="Get todo json" role="button" target="_blank" class="btn btn-sm btn-info">JSON</a></td>
+            <td><a href="{{ app.request.baseurl }}/todo/show/{{ todo.id }}/json" title="Get todo json" role="button" target="_blank" class="btn btn-sm btn-info">JSON</a></td>
             <td>
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

@@ -1,0 +1,1 @@
+SELECT todos.id, todos.user_id,todos.description,completed_task_per_user.complete FROM todos , completed_task_per_user  WHERE todos.id = '$id' and todos.id=completed_task_per_user.id

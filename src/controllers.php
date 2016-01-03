@@ -87,3 +87,18 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->post('/todo/complete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $user_id = $user['id'];
+
+    $sql = "INSERT INTO completed_task_per_user (id,user_id,complete) VALUES ($id, $user_id, 1)";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+

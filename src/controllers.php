@@ -101,6 +101,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (!empty($description)) {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+
+        $app['session']->getFlashBag()->add('success', 'Todo "' . $description . '" added');
+    } else {
+        $app['session']->getFlashBag()->add('error', 'Error : Description is required');
     }
 
     return $app->redirect('/todo');
@@ -111,6 +115,8 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add('success', 'Todo #' . $id . ' deleted');
 
     return $app->redirect('/todo');
 });

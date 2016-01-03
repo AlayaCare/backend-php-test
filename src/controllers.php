@@ -102,3 +102,20 @@ $app->post('/todo/complete/{id}', function ($id) use ($app) {
     return $app->redirect('/todo');
 });
 
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+
+    
+     if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql, [(int)$id]);
+
+        header( 'Content-Type: application/json' );
+
+        return json_encode($todo);
+
+    } 
+
+})->value('id', null);
+
+

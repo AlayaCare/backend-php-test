@@ -92,3 +92,20 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        return $app['twig']->render('todo_json.html', [
+            'todo' => $todo,
+        ]);
+    }
+})
+    ->value('id', null);

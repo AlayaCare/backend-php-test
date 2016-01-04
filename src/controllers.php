@@ -73,10 +73,15 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
-    return $app->redirect('/todo');
+    if (trim($description) !== '') {
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+        return $app->redirect('/todo');
+    }
+    else {
+        // 1. return some message to user
+        // 2. is better in HTML to put validation for reuired='required'
+    }
 });
 
 

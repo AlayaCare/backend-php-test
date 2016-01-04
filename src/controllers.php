@@ -13,6 +13,7 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
+        'title' => 'Readme'
     ]);
 });
 
@@ -31,7 +32,7 @@ $app->match('/login', function (Request $request) use ($app) {
         }
     }
 
-    return $app['twig']->render('login.html', array());
+    return $app['twig']->render('login.html', ['title' => 'Login']);
 });
 
 
@@ -52,6 +53,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
+            'title' => $todo['description']
         ]);
     } else {
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
@@ -59,6 +61,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'title' => 'Todos'
         ]);
     }
 })
@@ -73,8 +76,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if ($description) {
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+    }
 
     return $app->redirect('/todo');
 });

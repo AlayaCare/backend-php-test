@@ -77,6 +77,15 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
         return $app->redirect('/todo');
+
+        /**
+         * TASK
+         *
+         * return $app['twig']->render('todo.html', [
+              'todo' => $todo,
+             'info' => 'TODO Added'
+                  ]);
+         */
     }
     else {
         // 1. return some message to user

@@ -16,6 +16,14 @@
             </td>
         </tr>
     </table>
+
+    <!--   ADDING FLASHBAG -->
+    {% for message in app.session.flashbag.get('info') %}
+    <div class="alert alert-info">{{ message|trans }}</div>
+    {% endfor %}
+
+    <!--  END ADDING FLASHBAG -->
+    
 </div>
 
 {% endblock %}

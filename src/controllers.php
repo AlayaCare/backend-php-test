@@ -24,8 +24,9 @@ $app->match('/login', function (Request $request) use ($app) {
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
     if ($username) {
-        $sql = "SELECT id, username, password FROM users WHERE username = '$username'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = $app['db']->fetchAssoc('SELECT id, username, password FROM users WHERE username = :username', array(
+            'username' => $username,
+        ));
 
         // There shouldn't be duplicates to loop through if we checked for duplicate usernames at signup.
         if (count($user) > 0 && password_verify($password, $user["password"])){
@@ -49,8 +50,9 @@ $app->get('/todos/{page}', function ($page) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed = 0";
-    $allTodos = $app['db']->fetchAll($sql);
+    $allTodos = $app['db']->fetchAll('SELECT * FROM todos WHERE user_id = :user_id AND completed = 0', array(
+        'user_id' => $user['id'],
+    ));
 
     $totalResults = count($allTodos);
     $totalPages = ceil($totalResults/$app['nbPerPage']);
@@ -69,9 +71,15 @@ $app->get('/todos/{page}', function ($page) use ($app) {
         $firstResult = ((ceil($totalResults/$app['nbPerPage'])-1)*$app['nbPerPage']);
     }
 
-    // Make a subquery from $allTodos
-    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed = 0 limit $firstResult, $nbrows";
-    $todos = $app['db']->fetchAll($sql);
+    $statement = $app['db']->prepare(
+        'SELECT * FROM todos WHERE completed = 0 AND user_id = :user_id LIMIT :start, :limit'
+    );
+    $statement->bindValue('user_id', $user['id'], \PDO::PARAM_INT);
+    $statement->bindValue('start', $firstResult, \PDO::PARAM_INT);
+    $statement->bindValue('limit', $nbrows, \PDO::PARAM_INT);
+    $statement->execute();
+
+    $todos = $statement->fetchAll();
 
     $messages = $app['session']->getFlashBag()->all();
 
@@ -92,12 +100,14 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '${user['id']}' AND completed = 0";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app['db']->fetchAll('SELECT * FROM todos WHERE id = :id AND user_id = :user_id AND completed = 0', array(
+            'id' => $id,
+            'user_id' => $user['id'],
+        ));
 
         return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-            'title' => $todo["description"],
+            'todo' => $todo[0],
+            'title' => $todo[0]["description"],
         ]);
     } else {
         return $app->redirect('/todos/1');
@@ -112,8 +122,10 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '${user['id']}'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app['db']->fetchAll('SELECT * FROM todos WHERE id = :id AND user_id = :user_id AND completed = 0', array(
+            'id' => $id,
+            'user_id' => $user['id'],
+        ));
 
         echo json_encode($todo);
         return false;
@@ -132,8 +144,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
 
     if ($description) {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $app['db']->insert('todos', array(
+            'user_id' => $user_id,
+            'description' => $description,
+        ));
 
         $app['session']->getFlashBag()->add('success', 'Todo added.');
     } else {
@@ -147,8 +161,9 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id' AND user_id = '${user['id']}'";
-    $app['db']->executeUpdate($sql);
+    $app['db']->delete('todos', array(
+        'id' => $id,
+    ));
     
     $app['session']->getFlashBag()->add('success', 'Todo deleted.');
 
@@ -157,8 +172,11 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
 $app->match('/todo/complete/{id}', function ($id) use ($app) {
 
-    $sql = "UPDATE todos SET completed = 1 WHERE id = '$id' AND user_id = '${user['id']}'";
-    $app['db']->executeUpdate($sql);
+    $app['db']->update('todos', array(
+        'completed' => 1,
+    ), array(
+        'id' => $id,
+    ));
     
     $app['session']->getFlashBag()->add('success', 'Todo completed.');
 

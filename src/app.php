@@ -19,6 +19,7 @@ $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
+
 $app->register(new DoctrineServiceProvider, array(
     'db.options' => array(
         'driver'    => 'pdo_mysql',

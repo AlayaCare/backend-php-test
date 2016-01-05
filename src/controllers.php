@@ -21,12 +21,14 @@ $app->get('/', function () use ($app) {
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
+        $sql = "SELECT id, username, password FROM users WHERE username = '$username'";
         $user = $app['db']->fetchAssoc($sql);
 
-        if ($user){
+        // There shouldn't be duplicates to loop through if we checked for duplicate usernames at signup.
+        if (count($user) > 0 && password_verify($password, $user["password"])){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
         }
@@ -56,7 +58,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'title' => $todo['description']
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed = 0";
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
@@ -89,6 +91,16 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+
+    $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+    
+    $app['session']->getFlashBag()->add('success', 'Todo completed.');
 
     return $app->redirect('/todo');
 });

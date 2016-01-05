@@ -43,5 +43,11 @@
             </tr>
         {% endfor %}
     </table>
+    {% include 'pager.html' with {
+        currentPage: page,
+        paginationPath: "todos/",
+        lastPage: totalPages,
+        showAlwaysFirstAndLast: false
+    } only %}
 </div>
 {% endblock %}

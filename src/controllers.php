@@ -44,30 +44,63 @@ $app->get('/logout', function () use ($app) {
 });
 
 
+$app->get('/todos/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed = 0";
+    $allTodos = $app['db']->fetchAll($sql);
+
+    $totalResults = count($allTodos);
+    $totalPages = ceil($totalResults/$app['nbPerPage']);
+    $nbrows = $app['nbPerPage'];
+
+    if (is_numeric($page)) {
+        if ($page > $totalPages){
+            // Can we rewrite the URL? Maybe I should redirect.
+            $page = $totalPages;
+        }
+        $firstResult = ($page-1)*$app['nbPerPage'];
+    } else {
+        // Can we rewrite the URL? Maybe I should redirect.
+        $page = $totalPages;
+        // Move to the redirection after adding (instead of redirecting to "last")? Means making another query over there.
+        $firstResult = ((ceil($totalResults/$app['nbPerPage'])-1)*$app['nbPerPage']);
+    }
+
+    // Make a subquery from $allTodos
+    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed = 0 limit $firstResult, $nbrows";
+    $todos = $app['db']->fetchAll($sql);
+
+    $messages = $app['session']->getFlashBag()->all();
+
+    return $app['twig']->render('todos.html', [
+        'todos' => $todos,
+        'title' => 'Todos',
+        'messages' => $messages,
+        'page' => $page,
+        'totalPages' => $totalPages,
+    ]);
+})
+->value('page', 1);
+
+
 $app->get('/todo/{id}', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '${user['id']}' AND completed = 0";
         $todo = $app['db']->fetchAssoc($sql);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
-            'title' => $todo['description']
+            'title' => $todo["description"],
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed = 0";
-        $todos = $app['db']->fetchAll($sql);
-
-        $messages = $app['session']->getFlashBag()->all();
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-            'title' => 'Todos',
-            'messages' => $messages,
-        ]);
+        return $app->redirect('/todos/1');
     }
 })
 ->value('id', null);
@@ -108,13 +141,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $app['session']->getFlashBag()->add('warning', 'You cannot add a todo without a description.');
     }
 
-    return $app->redirect('/todo');
+    return $app->redirect('/todos/last');
 });
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
+    $sql = "DELETE FROM todos WHERE id = '$id' AND user_id = '${user['id']}'";
     $app['db']->executeUpdate($sql);
     
     $app['session']->getFlashBag()->add('success', 'Todo deleted.');
@@ -124,7 +157,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
 $app->match('/todo/complete/{id}', function ($id) use ($app) {
 
-    $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
+    $sql = "UPDATE todos SET completed = 1 WHERE id = '$id' AND user_id = '${user['id']}'";
     $app['db']->executeUpdate($sql);
     
     $app['session']->getFlashBag()->add('success', 'Todo completed.');

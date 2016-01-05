@@ -61,9 +61,12 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed = 0";
         $todos = $app['db']->fetchAll($sql);
 
+        $messages = $app['session']->getFlashBag()->all();
+
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
-            'title' => 'Todos'
+            'title' => 'Todos',
+            'messages' => $messages,
         ]);
     }
 })
@@ -78,7 +81,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '${user['id']}'";
         $todo = $app['db']->fetchAssoc($sql);
-        
+
         echo json_encode($todo);
         return false;
     } else {
@@ -98,6 +101,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if ($description) {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+
+        $app['session']->getFlashBag()->add('success', 'Todo added.');
+    } else {
+        $page = 1;
+        $app['session']->getFlashBag()->add('warning', 'You cannot add a todo without a description.');
     }
 
     return $app->redirect('/todo');
@@ -108,6 +116,8 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+    
+    $app['session']->getFlashBag()->add('success', 'Todo deleted.');
 
     return $app->redirect('/todo');
 });

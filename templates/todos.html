@@ -21,10 +21,21 @@
                 </td>
             </tr>
         {% endfor %}
+        
+        {% set errors = app.session.flashbag.get('todo_add_errors') %}
+        {% set has_errors = errors|length > 0 %}
+        {% for error_message in errors %}
+			<tr>
+				<td colspan="4" class="bg-danger">
+					{{ error_message }}
+				</td>
+			</tr>
+		{% endfor %}
+        
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                <td colspan="3"{% if has_errors %} class="has-error"{% endif %}>
+                    <input type="textbox" name="description" class="small-6 small-center form-control" placeholder="Description...">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>

@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+require "Entity\Todo.php";
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -72,9 +73,20 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    
+    $todo = new Todo();
+    $todo->user_id = $user_id;
+    $todo->description = $description;
+    
+    $errors = $app['validator']->validate($todo);
+    
+    if(count($errors)){
+    	$app['session']->getFlashBag()->add('todo_add_errors', $errors[0]->getMessage());
+    }
+    else{
+    	$sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+    	$app['db']->executeUpdate($sql);
+    }
 
     return $app->redirect('/todo');
 });

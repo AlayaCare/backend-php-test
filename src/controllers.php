@@ -2,7 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-require "Entity\Todo.php";
+require "Entities\Todo.php";
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -89,6 +89,30 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     }
 
     return $app->redirect('/todo');
+});
+
+$app->post('/todo/is_completed/{id}', function (Request $request) use ($app) {
+	if (null === $user = $app['session']->get('user')) {
+		return $app->redirect('/login');
+	}
+	
+	$entity_manager = $app['orm.em'];
+	
+	$todo = $entity_manager->find('Todo', $request->get('id'));
+	
+	if($todo !== null){
+		
+		if($todo->user_id != $user['id']){
+			return $app->redirect('/todo');
+		}
+		
+		$todo->is_completed = 1;
+		$entity_manager->persist($todo);
+		$entity_manager->flush();
+		
+	}
+	
+	return $app->redirect('/todo');
 });
 
 

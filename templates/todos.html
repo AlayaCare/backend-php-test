@@ -1,12 +1,18 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
+<div class="col-md-6 col-md-offset-3">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+    	<tr>
+    		<th>#</th>
+	        <th>User</th>
+	        <th>Description</th>
+	        <th>Is completed ?</th>
+	        <th colspan="2"></th>
+    	</tr>
         {% for todo in todos %}
-            <tr>
+        	<tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
@@ -15,8 +21,20 @@
                     </a>
                 </td>
                 <td>
+	                {% if todo.is_completed == 1 %}
+	                		yes
+	                {% else %}
+	                		no
+	                {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/is_completed/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success" title="Mark as completed"><span class="glyphicon glyphicon-ok"></span></button>
+                    </form>
+                </td>
+                <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        <button type="submit" class="btn btn-xs btn-danger" title="Delete"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
             </tr>
@@ -34,10 +52,10 @@
         
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3"{% if has_errors %} class="has-error"{% endif %}>
+                <td colspan="4"{% if has_errors %} class="has-error"{% endif %}>
                     <input type="textbox" name="description" class="small-6 small-center form-control" placeholder="Description...">
                 </td>
-                <td>
+                <td colspan="2">
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>

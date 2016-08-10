@@ -3,6 +3,14 @@
 {% block content %}
 <div class="col-md-6 col-md-offset-3">
     <h1>Todo List:</h1>
+    
+    {% set confirmations = app.session.flashbag.get('todo_confirmation') %}
+    {% for confirmation in confirmations %}
+        <div class="alert alert-success">
+            {{ confirmation }}
+        </div>
+    {% endfor %}
+    
     <table class="table table-striped">
     	<tr>
     		<th>#</th>

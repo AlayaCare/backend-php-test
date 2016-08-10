@@ -9,7 +9,7 @@
 	        <th>User</th>
 	        <th>Description</th>
 	        <th>Is completed ?</th>
-	        <th colspan="2"></th>
+	        <th colspan="3"></th>
     	</tr>
         {% for todo in todos %}
         	<tr>
@@ -26,6 +26,9 @@
 	                {% else %}
 	                		no
 	                {% endif %}
+                </td>
+                <td>
+                	<a href="{{ app.request.baseurl }}/todo/{{ todo.id }}?format=json">View as JSON</a>
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/is_completed/{{ todo.id }}">
@@ -55,7 +58,7 @@
                 <td colspan="4"{% if has_errors %} class="has-error"{% endif %}>
                     <input type="textbox" name="description" class="small-6 small-center form-control" placeholder="Description...">
                 </td>
-                <td colspan="2">
+                <td colspan="3">
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>

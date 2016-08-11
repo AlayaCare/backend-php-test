@@ -46,10 +46,16 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
+    
+    $entity_manager = $app["orm.em"];
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        
+        $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user['id']]);
+    	
+        if($todo === null){
+            return new Response("Not Found", 404);
+        }
 
         if($request->get('format') === "json"){
         	$json = json_encode($todo);
@@ -60,9 +66,9 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
+    	
+        $todos = $entity_manager->getRepository('Todo')->findBy(['user_id'=>$user['id']]);
+    	
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
         ]);

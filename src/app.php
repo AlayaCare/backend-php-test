@@ -32,16 +32,21 @@ $app->register(new DoctrineServiceProvider, array(
 ));
 
 $app->register(new DoctrineOrmServiceProvider, array(
-		'orm.proxies_dir' => '/src/entity/proxies',
-		'orm.em.options' => array(
-			'mappings' => array(
-				array(
-						'type' => 'annotation',
-						'path' => __DIR__.'/src/Entities/Todo',
-						'namespace' => "Todo"
-				)
-			)
-		)
+    'orm.proxies_dir' => '/src/entity/proxies',
+    'orm.em.options' => array(
+        'mappings' => array(
+            array(
+                'type' => 'annotation',
+                'path' => __DIR__.'/src/Entities/Todo',
+                'namespace' => "Todo"
+            ),
+            array(
+                'type' => 'annotation',
+                'path' => __DIR__.'/src/Entities/User',
+                'namespace' => "User"
+            )
+        )
+    )
 ));
 
 return $app;

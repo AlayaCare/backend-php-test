@@ -3,6 +3,7 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 require "Entities\Todo.php";
+require "Entities\User.php";
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -23,10 +24,12 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-
-        if ($user){
+        
+    	$entity_manager = $app["orm.em"];
+    	
+    	$user = $entity_manager->getRepository('User')->findOneBy(['username'=>$username, 'password'=>$password]);
+    	
+        if ($user !== null){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
         }
@@ -51,7 +54,7 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
 
     if ($id){
         
-        $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user['id']]);
+        $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user->id]);
     	
         if($todo === null){
             return new Response("Not Found", 404);
@@ -67,7 +70,7 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
         ]);
     } else {
     	
-        $todos = $entity_manager->getRepository('Todo')->findBy(['user_id'=>$user['id']]);
+        $todos = $entity_manager->getRepository('Todo')->findBy(['user_id'=>$user->id]);
     	
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -82,7 +85,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
+    $user_id = $user->id;
     $description = $request->get('description');
     
     $todo = new Todo();
@@ -117,7 +120,7 @@ $app->post('/todo/is_completed/{id}', function (Request $request) use ($app) {
 	
 	if($todo !== null){
 		
-		if($todo->user_id != $user['id']){
+		if($todo->user_id != $user->id){
 			return $app->redirect('/todo');
 		}
 		
@@ -138,7 +141,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 	
     $entity_manager = $app['orm.em'];
 	
-    $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user['id']]);
+    $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user->id]);
 	
     if($todo !== null){
         $entity_manager->remove($todo);

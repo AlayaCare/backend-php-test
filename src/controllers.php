@@ -95,8 +95,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     	$app['session']->getFlashBag()->add('todo_add_errors', $errors[0]->getMessage());
     }
     else{
-    	$sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    	$app['db']->executeUpdate($sql);
+    	
+    	$entity_manager = $app["orm.em"];
+    	$entity_manager->persist($todo);
+    	$entity_manager->flush();
+    	
     	$app['session']->getFlashBag()->add('todo_confirmation', "Todo successfully added.");
     }
 
@@ -129,10 +132,19 @@ $app->post('/todo/is_completed/{id}', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-    
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+	
+    $entity_manager = $app['orm.em'];
+	
+    $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user['id']]);
+	
+    if($todo !== null){
+        $entity_manager->remove($todo);
+        $entity_manager->flush();
+    }
+	
     $app['session']->getFlashBag()->add('todo_confirmation', "Todo successfully deleted.");
 
     return $app->redirect('/todo');

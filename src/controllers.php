@@ -45,6 +45,44 @@ $app->get('/logout', function () use ($app) {
     return $app->redirect('/');
 });
 
+$app->get('/todo', function (Request $request) use ($app) {
+    
+	if(!$app['security_service']->is_user_logged_in()){
+	    return $app->redirect('/login');
+	}
+    
+    $user = $app['session']->get('user');
+    
+    $entity_manager = $app["orm.em"];
+
+	$page = intval($request->get('page'));
+	
+	if($page < 1){
+	    $page = 1;
+	}
+	
+	$todos_per_page = 5;
+	$first_result = ($page-1) * $todos_per_page;
+	
+	$query = $entity_manager
+	   ->createQuery("SELECT t FROM Todo t WHERE t.user_id = :user_id")
+	   ->setParameter("user_id", $user->id)
+	   ->setFirstResult($first_result)
+	   ->setMaxResults($todos_per_page);
+	
+	$todos = new Paginator($query);
+	
+	$total_todos = count($todos);
+	
+	$nb_pages = ceil( $total_todos / $todos_per_page );
+	
+    return $app['twig']->render('todos.html', [
+        'todos' => $todos,
+    	'nb_pages' => $nb_pages,
+    	'current_page' => $page
+    ]);
+})
+->value('page', 1);
 
 $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     
@@ -56,54 +94,22 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     
     $entity_manager = $app["orm.em"];
 
-    if ($id){
-        
-        $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user->id]);
-    	
-        if($todo === null){
-            return new Response("Not Found", 404);
-        }
-
-        if($request->get('format') === "json"){
-        	$json = json_encode($todo);
-        	return new Response($json, 200, ["Content-Type"=>"application/json"]);
-        }
-        
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo
-        ]);
-    } else {
-    	
-    	$page = intval($request->get('page'));
-    	
-    	if($page < 1){
-    	    $page = 1;
-    	}
-    	
-    	$todos_per_page = 5;
-    	$first_result = ($page-1) * $todos_per_page;
-    	
-    	$query = $entity_manager
-    	   ->createQuery("SELECT t FROM Todo t WHERE t.user_id = :user_id")
-    	   ->setParameter("user_id", $user->id)
-    	   ->setFirstResult($first_result)
-    	   ->setMaxResults($todos_per_page);
-    	
-    	$todos = new Paginator($query);
-    	
-    	$total_todos = count($todos);
-    	
-    	$nb_pages = ceil( $total_todos / $todos_per_page );
-    	
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        	'nb_pages' => $nb_pages,
-        	'current_page' => $page
-        ]);
+    $todo = $entity_manager->getRepository('Todo')->findOneBy(['id'=>$id, 'user_id'=>$user->id]);
+	
+    if($todo === null){
+        return new Response("Not Found", 404);
     }
+
+    if($request->get('format') === "json"){
+    	$json = json_encode($todo);
+    	return new Response($json, 200, ["Content-Type"=>"application/json"]);
+    }
+    
+    return $app['twig']->render('todo.html', [
+        'todo' => $todo
+    ]);
 })
-->value('id', null)
-->value('page', 1);
+->value('id', null);
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     

@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 require "Entities\Todo.php";
 require "Entities\User.php";
 
@@ -66,19 +67,40 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
         }
         
         return $app['twig']->render('todo.html', [
-            'todo' => $todo,
+            'todo' => $todo
         ]);
     } else {
     	
-        $todos = $entity_manager->getRepository('Todo')->findBy(['user_id'=>$user->id]);
+    	$page = intval($request->get('page'));
+    	
+    	if($page < 1){
+    	    $page = 1;
+    	}
+    	
+    	$todos_per_page = 5;
+    	$first_result = ($page-1) * $todos_per_page;
+    	
+    	$query = $entity_manager
+    	   ->createQuery("SELECT t FROM Todo t WHERE t.user_id = :user_id")
+    	   ->setParameter("user_id", $user->id)
+    	   ->setFirstResult($first_result)
+    	   ->setMaxResults($todos_per_page);
+    	
+    	$todos = new Paginator($query);
+    	
+    	$total_todos = count($todos);
+    	
+    	$nb_pages = ceil( $total_todos / $todos_per_page );
     	
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+        	'nb_pages' => $nb_pages,
+        	'current_page' => $page
         ]);
     }
 })
-->value('id', null);
-
+->value('id', null)
+->value('page', 1);
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {

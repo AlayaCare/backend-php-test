@@ -72,5 +72,26 @@
             </form>
         </tr>
     </table>
+    
+    {% if nb_pages > 1 %}
+		<ul class="pagination">
+			{% for page_number in 1..nb_pages %}
+				
+				{% set class = '' %}
+				{% set is_active = current_page == page_number %}
+				{% if is_active %}
+					{% set class = ' class="active"' %}
+				{% endif %}
+				
+				<li{% autoescape false %}{{ class }}{% endautoescape %}>
+					<a href="?page={{ page_number }}">
+						{{ page_number }}
+					</a>
+				</li>
+				
+			{% endfor %}
+		</ul>
+	{% endif %}
+    
 </div>
 {% endblock %}

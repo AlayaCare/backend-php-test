@@ -8,7 +8,9 @@ use Silex\Provider\ValidatorServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
+use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+require "src\Security.php";
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -29,5 +31,27 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+
+$app->register(new DoctrineOrmServiceProvider, array(
+    'orm.proxies_dir' => '/src/entity/proxies',
+    'orm.em.options' => array(
+        'mappings' => array(
+            array(
+                'type' => 'annotation',
+                'path' => __DIR__.'/src/Entities/Todo',
+                'namespace' => "Todo"
+            ),
+            array(
+                'type' => 'annotation',
+                'path' => __DIR__.'/src/Entities/User',
+                'namespace' => "User"
+            )
+        )
+    )
+));
+
+$app['security_service'] = function ($app) {
+    return new Security($app);
+};
 
 return $app;

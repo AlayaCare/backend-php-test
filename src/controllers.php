@@ -47,9 +47,12 @@ $app->get('/logout', function () use ($app) {
 
 
 $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
+    
+	if(!$app['security_service']->is_user_logged_in()){
+	    return $app->redirect('/login');
+	}
+    
+    $user = $app['session']->get('user');
     
     $entity_manager = $app["orm.em"];
 
@@ -103,9 +106,12 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
 ->value('page', 1);
 
 $app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
+    
+	if(!$app['security_service']->is_user_logged_in()){
+	    return $app->redirect('/login');
+	}
+	
+	$user = $app['session']->get('user');
 
     $user_id = $user->id;
     $description = $request->get('description');
@@ -132,9 +138,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 });
 
 $app->post('/todo/is_completed/{id}', function (Request $request) use ($app) {
-	if (null === $user = $app['session']->get('user')) {
-		return $app->redirect('/login');
+	
+	if(!$app['security_service']->is_user_logged_in()){
+	    return $app->redirect('/login');
 	}
+	
+	$user = $app['session']->get('user');
 	
 	$entity_manager = $app['orm.em'];
 	
@@ -157,9 +166,11 @@ $app->post('/todo/is_completed/{id}', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
+    if(!$app['security_service']->is_user_logged_in()){
+	    return $app->redirect('/login');
+	}
+	
+	$user = $app['session']->get('user');
 	
     $entity_manager = $app['orm.em'];
 	

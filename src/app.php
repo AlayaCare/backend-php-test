@@ -10,6 +10,7 @@ use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+require "src\Security.php";
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -48,5 +49,9 @@ $app->register(new DoctrineOrmServiceProvider, array(
         )
     )
 ));
+
+$app['security_service'] = function ($app) {
+    return new Security($app);
+};
 
 return $app;

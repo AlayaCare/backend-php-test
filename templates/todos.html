@@ -20,6 +20,13 @@
                     </form>
                 </td>
                 
+                 <!-- JSON VIEW -->
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/jsonview/{{ todo.id }}">
+                        <button type="submit" name="json view"></button>
+                    </form>
+                </td>
+                
                   <!--MARK TODO COMPLETED -->
                  <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/todocomplete/{{ todo.id }}">

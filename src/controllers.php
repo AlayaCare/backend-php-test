@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+require "franmomu/silex-pagerfanta-provider";
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -50,8 +51,26 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
 
+           //TASK-5:User can see my list of todos paginated.
+        
+        $pagerfanta = new Pagerfanta\Pagerfanta($sql);
+        $ipp = 3;
+        $p = $app['request']->get('p', 1);
+        $pagerfanta->setMaxPerPage($ipp);
+        $pagerfanta->setCurrentPage($p);
+        $view = new Pagerfanta\View\DefaultView;
+        $html = $view->render($pagerfanta, function($p) use ($app) {
+        	return $app['url_generator']->generate('todos', array('p' => $p));
+        }, array(
+        		'proximity'         => 3,
+        		'previous_message'  => '« Previous',
+        		'next_message'      => 'Next »'
+        ));
+
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
+        		'pagerfanta' => $pagerfanta,
+        		'html' => $html
         ]);
     } else {
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";

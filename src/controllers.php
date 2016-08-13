@@ -101,3 +101,11 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+//TASK-4: Mark Todo as completed
+		
+		$app->match('/todo/todocomplete/{id}', function ($id) use ($app) {
+		
+			 $sql ="UPDATE todos SET status=1 WHERE id='$id'";
+    $app['db']->executeUpdate($sql);
+    
+		});//done

@@ -73,7 +73,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
     
-    //TASK 1:User cannot add a todo without a description
+    //TASK 1:User can't add a todo without a description
     
     if(trim($description!=""))//checking if description is added
     {
@@ -90,7 +90,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     	echo "Pleae add a descrption";
     	exit;
     
-    }//TASK  1 finished
+    }//TASK  1 done
 });
 
 

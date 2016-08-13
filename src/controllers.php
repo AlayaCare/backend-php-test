@@ -109,3 +109,18 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $app['db']->executeUpdate($sql);
     
 		});//done
+//TASK-3: View todo in JSON FORMAT
+
+	$app->match('/todo/jsonview/{id}', function ($id) use ($app) {
+	
+		 $sql = "SELECT * FROM todos WHERE id = '$id'";
+		 $todoarray = array();
+		 while($row =mysqli_fetch_assoc($sql))
+		 {
+		 	$todoarray[] = $row;
+		 }
+		 echo json_encode($todoarray);
+		
+	
+		return $app->redirect('/todo');
+	});

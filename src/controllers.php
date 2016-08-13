@@ -72,11 +72,25 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
+    
+    //TASK 1:User can't add a todo without a description
+    
+    if(trim($description!=""))//checking if description is added
+    {
 
     $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');
+    
+    }
+    
+    else {
+    	
+    	echo "Pleae add a descrption";
+    	exit;
+    
+    }//TASK  1 finished
 });
 
 

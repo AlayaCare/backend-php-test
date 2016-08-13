@@ -80,6 +80,19 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
     $app['db']->executeUpdate($sql);
+    
+    //TASK-4: Confirmation message on adding a todo
+    
+    $session = new Session();
+    $session->start();
+    
+    $msg= "TODO Added Successfully";
+    $session->getFlashBag()->add('notice1', $msg);//using flashBag
+    
+     
+    foreach ($session->getFlashBag()->get('notice1', array()) as $msg) {
+    	echo $msg;
+    }//done
 
     return $app->redirect('/todo');
     
@@ -98,6 +111,19 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+    
+    //TASK-4: Confirmation message on deleting a todo
+ 
+    $session = new Session();
+    $session->start();
+    
+    $msg= "TODO Deleted Successfully";
+    $session->getFlashBag()->add('notice', $msg);//using flashBag
+    
+   
+    foreach ($session->getFlashBag()->get('notice', array()) as $msg) {
+    	echo $msg;
+    }//done
 
     return $app->redirect('/todo');
 });

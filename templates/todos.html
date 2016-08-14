@@ -19,6 +19,20 @@
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
+                
+                 <!-- JSON VIEW -->
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/jsonview/{{ todo.id }}">
+                        <button type="submit" name="json view"></button>
+                    </form>
+                </td>
+                
+                  <!--MARK TODO COMPLETED -->
+                 <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/todocomplete/{{ todo.id }}">
+                        <input type="checkbox" name="status" value="1">
+                    </form>
+                </td>
             </tr>
         {% endfor %}
         <tr>

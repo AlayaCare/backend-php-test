@@ -1,0 +1,76 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="col-md-4 col-md-offset-4">
+    <h1>Todo List:</h1>
+    <table class="table table-striped">
+        <th>#</th><th>User</th><th>Description</th><th></th>
+        {% for result in pager %}
+            <tr>
+                <td>{{ result.id }}</td>
+                <td>{{ result.user_id }}</td>
+                <td>
+                    <a href="{{ app.request.baseurl }}/todo/{{ result.id }}">
+                       {{ result.description }}
+                    </a>
+                </td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ result.id }}">
+                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                    </form>
+                </td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ result.id }}">
+                        <button type="submit" class="btn btn-xs
+                    {% if not result.completed %}
+                        btn-default
+                    {% else %}
+                       btn-success
+                    {% endif %}
+                        confirm-default">
+                        <span class="glyphicon glyphicon-ok glyphicon-white"></span>
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <form method="get" action="{{ app.request.baseurl }}/todo/{{ result.id }}/json">
+                        <button class="icon-json"></button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <form method="post" action="{{ app.request.baseurl }}/todo/add">
+                <td colspan="3">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                </td>
+                <td>
+                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                </td>
+            </form>
+        </tr>
+    </table>
+    <div class="pagination">
+        {{ pagerfanta(pager)|raw }}
+    </div>
+    <div class="alert alert-warning flashbag">
+        {% set flashbag_descriptions = app.session.flashbag.get('description') %}
+        {% set flashbag_before_descriptions = app.session.flashbag.get('textBeforeDescription') %}
+        {% set flashbag_after_descriptions = app.session.flashbag.get('textAfterDescription') %}
+
+        {% for before_description in flashbag_before_descriptions %}
+            {{ before_description }}
+        {% endfor %}
+
+        {% if flashbag_descriptions is not empty %}
+            {% for description in flashbag_descriptions %}
+                <b>{{ description }}</b>
+            {% endfor %}
+        {% endif %}
+
+        {% for after_description in flashbag_after_descriptions %}
+            {{ after_description }}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

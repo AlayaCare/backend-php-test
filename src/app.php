@@ -9,6 +9,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+use FranMoreno\Silex\Provider\PagerfantaServiceProvider;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -29,5 +30,22 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+
+/* user (and description) abstraction layer to hide "native SQL" requests */
+$app['dao.user'] = $app->share(function ($app) {
+    return new UserDao($app['db']);
+});
+
+/* flashbag abstraction layer to highlight description insertion/deletion */
+$app['flashbag.manager'] = $app->share(function ($app) {
+    return new FlashBagManager($app);
+});
+
+$app->register(new PagerfantaServiceProvider());
+$app['pagerfanta.view.options'] = array(
+    'next_message'  => ' next &raquo;',
+    'previous_message'  => '&laquo; previous ',
+);
+
 
 return $app;

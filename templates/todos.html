@@ -3,34 +3,70 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
-    <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
-        {% for todo in todos %}
-            <tr>
+    {% if app.session.flashBag.has('success') %}
+    <div class="alert alert-success">
+        {% for msg in app.session.flashBag.get('success') %}
+        {{ msg }}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if app.session.flashBag.has('error') %}
+    <div class="alert alert-danger">
+        {% for msg in app.session.flashBag.get('error') %}
+        {{ msg }}
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" action="{{ app.request.baseurl }}/todo/add" id="addtodoform">
+        <table class="table table-striped">
+            <th>#</th>
+            <th>User</th>
+            <th>Description</th>
+            <th align="right">Delete</th>
+            <th align="right">Done</th>
+            {% for todo in todos %}
+            <tr {% if todo.todo_id %} class="done" {% endif %}>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
+                        {{ todo.description }}
                     </a>
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        <button type="submit" class="btn btn-xs btn-danger pull-right"><span
+                                class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
+                <td>
+                    {% if todo.todo_id %}
+                    <form class="done" method="post" action="{{ app.request.baseurl }}/todo/undone/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success pull-right"><span
+                                class="glyphicon glyphicon-ok"></span></button>
+                    </form>
+                    {% else %}
+                    <form class="undone" method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-default pull-right"><span
+                                class="glyphicon glyphicon-ok"></span></button>
+                    </form>
+                    {% endif %}
+                </td>
             </tr>
-        {% endfor %}
-        <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todo/add">
+            {% endfor %}
+            <tr>
                 <td colspan="3">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
-                <td>
-                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                <td colspan="2">
+                    <button type="submit" class="pull-right btn btn-sm btn-primary">Add</button>
                 </td>
-            </form>
-        </tr>
-    </table>
+            </tr>
+        </table>
+    </form>
 </div>
+
+
+
+
 {% endblock %}

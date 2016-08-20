@@ -28,7 +28,11 @@
                             <button type="submit" class="btn btn-xs btn-success" title="Set as complete"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
                         </form>
                     {% endif %}
-                
+                    
+                    {# add the json view here for testing purposes #}
+                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" target="_blank">
+                    	<div class="btn btn-xs btn-info" title="View as JSON"><span class="glyphicon glyphicon-eye-open glyphicon-white"></span></div>
+                    </a>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger" title="Delete"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>

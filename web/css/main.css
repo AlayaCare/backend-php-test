@@ -8,3 +8,11 @@ body {
 .error-message{
     color:#d9534f;
 }
+
+td.todo-actions form{
+    float:left;
+    margin-right:5px;
+}
+.todo-completed{
+    text-decoration: line-through;
+}

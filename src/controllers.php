@@ -54,7 +54,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' order by is_complete";
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
@@ -88,6 +88,28 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
+$app->post('/todo/complete/{id}', function ($id) use ($app) {
+	if (null === $user = $app['session']->get('user')) {
+		return $app->redirect('/login');
+	}
+	
+    $sql = "update todos set is_complete = 1 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
+$app->post('/todo/activate/{id}', function ($id) use ($app) {
+	if (null === $user = $app['session']->get('user')) {
+		return $app->redirect('/login');
+	}
+	
+    $sql = "update todos set is_complete = 0 WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');

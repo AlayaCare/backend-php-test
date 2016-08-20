@@ -10,13 +10,27 @@
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
+                    {% if todo.is_complete %}
+                        <span class="todo-completed">{{ todo.description }}</span>
+                    {% else %}
+                        <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                           {{ todo.description }}
+                        </a>
+                    {% endif %}
                 </td>
-                <td>
+                <td class="todo-actions">
+                    {% if todo.is_complete %}
+                        <form method="post" action="{{ app.request.baseurl }}/todo/activate/{{ todo.id }}">
+                            <button type="submit" class="btn btn-xs btn-warning" title="Activate"><span class="glyphicon glyphicon-open glyphicon-white"></span></button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                            <button type="submit" class="btn btn-xs btn-success" title="Set as complete"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+                        </form>
+                    {% endif %}
+                
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        <button type="submit" class="btn btn-xs btn-danger" title="Delete"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
             </tr>

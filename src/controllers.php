@@ -76,6 +76,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if ($description) {//If there is no description, redirect the user to the main todo page
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been added successfully');
     }
     else{
         $app['session']->getFlashBag()->add('todoErrorMessages', 'Please enter the description');
@@ -89,7 +90,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
-
+    $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been deleted successfully');
     return $app->redirect('/todo');
 });
 
@@ -100,7 +101,7 @@ $app->post('/todo/complete/{id}', function ($id) use ($app) {
 	
     $sql = "update todos set is_complete = 1 WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
-
+    $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been flaged as complete');
     return $app->redirect('/todo');
 });
 
@@ -111,7 +112,7 @@ $app->post('/todo/activate/{id}', function ($id) use ($app) {
 	
     $sql = "update todos set is_complete = 0 WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
-
+    $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been activated');
     return $app->redirect('/todo');
 });
 

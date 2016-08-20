@@ -8,6 +8,10 @@ body {
 .error-message{
     color:#d9534f;
 }
+.success-message{
+	color:#5cb85c;
+	text-align: center;
+}
 
 td.todo-actions form{
     float:left;

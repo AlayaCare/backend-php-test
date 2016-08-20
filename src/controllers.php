@@ -41,7 +41,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -54,11 +54,37 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' order by is_complete";
+    	$pageNb = (int)$request->get('page');
+    	$pageNb = $pageNb > 0 ? $pageNb : 1;
+    	$nbOfRecordsPerPage = $app['config']['paginator']['nb_of_records_per_page'];
+    	/*
+    	 * This is a simple paginator.
+    	 * It does not account for other GET or POST variables (for example, when performing a search on the TODO tasks, we want to maintain the search parameters when paginating)
+    	 * It does not account for other features (e.g. limit the number of pages displayed to a specific number)
+    	 * In an actual project, I would probably use a third party pagiantor class, or build a new one with all the features I need
+    	 * In this example, it was built as a simple paginator because there is no need for a more complex one
+    	 */
+    	$sql = "SELECT count(*) as nb FROM todos WHERE user_id = '${user['id']}'";
+    	$nbOfRecords = $app['db']->fetchAll($sql);
+    	$nbOfRecords = $nbOfRecords[0]["nb"];
+    	$nbOfPages = ceil($nbOfRecords / $nbOfRecordsPerPage);
+    	if ($pageNb > $nbOfPages){
+    		return $app->redirect("/todo?page={$nbOfPages}");
+    	}
+    	
+    	$paginatorLinks = array();
+    	for ($i = 1; $i <= $nbOfPages; $i++){
+    		$paginatorLinks[$i] = "/todo?page={$i}";
+    	}
+    	
+    	$startFromRecord = ($pageNb - 1 )* $nbOfRecordsPerPage;
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' order by is_complete, id desc limit {$startFromRecord}, {$nbOfRecordsPerPage}";
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+        	'paginatorLinks' => $paginatorLinks,
+        	'pageNb' => $pageNb
         ]);
     }
 })

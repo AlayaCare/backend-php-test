@@ -5,3 +5,6 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+.error-message{
+    color:#d9534f;
+}

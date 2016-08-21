@@ -1,0 +1,32 @@
+<tr>
+    <td>{{ todo.getId() }}</td>
+    <td>{{ todo.getUserId() }}</td>
+    <td>
+        {% if todo.getIsComplete() %}
+            <span class="todo-completed">{{ todo.getDescription()|escape("html") }}</span>
+        {% else %}
+            <a href="{{ app.url_generator.generate('todo-browse', {id: todo.getId()}) }}">
+               {{ todo.getDescription()|escape("html") }}
+            </a>
+        {% endif %}
+    </td>
+    <td class="todo-actions">
+        {% if todo.getIsComplete() %}
+            <form method="post" action="{{ app.url_generator.generate('todo-activate', {id: todo.getId()}) }}">
+                <button type="submit" class="btn btn-xs btn-warning" title="Activate"><span class="glyphicon glyphicon-open glyphicon-white"></span></button>
+            </form>
+        {% else %}
+            <form method="post" action="{{ app.url_generator.generate('todo-complete', {id: todo.getId()}) }}">
+                <button type="submit" class="btn btn-xs btn-success" title="Set as complete"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+            </form>
+        {% endif %}
+        
+        {# add the json view here for testing purposes #}
+        <a href="{{ app.url_generator.generate('todo-json', {id: todo.getId()}) }}" target="_blank">
+        	<div class="btn btn-xs btn-info" title="View as JSON"><span class="glyphicon glyphicon-eye-open glyphicon-white"></span></div>
+        </a>
+        <form method="post" action="{{ app.url_generator.generate('todo-delete', {id: todo.getId()}) }}">
+            <button type="submit" class="btn btn-xs btn-danger" title="Delete"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+        </form>
+    </td>
+</tr>

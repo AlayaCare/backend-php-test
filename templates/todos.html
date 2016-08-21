@@ -1,30 +1,42 @@
 {% extends "layout.html" %}
 
 {% block content %}
+{% set successMessages = app.session.flashbag.get('todoSuccessMessages') %}
+{% if successMessages is not empty %}
+    {% for oneSuccessMessage in successMessages %}
+        <div class="success-message">{{ oneSuccessMessage }}</div>
+    {% endfor %}
+{% endif %}
+
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+    {% for oneLink in paginatorLinks %}
+        {% if loop.index != 1 %} | {% endif %}
+    	{% if pageNb == loop.index %}
+    		{{ loop.index }}
+    	{% else %}
+    		<a href="{{ oneLink }}">{{ loop.index }}</a>
+    	{% endif %}
+    {% endfor %}
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
         {% for todo in todos %}
+            {% include 'onetodo.html' %}
+        {% endfor %}
+        {% set errorMessages = app.session.flashbag.get('todoErrorMessages') %}
+        {% if errorMessages is not empty %}
             <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
-                <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
-                </td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
+                <td colspan="4">
+                    {% for oneErrorMessage in errorMessages %}
+                        <div class="error-message">{{ oneErrorMessage }}</div>
+                    {% endfor %}
                 </td>
             </tr>
-        {% endfor %}
+        {% endif %}
         <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todo/add">
+            <form method="post" action="{{ app.url_generator.generate('todo-add') }}">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" required name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>

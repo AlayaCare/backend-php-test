@@ -2,6 +2,10 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use models\Model;
+use models\Todo;
+use models\User;
+Model::setDBConnection($app['db']);
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -22,9 +26,7 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-
+    	$user = User::login($username, $password);
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
@@ -45,11 +47,10 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
+    
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-
+    	$todo = new Todo($id);
+    	
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
@@ -64,9 +65,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     	 * In an actual project, I would probably use a third party pagiantor class, or build a new one with all the features I need
     	 * In this example, it was built as a simple paginator because there is no need for a more complex one
     	 */
-    	$sql = "SELECT count(*) as nb FROM todos WHERE user_id = '${user['id']}'";
-    	$nbOfRecords = $app['db']->fetchAll($sql);
-    	$nbOfRecords = $nbOfRecords[0]["nb"];
+    	$nbOfRecords = Todo::getNumberOfUserTasks($user['id']);
     	$nbOfPages = ceil($nbOfRecords / $nbOfRecordsPerPage);
     	$nbOfPages = $nbOfPages > 0 ? $nbOfPages : 1;
     	if ($pageNb > $nbOfPages){
@@ -79,9 +78,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     	}
     	
     	$startFromRecord = ($pageNb - 1 )* $nbOfRecordsPerPage;
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' order by is_complete, id desc limit {$startFromRecord}, {$nbOfRecordsPerPage}";
-        $todos = $app['db']->fetchAll($sql);
-
+        $todos = Todo::getUserTasks($user['id'], $startFromRecord, $nbOfRecordsPerPage);
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
         	'paginatorLinks' => $paginatorLinks,
@@ -101,8 +98,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
 
     if ($description) {//If there is no description, redirect the user to the main todo page
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+    	$todo = new Todo();
+    	$todo->setDescription($description);
+    	$todo->setUserId($user_id);
+    	$todo->setIsComplete(0);
+    	$todo->save();
         $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been added successfully');
     }
     else{
@@ -114,9 +114,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $todo = new Todo($id);
+    $todo->delete();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been deleted successfully');
     return $app->redirect('/todo');
 });
@@ -125,9 +124,9 @@ $app->post('/todo/complete/{id}', function ($id) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
 		return $app->redirect('/login');
 	}
-	
-    $sql = "update todos set is_complete = 1 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+	$todo = new Todo($id);
+	$todo->setIsComplete(1);
+	$todo->save();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been flaged as complete');
     return $app->redirect('/todo');
 });
@@ -136,9 +135,9 @@ $app->post('/todo/activate/{id}', function ($id) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
 		return $app->redirect('/login');
 	}
-	
-    $sql = "update todos set is_complete = 0 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+	$todo = new Todo($id);
+	$todo->setIsComplete(0);
+	$todo->save();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been activated');
     return $app->redirect('/todo');
 });
@@ -147,8 +146,6 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
 		return $app->redirect('/login');
 	}
-
-	$sql = "SELECT * FROM todos WHERE id = '$id'";
-	$todo = $app['db']->fetchAssoc($sql);
-	return json_encode($todo);
+	$todo = new Todo($id);
+	return json_encode($todo->getArrayFromObject());
 });

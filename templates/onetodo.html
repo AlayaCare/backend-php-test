@@ -1,0 +1,32 @@
+<tr>
+    <td>{{ todo.getId() }}</td>
+    <td>{{ todo.getUserId() }}</td>
+    <td>
+        {% if todo.getIsComplete() %}
+            <span class="todo-completed">{{ todo.getDescription() }}</span>
+        {% else %}
+            <a href="{{ app.request.baseurl }}/todo/{{ todo.getId() }}">
+               {{ todo.getDescription() }}
+            </a>
+        {% endif %}
+    </td>
+    <td class="todo-actions">
+        {% if todo.getIsComplete() %}
+            <form method="post" action="{{ app.request.baseurl }}/todo/activate/{{ todo.getId() }}">
+                <button type="submit" class="btn btn-xs btn-warning" title="Activate"><span class="glyphicon glyphicon-open glyphicon-white"></span></button>
+            </form>
+        {% else %}
+            <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.getId() }}">
+                <button type="submit" class="btn btn-xs btn-success" title="Set as complete"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+            </form>
+        {% endif %}
+        
+        {# add the json view here for testing purposes #}
+        <a href="{{ app.request.baseurl }}/todo/{{ todo.getId() }}/json" target="_blank">
+        	<div class="btn btn-xs btn-info" title="View as JSON"><span class="glyphicon glyphicon-eye-open glyphicon-white"></span></div>
+        </a>
+        <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.getId() }}">
+            <button type="submit" class="btn btn-xs btn-danger" title="Delete"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+        </form>
+    </td>
+</tr>

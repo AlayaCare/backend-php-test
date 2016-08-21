@@ -68,6 +68,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     	$nbOfRecords = $app['db']->fetchAll($sql);
     	$nbOfRecords = $nbOfRecords[0]["nb"];
     	$nbOfPages = ceil($nbOfRecords / $nbOfRecordsPerPage);
+    	$nbOfPages = $nbOfPages > 0 ? $nbOfPages : 1;
     	if ($pageNb > $nbOfPages){
     		return $app->redirect("/todo?page={$nbOfPages}");
     	}

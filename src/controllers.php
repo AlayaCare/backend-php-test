@@ -18,7 +18,8 @@ $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
     ]);
-});
+})
+->bind("home");
 
 
 $app->match('/login', function (Request $request) use ($app) {
@@ -29,29 +30,31 @@ $app->match('/login', function (Request $request) use ($app) {
     	$user = User::login($username, $password);
         if ($user){
             $app['session']->set('user', $user);
-            return $app->redirect('/todo');
+            return $app->redirect($app['url_generator']->generate('todo-browse'));
         }
     }
 
     return $app['twig']->render('login.html', array());
-});
+})
+->bind("login");
 
 
 $app->get('/logout', function () use ($app) {
     $app['session']->set('user', null);
-    return $app->redirect('/');
-});
+    return $app->redirect($app['url_generator']->generate('home'));
+})
+->bind("logout");
 
 
 $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
+        return $app->redirect($app['url_generator']->generate('login'));
     }
     
     if ($id){
     	$todo = new Todo($id);
     	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
-    		return $app->redirect('/todo');
+    		return $app->redirect($app['url_generator']->generate('todo-browse'));
     	}
         
         return $app['twig']->render('todo.html', [
@@ -72,12 +75,12 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     	$nbOfPages = ceil($nbOfRecords / $nbOfRecordsPerPage);
     	$nbOfPages = $nbOfPages > 0 ? $nbOfPages : 1;
     	if ($pageNb > $nbOfPages){
-    		return $app->redirect("/todo?page={$nbOfPages}");
+    		return $app->redirect($app['url_generator']->generate('todo-browse') . "?page={$nbOfPages}");
     	}
     	
     	$paginatorLinks = array();
     	for ($i = 1; $i <= $nbOfPages; $i++){
-    		$paginatorLinks[$i] = "/todo?page={$i}";
+    		$paginatorLinks[$i] = $app['url_generator']->generate('todo-browse') . "?page={$i}";
     	}
     	
     	$startFromRecord = ($pageNb - 1 )* $nbOfRecordsPerPage;
@@ -89,12 +92,13 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         ]);
     }
 })
-->value('id', null);
+->value('id', null)
+->bind("todo-browse");
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
+        return $app->redirect($app['url_generator']->generate('login'));
     }
 
     $user_id = $user['id'];
@@ -113,58 +117,63 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $app['session']->getFlashBag()->add('todoErrorMessages', 'Please enter the description');
     }
 
-    return $app->redirect('/todo');
-});
+    return $app->redirect($app['url_generator']->generate('todo-browse'));
+})
+->bind("todo-add");
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
-		return $app->redirect('/login');
+		return $app->redirect($app['url_generator']->generate('login'));
 	}
 	$todo = new Todo($id);
     if (!$todo->getId() || $todo->getUserId() != $user["id"]){
-    	return $app->redirect('/todo');
+    	return $app->redirect($app['url_generator']->generate('todo-browse'));
     }
     $todo->delete();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been deleted successfully');
-    return $app->redirect('/todo');
-});
+    return $app->redirect($app['url_generator']->generate('todo-browse'));
+})
+->bind("todo-delete");
 
 $app->post('/todo/complete/{id}', function ($id) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
-		return $app->redirect('/login');
+		return $app->redirect($app['url_generator']->generate('login'));
 	}
 	$todo = new Todo($id);
 	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
-		return $app->redirect('/todo');
+		return $app->redirect($app['url_generator']->generate('todo-browse'));
 	}
 	$todo->setIsComplete(1);
 	$todo->save();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been flaged as complete');
-    return $app->redirect('/todo');
-});
+    return $app->redirect($app['url_generator']->generate('todo-browse'));
+})
+->bind("todo-complete");
 
 $app->post('/todo/activate/{id}', function ($id) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
-		return $app->redirect('/login');
+		return $app->redirect($app['url_generator']->generate('login'));
 	}
 	$todo = new Todo($id);
 	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
-		return $app->redirect('/todo');
+		return $app->redirect($app['url_generator']->generate('todo-browse'));
 	}
 	$todo->setIsComplete(0);
 	$todo->save();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been activated');
-    return $app->redirect('/todo');
-});
+    return $app->redirect($app['url_generator']->generate('todo-browse'));
+})
+->bind("todo-activate");
 
 $app->get('/todo/{id}/json', function ($id) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
-		return $app->redirect('/login');
+		return $app->redirect($app['url_generator']->generate('login'));
 	}
 	$todo = new Todo($id);
 	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
-		return $app->redirect('/todo');
+		return $app->redirect($app['url_generator']->generate('todo-browse'));
 	}
 	return json_encode($todo->getArrayFromObject());
-});
+})
+->bind("todo-json");

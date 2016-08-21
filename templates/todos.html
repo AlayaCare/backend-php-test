@@ -34,7 +34,7 @@
             </tr>
         {% endif %}
         <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todo/add">
+            <form method="post" action="{{ app.url_generator.generate('todo-add') }}">
                 <td colspan="3">
                     <input type="textbox" required name="description" class="small-6 small-center" placeholder="Description...">
                 </td>

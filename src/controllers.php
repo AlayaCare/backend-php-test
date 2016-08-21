@@ -99,6 +99,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
+    $description = strip_tags($description);//Do not allow the user to use any tags. This is a text-only field
 
     if ($description) {//If there is no description, redirect the user to the main todo page
     	$todo = new Todo();

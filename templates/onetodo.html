@@ -3,10 +3,10 @@
     <td>{{ todo.getUserId() }}</td>
     <td>
         {% if todo.getIsComplete() %}
-            <span class="todo-completed">{{ todo.getDescription() }}</span>
+            <span class="todo-completed">{{ todo.getDescription()|escape("html") }}</span>
         {% else %}
             <a href="{{ app.request.baseurl }}/todo/{{ todo.getId() }}">
-               {{ todo.getDescription() }}
+               {{ todo.getDescription()|escape("html") }}
             </a>
         {% endif %}
     </td>

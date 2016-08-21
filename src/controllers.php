@@ -50,7 +50,10 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     
     if ($id){
     	$todo = new Todo($id);
-    	
+    	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
+    		return $app->redirect('/todo');
+    	}
+        
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
@@ -114,7 +117,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-    $todo = new Todo($id);
+	if (null === $user = $app['session']->get('user')) {
+		return $app->redirect('/login');
+	}
+	$todo = new Todo($id);
+    if (!$todo->getId() || $todo->getUserId() != $user["id"]){
+    	return $app->redirect('/todo');
+    }
     $todo->delete();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been deleted successfully');
     return $app->redirect('/todo');
@@ -125,6 +134,9 @@ $app->post('/todo/complete/{id}', function ($id) use ($app) {
 		return $app->redirect('/login');
 	}
 	$todo = new Todo($id);
+	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
+		return $app->redirect('/todo');
+	}
 	$todo->setIsComplete(1);
 	$todo->save();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been flaged as complete');
@@ -136,6 +148,9 @@ $app->post('/todo/activate/{id}', function ($id) use ($app) {
 		return $app->redirect('/login');
 	}
 	$todo = new Todo($id);
+	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
+		return $app->redirect('/todo');
+	}
 	$todo->setIsComplete(0);
 	$todo->save();
     $app['session']->getFlashBag()->add('todoSuccessMessages', 'Your task has been activated');
@@ -147,5 +162,8 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
 		return $app->redirect('/login');
 	}
 	$todo = new Todo($id);
+	if (!$todo->getId() || $todo->getUserId() != $user["id"]){
+		return $app->redirect('/todo');
+	}
 	return json_encode($todo->getArrayFromObject());
 });

@@ -10,6 +10,30 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 }));
 
 
+/**
+ * Retrieve and display the TODO list
+ * If there is an issue in parameters, pass it to twig to gracefully display it on frontend and help user
+ *
+ * @param  Array    $app        Silex $app
+ * @param  String   $API_error  [Optional] If set, pass an error message to display on frontend
+ * @return The twig template
+ */
+function displayTodoListPage($app, $API_error = null) {
+  if (null === $user = $app['session']->get('user')) {
+      return $app->redirect('/login');
+  }
+
+  $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+  $todos = $app['db']->fetchAll($sql);
+
+  return $app['twig']->render('todos.html', [
+      'todos' => $todos,
+      'error' => $API_error
+  ]);
+}
+
+
+
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
@@ -54,24 +78,26 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
+        return displayTodoListPage($app);
     }
 })
 ->value('id', null);
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
+
+
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
     $user_id = $user['id'];
     $description = $request->get('description');
+
+    // If no description provided, set a usefull error message and redirect to the todo page
+    if (empty($description)) {
+      return displayTodoListPage($app, 'Please add a description.');
+    }
 
     $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
     $app['db']->executeUpdate($sql);

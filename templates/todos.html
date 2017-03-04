@@ -32,5 +32,12 @@
             </form>
         </tr>
     </table>
+
+    {% if error %}
+    <div class="error-message">
+      {{ error }}
+    <div>
+    {% endif %}
+
 </div>
 {% endblock %}

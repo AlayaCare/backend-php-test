@@ -1,6 +1,15 @@
 Alayacare PHP backend skill test
 ==========================
 
+### My notes
+* I added a message system to notify user about the success / fail of a request
+* I updated the app to use real http actions instead of strange endpoints. This way the API is REST compliant 😙
+* ... but instead of use ugly notation `<input type="hidden" id="_method" name="_method" value="PUT" />` using a frontend lib will be better. As it's a backend test I limit at maximum the javascript.
+* I fix some security issue (escaping user inputs, checking task owner) but the biggest fail is storing user password in clear in database instead of hashes !!!
+* I choose to use a `DateTime` instead of a simple `Boolean` for **TASK-2**. With this, we can keep a trace of the user done date. It's bigger than a `Boolean` in DB but more convenient for the user. I choose this way for this test.
+* We can improve the API by caching task retrieval and update cache on `POST` / `PUT` / `DELETE`
+* For `TASK-4`, I used `FlashBags` as requested but doing it on frontend is the right way to handle a confirmation.
+* Sorry for Task 6, but it will take too much time to me to lear how to do it on a framework I'll never use. Plus it's Sunday ☀️ 😎 !
 
 ### Application
 The TODO App allows a user to add reminders of thing he needs to do. Here are the requirement for the app.

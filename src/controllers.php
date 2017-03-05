@@ -24,8 +24,32 @@ function redirectTodoWithMessage($app, $APIMessage = null, $messageType = 'dange
   $app['session']->getFlashBag()->set('message', $APIMessage);
   $app['session']->getFlashBag()->set('type', $messageType);
 
-  // redirect to the TODO page
+  // Redirect to the TODO page
   return $app->redirect('/todo');
+}
+
+/**
+ * Return the latest knew position in pagination for the todo page
+ * Just convenience to avoid to move in the list when we perform CRUD tasks
+ *
+ * @param  Array    $app  Silex $app
+ * @return integer  The best position based on previous jumps
+ */
+function getTodosPageLatestPosition($app) {
+  $previouspos = $app['session']->has('previous-pagination') ? $app['session']->get('previous-pagination') : 1;
+
+  return ($app["request"]->query->has('page')) ? intval($app["request"]->query->get('page')) : $previouspos;
+}
+
+/**
+ * Return true if the user is the owner of the task. Either false
+ *
+ * @param  Array    $task   Task retrieved in DB
+ * @param  Array    $user   User to check
+ * @return boolean  True if the given user is the owner of the task
+ */
+function isOwnerOfTheTask($task, $user) {
+  return $task['user_id'] == $user['id'];
 }
 
 
@@ -41,6 +65,7 @@ $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
 
+    // NOTE: big security fail here. The password must be hashed in the DB and we must compare hashes instead of clear text !!!
     if ($username) {
         $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
         $user = $app['db']->fetchAssoc($sql);
@@ -68,19 +93,24 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    if ($id){
+    if ($id) {
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
 
+        // Check integrity and rights
+        if (empty($todo) || !isOwnerOfTheTask($todo, $user))
+          return $app->redirect('/todo');
+
         return $app['twig']->render('todo.html', [
-            'todo' => $todo,
+            'todo' => $todo
         ]);
     } else {
         // First retrieve the total number of todos for this user
         $total = $todos = $app['db']->fetchAll("SELECT COUNT(*) AS `Total` FROM `todos` WHERE `todos`.`user_id` = '${user['id']}'");
 
         // Then retrieve the page we want and compute SQL index
-        $page = ($app["request"]->query->has('page')) ? intval($app["request"]->query->get('page')) : 1;
+        $page = getTodosPageLatestPosition($app);
+        $app['session']->set('previous-pagination', $page);
         $index = ($page - 1) * $nbItemsPerPage;
 
         // Perform request
@@ -104,6 +134,10 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
+
+        // Check integrity and rights
+        if (empty($todo) || !isOwnerOfTheTask($todo, $user))
+          return $app->redirect('/todo');
 
         return $app->json($todo);
     } else {
@@ -154,6 +188,10 @@ $app->post('/todo/toggleState/{id}', function ($id) use ($app) {
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
+
+        // Check integrity and rights
+        if (empty($todo) || !isOwnerOfTheTask($todo, $user))
+          return $app->redirect('/todo');
 
         // If the task wasn't done, set it done now !
         if (is_null($todo['done_date'])) {

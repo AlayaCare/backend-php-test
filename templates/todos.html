@@ -48,11 +48,82 @@
         </tr>
     </table>
 
-    {% if message %}
-    <div class="alert alert-{{ type }}" role="alert">
+    {% for message in app.session.flashbag.get('message') %}
+    <div class="alert alert-{{ app.session.flashbag.get('type')[0] }}" role="alert">
       {{ message }}
     <div>
-    {% endif %}
+    {% endfor %}
 
+
+    <!-- Add task confirmation modal -->
+    {% for task in app.session.flashbag.get('add_confirmation') %}
+    <div class="modal add-confirmation-modal" data-show="true" tabindex="-1" role="dialog" >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <form method="post" action="{{ app.request.baseurl }}/todo/add">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">Add a new task</h4>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to add a new task ?</p>
+
+              <blockquote>
+                <p>{{ task }}</p>
+              </blockquote>
+
+              <input type="hidden" name="description" value="{{ task }}">
+              <input type="hidden" name="confirmed" value="true">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Actually, no</button>
+              <button type="submit" class="btn btn-primary">Yep!</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    <!-- / Add task confirmation modal -->
+
+    <!-- Delete task confirmation modal -->
+    {% for task in app.session.flashbag.get('delete_confirmation') %}
+    <div class="modal delete-confirmation-modal" data-show="true" tabindex="-1" role="dialog" >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ task }}">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">Delete task {{ task }}</h4>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to delete the task {{ task }} ?</p>
+
+              <p>You can't go back...</p>
+
+              <input type="hidden" name="confirmed" value="true">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">No, I love it too much</button>
+              <button type="submit" class="btn btn-danger">Remove it for the rest of the life!</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    <!-- / Delete task confirmation modal -->
+
+
+    <script type="text/javascript">
+
+        // Little script to use add / delete modals confirmation for the user :)
+        window.onload = function() {
+            $('.add-confirmation-modal').modal();
+            $('.delete-confirmation-modal').modal();
+        };
+    </script>
+
+</div>
 </div>
 {% endblock %}

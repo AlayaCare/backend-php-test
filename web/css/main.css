@@ -5,3 +5,15 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+
+.extra-info {
+  display: block;
+  font-size: 0.75em;
+  color: gray;
+}
+
+.mt-5 { margin-top: 5px; }
+
+.btn-primary > a { color: white; }
+
+.btn-toolbar { margin-bottom: 20px; }

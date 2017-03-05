@@ -9,6 +9,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+use Symfony\Component\HttpFoundation\Request;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -29,5 +30,8 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+
+// Enable the method parameter override to use HTTP right action for right CRUD task
+Request::enableHttpMethodParameterOverride();
 
 return $app;

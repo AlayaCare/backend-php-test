@@ -4,13 +4,32 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th>
+        <th>User</th>
+        <th>Description</th>
+        <th class="text-center">Done</th>
+        <th class="text-center">Delete</th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
-            <td>{{ todo.description }}</td>
             <td>
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+              {{ todo.description }}
+              <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" class="extra-info">See as json</a>
+            </td>
+            <td class="text-center">
+              <form method="post" action="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                <input type="hidden" id="_method" name="_method" value="PUT" />
+                {% if todo.done_date %}
+                <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
+                <span class="extra-info mt-5">Done on <br>{{ todo.done_date | date("F jS \\a\\t g:ia") }}</span>
+                {% else %}
+                <button type="submit" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-unchecked glyphicon-white"></span></button>
+                {% endif %}
+              </form>
+            </td>
+            <td class="text-center">
+                <form method="post" action="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                    <input type="hidden" id="_method" name="_method" value="DELETE" />
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
             </td>

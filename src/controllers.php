@@ -62,6 +62,8 @@ $app->get('/logout', function () use ($app) {
 
 
 $app->get('/todo/{id}', function ($id) use ($app) {
+    $nbItemsPerPage = 5;
+
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -74,11 +76,20 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+        // First retrieve the total number of todos for this user
+        $total = $todos = $app['db']->fetchAll("SELECT COUNT(*) AS `Total` FROM `todos` WHERE `todos`.`user_id` = '${user['id']}'");
 
+        // Then retrieve the page we want and compute SQL index
+        $page = ($app["request"]->query->has('page')) ? intval($app["request"]->query->get('page')) : 1;
+        $index = ($page - 1) * $nbItemsPerPage;
+
+        // Perform request
+        $sql = "SELECT * FROM `todos` WHERE `todos`.`user_id` = '${user['id']}' LIMIT $index, $nbItemsPerPage";
+        $todos = $app['db']->fetchAll($sql);
         return $app['twig']->render('todos.html', [
-            'todos' => $todos
+            'todos' => $todos,
+            'page'  => $page,
+            'totalPages' => ceil($total[0]['Total'] / $nbItemsPerPage)
         ]);
     }
 })

@@ -48,11 +48,24 @@
         </tr>
     </table>
 
+    <!-- Pagination -->
+    <div class="btn-toolbar" role="toolbar">
+      <div class="btn-group" role="group">
+        {% for i in 1..totalPages %}
+        <button type="button" class="btn {{ (page == i) ? 'btn-primary' : 'btn-default' }}"><a href="/todo?page={{ i }}">{{ i }}</a></button>
+        {% endfor %}
+      </div>
+    </div>
+    <!-- / Pagination -->
+
+
+    <!-- Server alert messages -->
     {% for message in app.session.flashbag.get('message') %}
     <div class="alert alert-{{ app.session.flashbag.get('type')[0] }}" role="alert">
       {{ message }}
     <div>
     {% endfor %}
+    <!-- / Server alert messages -->
 
 
     <!-- Add task confirmation modal -->

@@ -14,11 +14,12 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
  * Retrieve and display the TODO list
  * If there is an issue in parameters, pass it to twig to gracefully display it on frontend and help user
  *
- * @param  Array    $app        Silex $app
- * @param  String   $API_error  [Optional] If set, pass an error message to display on frontend
+ * @param  Array    $app          Silex $app
+ * @param  String   $APIMessage   [Optional] If set, pass an error message to display on frontend
+ * @param  String   $messageType  [Optional] One of the bootstrap alert type. Default 'danger'
  * @return The twig template
  */
-function displayTodoListPage($app, $API_error = null) {
+function displayTodoListPage($app, $APIMessage = null, $messageType = 'danger') {
   if (null === $user = $app['session']->get('user')) {
       return $app->redirect('/login');
   }
@@ -28,7 +29,8 @@ function displayTodoListPage($app, $API_error = null) {
 
   return $app['twig']->render('todos.html', [
       'todos' => $todos,
-      'error' => $API_error
+      'message' => $APIMessage,
+      'type' => $messageType
   ]);
 }
 
@@ -104,6 +106,31 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->post('/todo/toggleState/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        // Toggle the done state of the todo
+        if (is_null($todo['done_date'])) {
+          $updated = $app['db']->executeUpdate("UPDATE `todos` SET `done_date` = NOW() WHERE `todos`.`id` = $id");
+          return ($updated === 1) ? displayTodoListPage($app, 'Good work !', 'success') : displayTodoListPage($app, 'Cannot update your task :/');
+        }
+        else {
+          $updated = $app['db']->executeUpdate("UPDATE `todos` SET `done_date` = NULL WHERE `todos`.`id` = $id");
+          return ($updated === 1) ? displayTodoListPage($app, 'Keep on working !', 'info') : displayTodoListPage($app, 'Cannot update your task :/');
+        }
+    } else {
+        return displayTodoListPage($app);
+    }
+})
+->value('id', null);
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {

@@ -1,29 +1,43 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
+<div class="col-md-6 col-md-offset-3">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th>
+        <th>User</th>
+        <th>Description</th>
+        <th class="text-center">Done</th>
+        <th class="text-center">Delete</th>
         {% for todo in todos %}
-            <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
-                <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
-                </td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
-                </td>
-            </tr>
+        <tr>
+            <td>{{ todo.id }}</td>
+            <td>{{ todo.user_id }}</td>
+            <td>
+                <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                   {{ todo.description }}
+                </a>
+            </td>
+            <td class="text-center">
+              <form method="post" action="{{ app.request.baseurl }}/todo/toggleState/{{ todo.id }}">
+                {% if todo.done_date %}
+                <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
+                <span class="todo-done">Done on <br>{{ todo.done_date | date("F jS \\a\\t g:ia") }}</span>
+                {% else %}
+                <button type="submit" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-unchecked glyphicon-white"></span></button>
+                {% endif %}
+              </form>
+            </td>
+            <td class="text-center">
+                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                </form>
+            </td>
+        </tr>
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
+                <td colspan="4">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
@@ -33,9 +47,9 @@
         </tr>
     </table>
 
-    {% if error %}
-    <div class="error-message">
-      {{ error }}
+    {% if message %}
+    <div class="alert alert-{{ type }}" role="alert">
+      {{ message }}
     <div>
     {% endif %}
 

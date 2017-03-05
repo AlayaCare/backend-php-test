@@ -33,6 +33,7 @@ php composer.phar install
 cp config/config.yml.dist config/config.yml
 mysql -u root <database> < resources/database.sql
 mysql -u root <database> < resources/fixtures.sql
+mysql -u root <database> < resources/adding_todos_done_date.sql
 php -S localhost:1337 -t web/ web/index.php
 ```
 You can change the database connection from the file `config/config.yml`.
@@ -89,4 +90,3 @@ And you're done!
 More documentation on Github:
 * https://help.github.com/articles/fork-a-repo/
 * https://help.github.com/articles/using-pull-requests/
-

@@ -6,6 +6,8 @@ body {
     margin-top: 10px;
 }
 
-.error-message {
-  color: red;
+.todo-done {
+  display: block;
+  font-size: 0.8em;
+  opacity: 0.7;
 }

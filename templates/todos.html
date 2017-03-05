@@ -17,12 +17,13 @@
                 <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
                    {{ todo.description }}
                 </a>
+                <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" class="extra-info">See as json</a>
             </td>
             <td class="text-center">
               <form method="post" action="{{ app.request.baseurl }}/todo/toggleState/{{ todo.id }}">
                 {% if todo.done_date %}
                 <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
-                <span class="todo-done">Done on <br>{{ todo.done_date | date("F jS \\a\\t g:ia") }}</span>
+                <span class="extra-info mt-5">Done on <br>{{ todo.done_date | date("F jS \\a\\t g:ia") }}</span>
                 {% else %}
                 <button type="submit" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-unchecked glyphicon-white"></span></button>
                 {% endif %}

@@ -6,8 +6,10 @@ body {
     margin-top: 10px;
 }
 
-.todo-done {
+.extra-info {
   display: block;
-  font-size: 0.8em;
-  opacity: 0.7;
+  font-size: 0.75em;
+  color: gray;
 }
+
+.mt-5 { margin-top: 5px; }

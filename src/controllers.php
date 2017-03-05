@@ -86,6 +86,23 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 ->value('id', null);
 
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        return $app->json($todo);
+    } else {
+        return $app->redirect('/todo');
+    }
+})
+->value('id', null);
+
+
 $app->post('/todo/add', function (Request $request) use ($app) {
 
 
@@ -127,7 +144,7 @@ $app->post('/todo/toggleState/{id}', function ($id) use ($app) {
           return ($updated === 1) ? displayTodoListPage($app, 'Keep on working !', 'info') : displayTodoListPage($app, 'Cannot update your task :/');
         }
     } else {
-        return displayTodoListPage($app);
+        return $app->redirect('/todo');
     }
 })
 ->value('id', null);

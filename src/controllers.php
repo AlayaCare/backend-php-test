@@ -186,7 +186,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 /**
  * Retrieve an order and toggle its done state
  */
-$app->post('/todo/toggleState/{id}', function ($id) use ($app) {
+$app->put('/todo/{id}', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -216,7 +216,7 @@ $app->post('/todo/toggleState/{id}', function ($id) use ($app) {
 ->value('id', null);
 
 
-$app->post('/todo/delete/{id}', function (Request $request) use ($app) {
+$app->delete('/todo/{id}', function (Request $request) use ($app) {
 
   if (null === $user = $app['session']->get('user')) {
       return $app->redirect('/login');

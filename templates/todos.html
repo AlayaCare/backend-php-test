@@ -20,17 +20,19 @@
                 <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" class="extra-info">See as json</a>
             </td>
             <td class="text-center">
-              <form method="post" action="{{ app.request.baseurl }}/todo/toggleState/{{ todo.id }}">
+              <form method="post" action="{{ app.request.baseurl }}/todo/{{ todo.id }}">
                 {% if todo.done_date %}
                 <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
                 <span class="extra-info mt-5">Done on <br>{{ todo.done_date | date("F jS \\a\\t g:ia") }}</span>
                 {% else %}
                 <button type="submit" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-unchecked glyphicon-white"></span></button>
                 {% endif %}
+                <input type="hidden" id="_method" name="_method" value="PUT" />
               </form>
             </td>
             <td class="text-center">
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                <form method="post" action="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                    <input type="hidden" id="_method" name="_method" value="DELETE" />
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
             </td>
@@ -104,7 +106,7 @@
     <div class="modal delete-confirmation-modal" data-show="true" tabindex="-1" role="dialog" >
       <div class="modal-dialog" role="document">
         <div class="modal-content">
-          <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ task }}">
+          <form method="post" action="{{ app.request.baseurl }}/todo/{{ task }}">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
               <h4 class="modal-title">Delete task {{ task }}</h4>
@@ -115,6 +117,7 @@
               <p>You can't go back...</p>
 
               <input type="hidden" name="confirmed" value="true">
+              <input type="hidden" id="_method" name="_method" value="DELETE" />
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">No, I love it too much</button>

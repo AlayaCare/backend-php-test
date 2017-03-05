@@ -101,6 +101,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         if (empty($todo) || !isOwnerOfTheTask($todo, $user))
           return $app->redirect('/todo');
 
+        $todo['description'] = html_entity_decode($todo['description'], ENT_QUOTES);
         return $app['twig']->render('todo.html', [
             'todo' => $todo
         ]);
@@ -116,6 +117,10 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         // Perform request
         $sql = "SELECT * FROM `todos` WHERE `todos`.`user_id` = '${user['id']}' LIMIT $index, $nbItemsPerPage";
         $todos = $app['db']->fetchAll($sql);
+
+        for ($i = 0; $i < count($todos); $i++)
+          $todos[$i]['description'] = html_entity_decode($todos[$i]['description'], ENT_QUOTES);
+
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
             'page'  => $page,
@@ -163,6 +168,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     // If we have the user confirmation, add the new task in DB
     if (!empty($confirmed)) {
+      $description = htmlentities($description, ENT_QUOTES);
       $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
       $app['db']->executeUpdate($sql);
 

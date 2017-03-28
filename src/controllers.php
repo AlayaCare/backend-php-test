@@ -80,6 +80,14 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     return $app->redirect('/todo');
 });
 
+$app->match('/todo/complete/{id}', function (Request $request, $id) use ($app) {
+
+    $completed = $request->get("completed");
+    $sql = "UPDATE todos SET completed = " . $completed . " WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 

@@ -14,6 +14,13 @@
                        {{ todo.description }}
                     </a>
                 </td>
+                <td>{{ todo.completed == 1 ? "Completed" : "Ongoing" }}</td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <input type="hidden" name = "completed" value="{{ todo.completed == 1 ? '0' : '1' }}">
+                        <button type="submit" class="btn btn-xs"><span class="glyphicon {{ todo.completed == 1 ? 'glyphicon-remove': 'glyphicon-ok' }} glyphicon-white text-success"></span></button>
+                    </form>
+                </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

@@ -5,12 +5,12 @@
     <h1>Todo List:</h1>
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
-        {% for todo in todos %}
+        {% for todo in pager %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                    <a href="{{ app.request.baseurl }}/todo?id={{ todo.id }}">
                        {{ todo.description }}
                     </a>
                 </td>
@@ -32,5 +32,8 @@
             </form>
         </tr>
     </table>
+    <ul class="pagination">
+        {{ pagerfanta(pager)|raw }}
+    </ul>
 </div>
 {% endblock %}

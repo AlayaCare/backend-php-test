@@ -29,5 +29,6 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+$app->register(new FranMoreno\Silex\Provider\PagerfantaServiceProvider());
 
 return $app;

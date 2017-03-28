@@ -22,7 +22,9 @@
         "symfony/twig-bridge": "~2.3",
         "symfony/validator": "~2.3",
         "doctrine/dbal": "~2.2",
-        "deralex/yaml-config-service-provider": "1.0.x-dev"
+        "deralex/yaml-config-service-provider": "1.0.x-dev",
+        "franmomu/silex-pagerfanta-provider": "1.0.*@dev",
+        "pagerfanta/pagerfanta": "dev-master"
     },
     "autoload": {
         "psr-0": { "": "src/" }

@@ -1,5 +1,7 @@
 <?php
 
+use Pagerfanta\Pagerfanta;
+use Pagerfanta\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -41,25 +43,29 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
+    $id = $request->query->get('id');
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
-
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
         $todos = $app['db']->fetchAll($sql);
+        $adapter = new ArrayAdapter($todos);
+        $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setMaxPerPage(5);
+        $pagerfanta->setCurrentPage($request->query->get('page', 1));
 
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
+        return $app['twig']->render('todos.html', array(
+            'pager' => $pagerfanta
+        ));
     }
 })
 ->value('id', null);

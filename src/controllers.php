@@ -88,6 +88,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (!empty(trim($description))){
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+        $request->getSession()->getFlashBag()->add('success', 'New todo added');
+    }
+    else{
+        $request->getSession()->getFlashBag()->add('error', 'New todo failed: Please enter a descrption');
     }
 
     return $app->redirect('/todo');
@@ -102,10 +106,10 @@ $app->match('/todo/complete/{id}', function (Request $request, $id) use ($app) {
     return $app->redirect('/todo');
 });
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
+$app->match('/todo/delete/{id}', function (Request $request, $id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
-
+    $request->getSession()->getFlashBag()->add('success', 'Todo ' . $id . ' has been deleted');
     return $app->redirect('/todo');
 });

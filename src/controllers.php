@@ -80,15 +80,18 @@ $app->post('/todo/add', function (Request $request) use ($app, $entityManager) {
         return $app->redirect('/login');
     }
 
-    $todo = new Todos();
-    $user_id = $user['id'];
-    $description = $request->get('description');
-    $todo->setUser_ID($user_id);
-    $todo->setDescription($description);
-    $entityManager->persist($todo);
-    $entityManager->flush();
-
-    return $app->redirect('/todo');
+    if(isset($description) && !empty($description)) {
+        $todo = new Todos();
+        $user_id = $user['id'];
+        $description = $request->get('description');
+        $todo->setUser_ID($user_id);
+        $todo->setDescription($description);
+        $entityManager->persist($todo);
+        $entityManager->flush();
+        return $app->redirect('/todo');
+    } else {
+        return $app->redirect('/todo');
+    }
 });
 
 

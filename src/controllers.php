@@ -2,6 +2,8 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Entity\Todo;
+use Entity\User;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -20,11 +22,15 @@ $app->get('/', function () use ($app) {
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
-
+    $em = $app['db.orm.em'];
+   
+    
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
+        /*$sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
         $user = $app['db']->fetchAssoc($sql);
-
+        */
+        $em = $app['db.orm.em'];
+        $user = $em->getRepository('Entity\User')->findOneBy(array('username' => $username, 'password' => $password));
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
@@ -47,15 +53,23 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $em = $app['db.orm.em'];
+        $todo = $em->getRepository('Entity\Todo')->findBy(
+            array( 
+                "id" => $id,
+                "user_id" => $app['session']->get('user')->getId()
+            ));
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+        
+        $em = $app['db.orm.em'];
+        $todos = $em->getRepository('Entity\Todo')->findBy(
+            array( 
+                "user_id" => $app['session']->get('user')->getId()
+            ));
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -69,9 +83,9 @@ $app->get('/todo/{id}/json', function($id) use ($app){
         return $app->redirect('/login');
     }
     if ($id){
-            $sql = "SELECT * FROM todos WHERE id = '$id'";
-            $todo = $app['db']->fetchAssoc($sql);
-            return json_encode($todo);
+            $em = $app['db.orm.em'];
+            $todo = $em->getRepository('Entity\Todo')->find($id);
+            return json_encode($todo->json());
     }
     return $app->redirect('/todo');
 });
@@ -82,12 +96,15 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
-    $user_id = $user['id'];
+    
+    $user_id = $app['session']->get('user')->getId();
     $description = $request->get('description');
     if (!empty(trim($description))){
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $em = $app['db.orm.em'];
+        $todo = new Todo($user_id);
+        $todo->setDescription($description);
+        $em->persist($todo);
+        $em->flush();
         $request->getSession()->getFlashBag()->add('success', 'New todo added');
     }
     else{
@@ -100,16 +117,20 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 $app->match('/todo/complete/{id}', function (Request $request, $id) use ($app) {
 
     $completed = $request->get("completed");
-    $sql = "UPDATE todos SET completed = " . $completed . " WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $em = $app['db.orm.em'];
+    $todo = $em->getRepository('Entity\Todo')->find($id);
+    $todo->setCompleted($completed);
+    $em->flush();
 
     return $app->redirect('/todo');
 });
 
 $app->match('/todo/delete/{id}', function (Request $request, $id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $em = $app['db.orm.em'];
+    $todo = $em->getRepository('Entity\Todo')->find($id);
+    $em->remove($todo);
+    $em->flush();
     $request->getSession()->getFlashBag()->add('success', 'Todo ' . $id . ' has been deleted');
     return $app->redirect('/todo');
 });

@@ -12,3 +12,7 @@ CREATE TABLE todos (
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 ) Engine=InnoDB CHARSET=utf8;
+
+ALTER table todos
+ADD completed boolean
+DEFAULT 0;

@@ -22,10 +22,16 @@
         "symfony/twig-bridge": "~2.3",
         "symfony/validator": "~2.3",
         "doctrine/dbal": "~2.2",
-        "deralex/yaml-config-service-provider": "1.0.x-dev"
+        "deralex/yaml-config-service-provider": "1.0.x-dev",
+        "fredjuvaux/doctrine-orm-provider": "1.0.*@dev"
     },
+    "minimum-stability": "dev",
     "autoload": {
-        "psr-0": { "": "src/" }
+        "psr-0": { 
+            "Controller": "src/",
+            "Entity": "src/",
+            "Form": "src/"
+         }
     },
     "extra": {
         "branch-alias": {

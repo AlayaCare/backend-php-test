@@ -4,7 +4,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Status</th><th>Mark Completed</th><th>Delete</th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -13,6 +13,13 @@
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
                        {{ todo.description }}
                     </a>
+                </td>
+                <td>{{ todo.completed == 1 ? "Completed" : "Ongoing" }}</td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <input type="hidden" name = "completed" value="{{ todo.completed == 1 ? '0' : '1' }}">
+                        <button type="submit" class="btn btn-xs"><span class="glyphicon {{ todo.completed == 1 ? 'glyphicon-remove': 'glyphicon-ok' }} glyphicon-white text-success"></span></button>
+                    </form>
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
@@ -31,6 +38,29 @@
                 </td>
             </form>
         </tr>
+        <tr>
+            <td colspan = 5>
+                <a href="{{app.request.baseurl}}/todo?current_page={{app.request.get('current_page') ? max(app.request.get('current_page') - 1, 1) : 1}}">Prev</a>
+            </td>
+            
+            <td>
+                <a href="{{app.request.baseurl}}/todo?current_page={{app.request.get('current_page') ? app.request.get('current_page') + 1 : 1}}">Next</a>
+            </td>
+        </tr>
     </table>
+     {% if app.session.flashBag.has('error') %}
+        <div class="alert alert-danger">
+            {% for msg in app.session.flashBag.get('error') %}
+                {{ msg }}
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if app.session.flashBag.has('success') %}
+        <div class="alert alert-success">
+            {% for msg in app.session.flashBag.get('success') %}
+                {{ msg }}
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

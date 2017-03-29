@@ -38,6 +38,15 @@
                 </td>
             </form>
         </tr>
+        <tr>
+            <td colspan = 5>
+                <a href="{{app.request.baseurl}}/todo?current_page={{app.request.get('current_page') ? max(app.request.get('current_page') - 1, 1) : 1}}">Prev</a>
+            </td>
+            
+            <td>
+                <a href="{{app.request.baseurl}}/todo?current_page={{app.request.get('current_page') ? app.request.get('current_page') + 1 : 1}}">Next</a>
+            </td>
+        </tr>
     </table>
      {% if app.session.flashBag.has('error') %}
         <div class="alert alert-danger">

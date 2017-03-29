@@ -56,7 +56,7 @@ class Todos
 
     public function getCompleted()
     {
-        return $this->password;
+        return $this->completed;
     }
 
     public function setCompleted($completed)

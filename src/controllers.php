@@ -94,6 +94,21 @@ $app->post('/todo/add', function (Request $request) use ($app, $entityManager) {
     }
 });
 
+$app->post('/todo/updateStatus/{id}', function (Request $request) use ($app, $todosRepo, $entityManager) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    $id = $request->get('id');
+    $status = $request->get('status');
+    $user_id = $user['id'];
+    if(isset($status)) {
+        $todo = $todosRepo->findOneBy(array('id'=>$id));
+        $todo->setCompleted($status);
+        $entityManager->persist($todo);
+        $entityManager->flush();
+    } 
+    return $app->redirect('/todo');
+});
 
 $app->match('/todo/delete/{id}', function ($id) use ($app, $todosRepo, $entityManager) {
     $todo = $todosRepo->findOneBy(array('id' => $id));

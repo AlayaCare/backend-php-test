@@ -4,7 +4,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Status</th><th>Action</th>
         {% for todo in pager %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -15,6 +15,22 @@
                     </a>
                 </td>
                 <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/updateStatus/{{ todo.id }}">
+                        {% if todo.completed %}                    
+                            <input type="hidden" name="status" value="0">
+                            <button class="btn btn-xs btn-success" type="submit">
+                                <span class="glyphicon glyphicon-ok glyphicon-white"></span>
+                            </button>
+                        {% else %}
+                            <input type="hidden" name="status" value="1">
+                            <button class="btn btn-xs btn-primary" type="submit">
+                                <span class="glyphicon glyphicon-remove "></span>
+                            </button>
+                        {% endif %}
+
+                    </form>
+                </td>
+                <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
@@ -23,8 +39,8 @@
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                <td colspan="4">
+                    <input type="textbox" name="description" class="small-4 small-center" placeholder="Description...">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>

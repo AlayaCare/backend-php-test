@@ -94,6 +94,17 @@ $app->post('/todo/add', function (Request $request) use ($app, $entityManager) {
     }
 });
 
+$app->get('/todo/{id}/json', function ($id) use ($app, $todosRepo, $entityManager) {
+    $todoRow = $todosRepo->findOneBy(array('id' => $id));
+    $todoArr = [
+    'id' => $todoRow->getId(),
+    'user_id' => $todoRow->getUser_Id(),
+    'description' => $todoRow->getDescription(),
+    ];
+    
+    return json_encode($todoArr);
+});
+
 $app->post('/todo/updateStatus/{id}', function (Request $request) use ($app, $todosRepo, $entityManager) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');

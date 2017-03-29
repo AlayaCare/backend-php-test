@@ -60,7 +60,7 @@ $app->get('/todo/{id}', function (Request $request) use ($app, $todosRepo) {
             'todo' => $todo,
         ]);
     } else {
-        $todos = $todosRepo->findAll(array('user_id' => $user['id']));
+        $todos = $todosRepo->findAll(array('user_id' => $user->getId()));
         $adapter = new ArrayAdapter($todos);
         $pagerfanta = new Pagerfanta($adapter);
         $pagerfanta->setMaxPerPage(5);
@@ -80,10 +80,10 @@ $app->post('/todo/add', function (Request $request) use ($app, $entityManager) {
         return $app->redirect('/login');
     }
 
-    if(isset($description) && !empty($description)) {
+    $description = $request->get('description');
+    if(!empty($description)) {
         $todo = new Todos();
-        $user_id = $user['id'];
-        $description = $request->get('description');
+        $user_id = $user->getId();
         $todo->setUser_ID($user_id);
         $todo->setDescription($description);
         $entityManager->persist($todo);
@@ -113,7 +113,7 @@ $app->post('/todo/updateStatus/{id}', function (Request $request) use ($app, $to
     }
     $id = $request->get('id');
     $status = $request->get('status');
-    $user_id = $user['id'];
+    $user_id = $user->getId();
     if(isset($status)) {
         $todo = $todosRepo->findOneBy(array('id'=>$id));
         $todo->setCompleted($status);

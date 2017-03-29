@@ -88,8 +88,10 @@ $app->post('/todo/add', function (Request $request) use ($app, $entityManager) {
         $todo->setDescription($description);
         $entityManager->persist($todo);
         $entityManager->flush();
+        $app['session']->getFlashBag()->add('success', 'Description successfully added');
         return $app->redirect('/todo');
     } else {
+        $app['session']->getFlashBag()->add('error', 'Description cannot be empty');
         return $app->redirect('/todo');
     }
 });
@@ -125,5 +127,6 @@ $app->match('/todo/delete/{id}', function ($id) use ($app, $todosRepo, $entityMa
     $todo = $todosRepo->findOneBy(array('id' => $id));
     $entityManager->remove($todo);
     $entityManager->flush();
+    $app['session']->getFlashBag()->add('success', 'Task successfully deleted');
     return $app->redirect('/todo');
 });

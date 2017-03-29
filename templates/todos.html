@@ -37,6 +37,18 @@
                 </td>
             </tr>
         {% endfor %}
+        
+        {% for alert in app.session.flashbag.get('error') %}
+            <div class="alert alert-danger">
+                <strong>{{ alert }}</strong>
+            </div>
+        {% endfor %}
+
+        {% for alert in app.session.flashbag.get('success') %}
+            <div class="alert alert-success">
+                <strong>{{ alert }}</strong>
+            </div>
+        {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="4">

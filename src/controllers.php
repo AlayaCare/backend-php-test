@@ -2,6 +2,8 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+include_once "Todo.php";
+include_once "User.php";
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -22,12 +24,11 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-
+        $userModel = new User($app);
+        $user = $userModel->login($username, $password);
         if ($user){
             $app['session']->set('user', $user);
-            return $app->redirect('/todo');
+            return $app->redirect('/todos');
         }
     }
 
@@ -41,49 +42,125 @@ $app->get('/logout', function () use ($app) {
 });
 
 
+$app->get('/todos/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    if (! $id){
+      $id = 1;
+    }
+    
+    $todoModel = new Todo($app);
+    $all = $todoModel->countTodosByUserId($user['id']);
+    
+    
+    $todoperPage = 5;
+    $currentPage = $id;
+    $startTodo = $todoperPage * ($currentPage-1);
+    $pagesNumber = (intval($all)/$todoperPage);
+    $todos = $todoModel->findFromTo($user['id'], $startTodo, $todoperPage);
+    
+
+    return $app['twig']->render('todos.html', [
+    'todos' => $todos,
+    'pagesNumber' => intval($pagesNumber)
+    ]);
+})
+->value('id', null);
+
 $app->get('/todo/{id}', function ($id) use ($app) {
+    
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    
+    $todoModel = new Todo($app);
+    $todoModel->id = $id;
+    if($todoModel->hasAcces($user['id'])){
+      $todo = $todoModel->find($id);
+      return $app['twig']->render('todo.html', [
+        'todo' => $todo,
+      ]);
+    }else{
+       $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"Access denied"));
+      return $app->redirect('/todos');
+    }
+    
+})
+->value('id', null);
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
+    
+    $todoModel = new Todo($app);
+    $todoModel->id = $id;
+    if($todoModel->hasAcces($user['id'])){
+      $todo = $todoModel->find($id);
+    }else{
+      $todo = "access denied";
     }
+    
+    return $app->json($todo, 200);
 })
 ->value('id', null);
-
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
-    $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
-    return $app->redirect('/todo');
+    $todoModel = new Todo($app);
+    $todoModel->user_id = $user['id'];
+    $todoModel->description = $request->get('description');
+   
+    if ( !empty($todoModel->description) ){
+      $todoModel->Save();
+      $app['session']->getFlashBag()->add('message',array('type'=>"success",'content'=>"your todo has been added"));
+    }else{
+      $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"your todo hasn't been added"));
+    }
+    
+    return $app->redirect('/todos');
 });
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    
+    $todoModel = new Todo($app);
+    $todoModel->id = $id;
+    if($todoModel->hasAcces($user['id'])){
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+      if ($todoModel->delete()){
+        $app['session']->getFlashBag()->add('message',array('type'=>"sucess",'content'=>"your todo has been deleted"));
+      }else{
+        $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"your todo hasn't been deleted"));
+      }
+    }else{
+      $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"Access denied"));
+    }
 
-    return $app->redirect('/todo');
+    return $app->redirect('/todos');
+});
+
+$app->match('/todo/edit/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    
+    $todoModel = new Todo($app, $id);
+    if($todoModel->hasAcces($user['id'])){
+      $todoModel->completed = true;
+      $todoModel->save();
+      $app['session']->getFlashBag()->add('message',array('type'=>"success",'content'=>"your todo has been modified"));
+    }else{
+      $app['session']->getFlashBag()->add('message',array('type'=>"danger",'content'=>"Access denied"));
+    }
+    
+    return $app->redirect('/todos');
 });

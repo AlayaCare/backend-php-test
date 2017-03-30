@@ -6,7 +6,7 @@
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
         {% for todo in todos %}
-            <tr>
+            <tr class="todo{{ todo.completed }}">
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
@@ -24,7 +24,7 @@
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required>
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
@@ -32,5 +32,13 @@
             </form>
         </tr>
     </table>
+    
+    <nav>
+      <ul class="pagination">
+        {% for i in 1.. pagesNumber+1 %}
+          <li><a href="{{ app.request.baseurl }}/todos/{{i}}">{{ i }}</a></li>   
+        {% endfor %}
+      </ul>
+    </nav>
 </div>
 {% endblock %}

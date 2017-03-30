@@ -3,8 +3,24 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+    
+    {% for label, flashes in messages %}
+        {% for flash in flashes %}
+            <div class="alert alert-{{ label }}">{{ flash }}</div>
+        {% endfor %}
+    {% endfor %}
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <tr>
+            <form method="post" action="{{ app.request.baseurl }}/todo/add">
+                <td colspan="4">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                </td>
+                <td>
+                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                </td>
+            </form>
+        </tr>
+        <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -19,18 +35,19 @@
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
+                    </form>
+                </td>
             </tr>
         {% endfor %}
-        <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
-                </td>
-            </form>
-        </tr>
     </table>
+    {% include 'pager.html' with {
+        currentPage: page,
+        paginationPath: "todos/",
+        lastPage: totalPages,
+        showAlwaysFirstAndLast: false
+    } only %}
 </div>
 {% endblock %}

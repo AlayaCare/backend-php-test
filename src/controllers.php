@@ -13,6 +13,7 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
+        'title' => 'Readme'
     ]);
 });
 
@@ -20,18 +21,21 @@ $app->get('/', function () use ($app) {
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = $app['db']->fetchAssoc('SELECT id, username, password FROM users WHERE username = :username', array(
+            'username' => $username,
+        ));
 
-        if ($user){
+        // There shouldn't be duplicates to loop through if we checked for duplicate usernames at signup.
+        if (count($user) > 0 && password_verify($password, $user["password"])){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
         }
     }
 
-    return $app['twig']->render('login.html', array());
+    return $app['twig']->render('login.html', ['title' => 'Login']);
 });
 
 
@@ -41,28 +45,94 @@ $app->get('/logout', function () use ($app) {
 });
 
 
+$app->get('/todos/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $allTodos = $app['db']->fetchAll('SELECT * FROM todos WHERE user_id = :user_id AND completed = 0', array(
+        'user_id' => $user['id'],
+    ));
+
+    $totalResults = count($allTodos);
+    $totalPages = ceil($totalResults/$app['nbPerPage']);
+    $nbrows = $app['nbPerPage'];
+
+    if (is_numeric($page)) {
+        if ($page > $totalPages){
+            // Can we rewrite the URL? Maybe I should redirect.
+            $page = $totalPages;
+        }
+        $firstResult = ($page-1)*$app['nbPerPage'];
+    } else {
+        // Can we rewrite the URL? Maybe I should redirect.
+        $page = $totalPages;
+        // Move to the redirection after adding (instead of redirecting to "last")? Means making another query over there.
+        $firstResult = ((ceil($totalResults/$app['nbPerPage'])-1)*$app['nbPerPage']);
+    }
+
+    $statement = $app['db']->prepare(
+        'SELECT * FROM todos WHERE completed = 0 AND user_id = :user_id LIMIT :start, :limit'
+    );
+    $statement->bindValue('user_id', $user['id'], \PDO::PARAM_INT);
+    $statement->bindValue('start', $firstResult, \PDO::PARAM_INT);
+    $statement->bindValue('limit', $nbrows, \PDO::PARAM_INT);
+    $statement->execute();
+
+    $todos = $statement->fetchAll();
+
+    $messages = $app['session']->getFlashBag()->all();
+
+    return $app['twig']->render('todos.html', [
+        'todos' => $todos,
+        'title' => 'Todos',
+        'messages' => $messages,
+        'page' => $page,
+        'totalPages' => $totalPages,
+    ]);
+})
+->value('page', 1);
+
+
 $app->get('/todo/{id}', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app['db']->fetchAll('SELECT * FROM todos WHERE id = :id AND user_id = :user_id AND completed = 0', array(
+            'id' => $id,
+            'user_id' => $user['id'],
+        ));
 
         return $app['twig']->render('todo.html', [
-            'todo' => $todo,
+            'todo' => $todo[0],
+            'title' => $todo[0]["description"],
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
+        return $app->redirect('/todos/1');
     }
 })
 ->value('id', null);
+
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $todo = $app['db']->fetchAll('SELECT * FROM todos WHERE id = :id AND user_id = :user_id AND completed = 0', array(
+            'id' => $id,
+            'user_id' => $user['id'],
+        ));
+
+        echo json_encode($todo);
+        return false;
+    } else {
+        return false;
+    }
+});
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
@@ -73,17 +143,42 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if ($description) {
+        $app['db']->insert('todos', array(
+            'user_id' => $user_id,
+            'description' => $description,
+        ));
 
-    return $app->redirect('/todo');
+        $app['session']->getFlashBag()->add('success', 'Todo added.');
+    } else {
+        $page = 1;
+        $app['session']->getFlashBag()->add('warning', 'You cannot add a todo without a description.');
+    }
+
+    return $app->redirect('/todos/last');
 });
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $app['db']->delete('todos', array(
+        'id' => $id,
+    ));
+    
+    $app['session']->getFlashBag()->add('success', 'Todo deleted.');
+
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+
+    $app['db']->update('todos', array(
+        'completed' => 1,
+    ), array(
+        'id' => $id,
+    ));
+    
+    $app['session']->getFlashBag()->add('success', 'Todo completed.');
 
     return $app->redirect('/todo');
 });

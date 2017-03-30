@@ -73,10 +73,24 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if (trim($description) !== '') {
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+        return $app->redirect('/todo');
 
-    return $app->redirect('/todo');
+        /**
+         * TASK
+         *
+         * return $app['twig']->render('todo.html', [
+              'todo' => $todo,
+             'info' => 'TODO Added'
+                  ]);
+         */
+    }
+    else {
+        // 1. return some message to user
+        // 2. is better in HTML to put validation for reuired='required'
+    }
 });
 
 
@@ -87,3 +101,20 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        return $app['twig']->render('todo_json.html', [
+            'todo' => $todo,
+        ]);
+    }
+})
+    ->value('id', null);

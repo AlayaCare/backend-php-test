@@ -1,26 +1,56 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
+<div class="col-md-5 col-md-offset-4">
     <h1>Todo List:</h1>
-    <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+    
+   {% for message in app.session.getFlashBag.get('message') %}
+    <div class= "alert alert-{{ message.type }}">      
+         {{ message.desc }}       
+    </div>
+     {% endfor %}
+   <div class="row">
+    <table   class="table table-striped table-bordered table-hover" id="dataTables-example">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>User</th>
+            <th>Description</th>
+            <th>Mark</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
         {% for todo in todos %}
-            <tr>
+            <tr class="odd gradeX" align="center">
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
-                <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
+                <td><a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">{{ todo.description }}</a></td>
+              
+                <td>{% if (todo.mark==0) %} 
+                   
+                    <a href="{{ app.request.baseurl }}/todo/mark/{{ todo.id }}"> <i class="fa fa-calendar-o"></i></a>
+                    {% else %}
+                  
+                    <a href="{{ app.request.baseurl }}/todo/mark/{{ todo.id }}">  <i class="fa fa-calendar-check-o"></i></a>
+                    {% endif %}
                 </td>
+               
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <form method="post"  onsubmit=" return confirmDelete('Are You sure to delete');" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
+                
             </tr>
+
         {% endfor %}
+            </tbody>
+            </table>
+           
+            </div>
+            <div  class="row">
+         <table>   
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
@@ -31,6 +61,7 @@
                 </td>
             </form>
         </tr>
-    </table>
+        </table>
+        </div>
 </div>
 {% endblock %}

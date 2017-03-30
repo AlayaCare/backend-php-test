@@ -1,14 +1,22 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
+<div class="col-md-6 col-md-offset-3">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Status</th><th></th><th></th>
         <tr>
             <td>{{ todo.id }}</td>
-            <td>{{ todo.user_id }}</td>
+            <td>{{ todo.userId }}</td>
             <td>{{ todo.description }}</td>
+            <td id="status-{{ todo.id }}">
+                {% if todo.completed %}
+                <img src="{{ app.request.basepath }}/img/completed.png" alt="completed" title="completed" />
+                {% else %}
+                <img src="{{ app.request.basepath }}/img/open.png" alt="open" title="open" />
+                {% endif %}
+            </td>
+            <td><a href="{{ app.request.baseurl }}/todo/show/{{ todo.id }}/json" title="Get todo json" role="button" target="_blank" class="btn btn-sm btn-info">JSON</a></td>
             <td>
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
@@ -17,5 +25,7 @@
         </tr>
     </table>
 </div>
+
+<script src="{{ app.request.baseurl }}/js/todo.js"></script>
 
 {% endblock %}

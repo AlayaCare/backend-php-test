@@ -22,8 +22,7 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = $app['repository.user']->findOneBy(array('username' => $username, 'password' => $password));
 
         if ($user){
             $app['session']->set('user', $user);
@@ -41,28 +40,87 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    //Number of todos per page defined in config.yml
+    $todosPerPage = intval($app['config']['paginate']['todo_per_page'], 10);
+
+    $totalTodos = $app['repository.todo']->count(array('user_id' => $user->getId()));
+
+    $lastPage = ceil($totalTodos / $todosPerPage);
+    $previousPage = ($page > 1) ? $page - 1 : 1;
+    $nextPage = ($page < $lastPage) ? $page + 1 : $lastPage;
+    $offset = ($page - 1) * $todosPerPage;
+
+    $todos = $app['repository.todo']->findBy(
+        array('user_id' => $user->getId()),
+        array('id' => 'ASC'),
+        $todosPerPage,
+        $offset);
+
+    return $app['twig']->render('todos.html',
+        array(
+            'todos' => $todos,
+            'lastPage' => $lastPage,
+            'previousPage' => $previousPage,
+            'currentPage' => $page,
+            'nextPage' => $nextPage
+        )
+    );
+
+})->value('page', 1);
+
+$app->get('/todo/show/{id}', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app['repository.todo']->find($id);
+
+        //Avoid id invalid
+        if (!$todo) {
+            return $app->abort(404);
+        }
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
     }
-})
-->value('id', null);
+
+    return $app->abort(404);
+});
+
+//Get the json of a todo
+$app->get('/todo/show/{id}/json', function (Request $request) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($request->attributes->has('id')){
+        $id = $request->get('id');
+        $todo = $app['repository.todo']->find($id);
+
+        //Avoid id invalid
+        if (!$todo) {
+            return $app->json(null, 404);
+        }
+
+        $data = array(
+            'id' => $todo->getId(),
+            'description' => $todo->getDescription(),
+            'user_id' => $todo->getUserId(),
+            'completed' => $todo->isCompleted()
+        );
+
+        return $app->json($data, 200);
+    }
+
+    return $app->abort(404);
+});
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
@@ -70,11 +128,23 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    //we avoid to insert a description with only spaces
+    $description = trim($description);
+
+    //we avoid to create a new todo with a description empty
+    if (!empty($description)) {
+        $todo = new \Entity\Todo();
+        $todo->setDescription($description);
+        $todo->setUserId($user->getId());
+
+        $app['repository.todo']->insert($todo);
+
+        $app['session']->getFlashBag()->add('success', 'Todo "' . $description . '" added');
+    } else {
+        $app['session']->getFlashBag()->add('error', 'Error : Description is required');
+    }
 
     return $app->redirect('/todo');
 });
@@ -82,8 +152,19 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $app['repository.todo']->deleteById($id);
+
+    $app['session']->getFlashBag()->add('success', 'Todo #' . $id . ' deleted');
 
     return $app->redirect('/todo');
+});
+
+//Method used to mark a todo completed
+$app->put('/todo/update/{id}', function (Request $request) use ($app) {
+
+    if ($request->attributes->has('id') && $request->request->has('completed') ) {
+        $app['repository.todo']->markCompleted($request->get('id'), $request->request->get('completed'));
+    }
+
+    return new Response('OK', 200);
 });

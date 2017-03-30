@@ -1,0 +1,1 @@
+ALTER TABLE todos ADD completed boolean Default 0;

@@ -64,6 +64,29 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+        $json = json_encode($todo);
+        return $app['twig']->render('todojson.html', [
+            'json' => $json,
+        ]);
+    } else {
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $todos = $app['db']->fetchAll($sql);
+
+        return $app['twig']->render('todos.html', [
+            'todos' => $todos,
+        ]);
+    }
+})
+    ->value('id', null);
+
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
@@ -73,17 +96,38 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
+    if ('' === $request->get('description')) {
+        return $app->redirect('/todo');
+    }
+
     $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+    $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add(
+        'notice',
+        'todo added'
+    );
+    return $app->redirect('/todo');
+});
+
+
+$app->match('/todo/completed/{id}', function ($id) use ($app) {
+
+    $sql = "UPDATE todos SET completed = 1 WHERE id ='$id'";
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');
 });
 
-
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add(
+        'notice',
+        'todo number '.$id.' deleted'
+    );
 
     return $app->redirect('/todo');
 });

@@ -19,12 +19,19 @@
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
+
+ <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+                    </form>
+                </td>
+                
             </tr>
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required="required">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
@@ -32,5 +39,8 @@
             </form>
         </tr>
     </table>
+
+    {% if app.session.flashBag.has('success') %} <div class="alert alert-success"> {% for msg in app.session.flashBag.get('success') %} {{ msg }} {% endfor %} </div> {% endif %}
+
 </div>
 {% endblock %}

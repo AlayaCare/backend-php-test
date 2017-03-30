@@ -76,6 +76,9 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
     $app['db']->executeUpdate($sql);
 
+        $app['session']->getFlashBag()->add('success', 'To Do note added successfully');
+
+
     return $app->redirect('/todo');
 });
 
@@ -87,3 +90,35 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->post('/todo/complete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $user_id = $user['id'];
+
+    $sql = "INSERT INTO completed_task_per_user (id,user_id,complete) VALUES ($id, $user_id, 1)";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+
+    
+     if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql, [(int)$id]);
+
+        header( 'Content-Type: application/json' );
+
+        return json_encode($todo);
+
+    } 
+
+})->value('id', null);
+
+

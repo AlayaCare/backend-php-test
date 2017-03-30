@@ -14,8 +14,17 @@
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
             </td>
+
+             <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-info"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+                    </form>
+                </td>
         </tr>
     </table>
+
+    {% if app.session.flashBag.has('success') %} <div class="alert alert-success"> {% for msg in app.session.flashBag.get('success') %} {{ msg }} {% endfor %} </div> {% endif %}
+
 </div>
 
 {% endblock %}

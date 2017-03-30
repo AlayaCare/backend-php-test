@@ -4,18 +4,27 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Mark</th><th>Action</th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
+            <td>{% if (todo.mark==0) %} 
+                   
+                    <a href="{{ app.request.baseurl }}/todo/mark/{{ todo.id }}"> <i class="fa fa-calendar-o"></i></a>
+                    {% else %}
+                  
+                    <a href="{{ app.request.baseurl }}/todo/mark/{{ todo.id }}">  <i class="fa fa-calendar-check-o"></i></a>
+                    {% endif %}
+            </td>
             <td>
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                <form method="post" onsubmit=" return confirmDelete('Are You sure to delete');" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
             </td>
         </tr>
     </table>
+    <a href="{{ app.request.baseurl }}/todo"> <i class="fa fa-arrow-circle-left"></i></a>
 </div>
-
+ 
 {% endblock %}

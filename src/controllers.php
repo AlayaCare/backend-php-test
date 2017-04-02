@@ -99,6 +99,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (!count($errors)) {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+        // add a confirmation notice to the flashbag array
+        $app['session']->getFlashBag()->add('notice', 'Task added!');
     }   
     return $app->redirect('/todo');
 });
@@ -108,6 +110,8 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+    // add a removal notice to the flashbag array
+    $app['session']->getFlashBag()->add('notice', 'Task removed!');
 
     return $app->redirect('/todo');
 });

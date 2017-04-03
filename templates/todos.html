@@ -1,6 +1,23 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
+{% if app.session.flashBag.has('success') %}
+<div class="alert alert-success">
+    {% for msg in app.session.flashBag.get('success') %}
+    {{ msg }}
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if app.session.flashBag.has('error') %}
+<div class="alert alert-danger">
+    {% for msg in app.session.flashBag.get('error') %}
+    {{ msg }}
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
@@ -17,6 +34,11 @@
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                    </form>
+                </td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
                     </form>
                 </td>
             </tr>

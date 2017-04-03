@@ -56,10 +56,6 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     } else {
         $sql = "SELECT * FROM todos WHERE is_finished = 0 AND user_id = '${user['id']}'";
         $todos = $app['db']->fetchAll($sql);
-      //$todos = $app['db']->fetchAssoc('SELECT * FROM categories WHERE id = :id', array(
-       // 'id' => $app['request']->query->get('id'),
-      //));
-//var_dump($todos);
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
         ]);

@@ -22,7 +22,7 @@
     <h1>Todo List:</h1>
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
-        {% for todo in todos %}
+        {% for todo in pager %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
@@ -43,6 +43,7 @@
                 </td>
             </tr>
         {% endfor %}
+
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
@@ -54,5 +55,8 @@
             </form>
         </tr>
     </table>
+    <div class="pagination">
+        {{ pagerfanta(pager)|raw }}
+    </div>
 </div>
 {% endblock %}

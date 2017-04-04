@@ -1,0 +1,9 @@
+{% if errors %}
+<div class="col-md-4 col-md-offset-4">
+    <ul>
+    {% for e in errors %}
+        <li class="text-danger">{{ e.getPropertyPath() }} {{ e.message }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}

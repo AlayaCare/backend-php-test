@@ -30,4 +30,5 @@ $app->register(new DoctrineServiceProvider, array(
     ),
 ));
 
+
 return $app;

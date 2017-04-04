@@ -23,7 +23,11 @@
                 <td class="center">{{ todo.user_id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
+                        {% if todo.completed %}
+                            <s>{{ todo.description }}</s>
+                        {% else %}
+                            {{ todo.description }}
+                        {% endif %}
                     </a>
                 </td>
                 <td class="center">
@@ -49,5 +53,14 @@
             </form>
         </tr>
     </table>
+    <div class="text-center">
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm">
+                {% for num in 1..numofpages %}
+                    <li {{ (num in page_num) ? "class=\"active\"" : ""}}><a href="?p={{ num }}">{{ num }}</a></li>
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
 </div>
 {% endblock %}

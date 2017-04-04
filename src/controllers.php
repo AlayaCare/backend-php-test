@@ -42,7 +42,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -55,11 +55,28 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        // define the max number of rows per page
+        $num_rows = 5;
+
+        // get the total number of todo records
+        $sql = "SELECT id FROM todos WHERE user_id = '${user['id']}'";
+        $total_todos = count($app['db']->fetchAll($sql));
+        
+        // get the number of pages to show in pagination element
+        $numofpages = ceil($total_todos / $num_rows); 
+
+        // grab the page number from the request (if not set then default to 1)
+        $page_num =  $request->get('p') ?: '1';
+        // calculate the offset for record retrieval (used in sql statement)
+        $offset = ($page_num - 1) * $num_rows;
+
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT $num_rows OFFSET $offset";
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'numofpages' => $numofpages,
+            'page_num' => $page_num,
         ]);
     }
 })

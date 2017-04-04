@@ -13,7 +13,11 @@
                 </form>
             </td>
             <td class="center">{{ todo.user_id }}</td>
-            <td>{{ todo.description }}</td>
+            {% if todo.completed %}
+                <td><s>{{ todo.description }}</s></td>
+            {% else %}
+                <td>{{ todo.description }}</td>
+            {% endif %}
             <td class="center">
                 <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
                     view

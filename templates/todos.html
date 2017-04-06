@@ -10,9 +10,9 @@
 
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
-    <table class="table table-striped">
+    <table class="table table-striped small">
         <tr><th>#</th><th>Check</th><th>Description</th><th></th></tr>
-        {% for todo in todos %}
+        {% for todo in todos_pager.getCurrentPageResults() %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>
@@ -21,9 +21,18 @@
                     </form>
                 </td>
                 <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
+                    {% if todo.completed_at is empty %}
+                        <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                           {{ todo.description }}
+                        </a>
+                    {% else %}
+                    <del>
+                        <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                           {{ todo.description }}
+                        </a>
+                        <br><small>{{ todo.completed_at|date("m/d/Y") }}</small>
+                    </del>
+                    {% endif %}
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
@@ -32,28 +41,27 @@
                 </td>
             </tr>
         {% endfor %}
-        <tr><th colspan="4">Completed Tasks</th></tr>
-        {% for todo in checked_todos %}
-            <tr>
-                <td>{{ todo.id }}</td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/uncheck/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
-                    </form>
-                </td>
-                <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
-                    <br><small>{{ todo.completed_at|date("m/d/Y") }}</small>
-                </td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
+        {% if todos_pager.haveToPaginate() %}
+        <tr>
+            <th colspan="4">
+                <div class="col-xs-4">
+                {% if todos_pager.hasPreviousPage() %}
+                    <a href="{{ app.request.baseurl }}/todo?page={{ todos_pager.getPreviousPage() }}" 
+                        class="btn btn-primary btn-xs pull-left">Prev</a>
+                {% endif %}
+                </div>
+                <div class="col-xs-4">
+                    {{ todos_pager.getCurrentPage() }} / {{ todos_pager.getNbPages() }}
+                </div>
+                <div class="col-xs-4">
+                {% if todos_pager.hasNextPage() %}
+                    <a href="{{ app.request.baseurl }}/todo?page={{ todos_pager.getNextPage() }}" 
+                        class="btn btn-primary btn-xs pull-right">Next</a>
+                {% endif %}
+                </div>
+            </th>
+        </tr>
+        {% endif %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">

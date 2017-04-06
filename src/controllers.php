@@ -5,6 +5,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
+use Pagerfanta\Pagerfanta;
+use Pagerfanta\Adapter\ArrayAdapter;
+
 boot();
 
 
@@ -57,7 +60,7 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = session()->get('user')) {
         return $app->redirect('/login');
     }
@@ -70,11 +73,20 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed_at IS NULL";
+        /**
+         * @todo a) this query fetches all records as it's not page-aware
+         *          make this page-aware
+         *       b) Currently the display is similar to Google's Keep
+         *          it can be changed to a tabbed page with a tab each for
+         *          Open, Completed and All todos.
+         */
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' ORDER BY id DESC";
         $todos = db()->fetchAll($sql);
 
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed_at IS NOT NULL";
-        $checked_todos = db()->fetchAll($sql);
+        $adapter = new ArrayAdapter($todos);
+        $pagerfanta = new Pagerfanta($adapter);
+        $pagerfanta->setMaxPerPage(10);
+        $pagerfanta->setCurrentPage($request->query->get('page', 1));
 
         /* A little dirty flashbag for errors! */
         $errors = [];
@@ -84,9 +96,8 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         }
         
         return twig()->render('todos.html', [
-            'todos' => $todos,
-            'checked_todos' => $checked_todos,
             'errors' => $errors,
+            'todos_pager' => $pagerfanta
         ]);
     }
 })->value('id', null);

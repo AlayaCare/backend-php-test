@@ -20,9 +20,11 @@
         "symfony/security": "~2.3",
         "symfony/translation": "~2.3",
         "symfony/twig-bridge": "~2.3",
-        "symfony/validator": "^3.2",
+        "symfony/validator": "~2.3",
         "doctrine/dbal": "~2.2",
-        "deralex/yaml-config-service-provider": "1.0.x-dev"
+        "deralex/yaml-config-service-provider": "1.0.x-dev",
+
+        "franmomu/silex-pagerfanta-provider": "1.0.*@dev"
     },
     "autoload": {
         "files": [

@@ -25,6 +25,9 @@
         "deralex/yaml-config-service-provider": "1.0.x-dev"
     },
     "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
         "psr-0": { "": "src/" }
     },
     "extra": {

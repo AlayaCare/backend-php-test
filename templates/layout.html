@@ -22,7 +22,7 @@
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if user %}
-              <li><a href="/logout"><span class="glyphicon glyphicon-user"></span> {{ user.username }} Logout</a></li>
+              <li><a href="/logout"><span class="glyphicon glyphicon-user"></span> {{ user.username | capitalize }} Logout</a></li>
             {% else %}
               <li><a href="/login">Login</a></li>
             {% endif %}

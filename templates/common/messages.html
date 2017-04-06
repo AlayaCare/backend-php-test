@@ -1,0 +1,7 @@
+<div class="col-md-4 col-md-offset-4">
+    <ul>
+    {% for message in app.session.flashbag.get('user.messages') %}
+        <li class="text-info">{{ message }}</li>
+    {% endfor %}
+    </ul>
+</div>

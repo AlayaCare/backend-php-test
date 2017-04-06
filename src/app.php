@@ -30,4 +30,7 @@ $app->register(new DoctrineServiceProvider, array(
     ),
 ));
 
+/* Add-ons */
+$app->register(new FranMoreno\Silex\Provider\PagerfantaServiceProvider());
+
 return $app;

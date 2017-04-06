@@ -12,3 +12,6 @@ INSERT INTO todos (user_id, description) VALUES
 (2, 'Lorem ipsum'),
 (2, 'In lacinia est'),
 (2, 'Odio varius gravida');
+
+
+/* To be able to mark ToDos as completed */ ALTER TABLE `todos` ADD `completed_at` TIMESTAMP  NULL  AFTER `description`;

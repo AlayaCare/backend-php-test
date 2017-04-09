@@ -48,8 +48,8 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        // get the todo record from the Repo
+        $todo = $app['todo.repository']->get($id);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
@@ -59,8 +59,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         $num_rows = 5;
 
         // get the total number of todo records
-        $sql = "SELECT id FROM todos WHERE user_id = '${user['id']}'";
-        $total_todos = count($app['db']->fetchAll($sql));
+        $total_todos = $app['todo.repository']->count($user['id']);
         
         // get the number of pages to show in pagination element
         $numofpages = ceil($total_todos / $num_rows); 
@@ -92,8 +91,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
 
     // if we have a valid id then retreve the data and display it as json
     if ($id) {
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $todo = $app['todo.repository']->get($id);
         return $app->json($todo);
     }
 
@@ -114,8 +112,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     // only add note if the user entered a description
     if (!count($errors)) {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $app['todo.repository']->add($user_id, $description);
         // add a confirmation notice to the flashbag array
         $app['session']->getFlashBag()->add('notice', 'Task added!');
     }   
@@ -128,8 +125,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 $app->match('/todo/done/{id}', function ($id) use ($app) {
 
     // update the database and toggle the completed flag
-    $sql = "UPDATE `todos` SET `completed` = !completed WHERE `todos`.`id` = '$id'";
-    $app['db']->executeUpdate($sql);
+    $app['todo.repository']->toggleDone($id);
 
     return $app->redirect('/todo');
 });
@@ -137,8 +133,7 @@ $app->match('/todo/done/{id}', function ($id) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $app['todo.repository']->delete($id);
     // add a removal notice to the flashbag array
     $app['session']->getFlashBag()->add('notice', 'Task removed!');
 

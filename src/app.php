@@ -35,5 +35,9 @@ $app->register(new DoctrineServiceProvider, array(
 $app['todo.repository'] = $app->share( function ($app) {
     return new Repository\TodoRepository($app['db']);
 });
+// Register the User Repository and pass it the database service
+$app['user.repository'] = $app->share( function ($app) {
+    return new Repository\UserRepository($app['db']);
+});
 
 return $app;

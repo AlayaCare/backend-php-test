@@ -23,8 +23,9 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+
+        // check the user repo for a valid user
+        $user = $app['user.repository']->get($username, $password);
 
         if ($user){
             $app['session']->set('user', $user);

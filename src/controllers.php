@@ -62,7 +62,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         // define the max number of rows per page
         $num_rows = 5;
 
-        // get the total number of todo records
+        // get total todos for this user
         $total_todos = $app['todo.repository']->count($user['id']);
         
         // get the number of pages to show in pagination element
@@ -72,9 +72,8 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         $page_num =  $request->get('p') ?: '1';
         // calculate the offset for record retrieval (used in sql statement)
         $offset = ($page_num - 1) * $num_rows;
-
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT $num_rows OFFSET $offset";
-        $todos = $app['db']->fetchAll($sql);
+        // retrieve paginated set of todos
+        $todos = $app['todo.repository']->getPagebyUser($user['id'], $num_rows, $offset);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,

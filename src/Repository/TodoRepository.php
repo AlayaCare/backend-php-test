@@ -20,8 +20,18 @@ class TodoRepository {
     }
 
     public function getAllbyUser($userId) {
-        // return all todo records for a particular user
+        // return all todo records for this user
         return $this->db->fetchAll("SELECT id FROM todos WHERE user_id = ?", array($userId));
+    }
+
+    public function getPagebyUser($userId, $num_rows, $offset) {
+        // return subset of todos for this user
+        $stmt = $this->db->prepare("SELECT * FROM todos WHERE user_id = :user_id LIMIT :num_rows OFFSET :offset");
+        $stmt->bindValue(":user_id", $userId, \PDO::PARAM_INT);
+        $stmt->bindValue(":num_rows", $num_rows, \PDO::PARAM_INT);
+        $stmt->bindValue(":offset", $offset, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
     public function add($userId, $description) {

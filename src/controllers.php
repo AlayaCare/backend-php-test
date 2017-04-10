@@ -25,7 +25,7 @@ $app->match('/login', function (Request $request) use ($app) {
     if ($username) {
 
         // check the user repo for a valid user
-        $user = $app['user.repository']->get($username, $password);
+        $user = $app['user.repository']->get($username, md5($password));
 
         if ($user){
             $app['session']->set('user', $user);
@@ -70,7 +70,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
 
         // grab the page number from the request (if not set then default to 1)
         $page_num =  $request->get('p') ?: '1';
-        // calculate the offset for record retrieval (used in sql statement)
+        // calculate the offset for record retrieval
         $offset = ($page_num - 1) * $num_rows;
         // retrieve paginated set of todos
         $todos = $app['todo.repository']->getPagebyUser($user['id'], $num_rows, $offset);

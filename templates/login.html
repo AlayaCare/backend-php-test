@@ -3,6 +3,14 @@
 {% block content %}
     <div class="col-md-4 col-md-offset-4">
         <h1>Login</h1>
+
+        {% set flashbag_warnings = app.session.flashbag.get('warning') %}
+        {% if flashbag_warnings is not empty %}
+            {% for warning in flashbag_warnings %}
+                <div class="alert alert-warning" role="alert">{{ warning }}</div>
+            {% endfor %}
+        {% endif %}
+
         <form class="form-horizontal login-form" method="POST" action="/login">
             <div class="input-group">
                 <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>

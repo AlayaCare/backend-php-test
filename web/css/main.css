@@ -5,3 +5,11 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+
+table td.center {
+   text-align: center;   
+}
+
+table th {
+   text-align: center;   
+}

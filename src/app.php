@@ -19,6 +19,7 @@ $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
+// register database services provided through Doctrine DBAL.
 $app->register(new DoctrineServiceProvider, array(
     'db.options' => array(
         'driver'    => 'pdo_mysql',
@@ -29,5 +30,14 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+
+// Register the Todo Repository and pass it the database service
+$app['todo.repository'] = $app->share( function ($app) {
+    return new Repository\TodoRepository($app['db']);
+});
+// Register the User Repository and pass it the database service
+$app['user.repository'] = $app->share( function ($app) {
+    return new Repository\UserRepository($app['db']);
+});
 
 return $app;

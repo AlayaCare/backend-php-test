@@ -14,6 +14,7 @@
                        {{ todo.description }}
                     </a>
                 </td>
+                <td><a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">JSON</a></td>
                 <td>
                     {% if todo.completed == 0 %}
                         <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}">

@@ -1,0 +1,2 @@
+ALTER TABLE todos
+ADD completed TINYINT DEFAULT 0;

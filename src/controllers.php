@@ -2,7 +2,6 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -93,7 +92,7 @@ $app->match('/todo/{id}/json', function ($id) use ($app) {
 	$sql  = "SELECT * FROM todos WHERE id = '$id'";
 	$todo = $app['db']->fetchAssoc($sql);
 	
-	return new JsonResponse($todo);
+	return $app->json($todo);
 });
 
 

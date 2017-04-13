@@ -47,18 +47,19 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $sql = $app['dbOrm']->table('todos')->select()->where('id', '=', $id)->getQuery();;
         $todo = $app['db']->fetchAssoc($sql);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $sql = $app['dbOrm']->table('todos')->select()->where('user_id', '=', $user['id'])->getQuery();
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'user' => $user,
         ]);
     }
 })
@@ -73,7 +74,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+    $sql = $app['dbOrm']->table('todos')->insert(['user_id', 'description'], [$user_id, $description])->getQuery();
     $app['db']->executeUpdate($sql);
 	
 	$app['session']->getFlashBag()->add('messages', ['type' => 'success', 'message' => 'Successfully added a new task!']);
@@ -83,7 +84,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/completed/{id}', function ($id) use ($app) {
 	
-	$sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
+	$sql = $app['dbOrm']->table('todos')->update(['completed'], [1])->where('id', '=', $id)->getQuery();
 	$app['db']->executeUpdate($sql);
 	
 	$app['session']->getFlashBag()->add('messages', ['type'    => 'success',
@@ -95,7 +96,7 @@ $app->match('/todo/completed/{id}', function ($id) use ($app) {
 
 $app->match('/todo/{id}/json', function ($id) use ($app) {
 	
-	$sql  = "SELECT * FROM todos WHERE id = '$id'";
+	$sql  = $app['dbOrm']->table('todos')->select()->where('id', '=', $id)->getQuery();;
 	$todo = $app['db']->fetchAssoc($sql);
 	
 	return $app->json($todo);
@@ -104,7 +105,7 @@ $app->match('/todo/{id}/json', function ($id) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
+    $sql = $app['dbOrm']->table('todos')->delete()->where('id', '=', $id)->getQuery();
     $app['db']->executeUpdate($sql);
 	
 	$app['session']->getFlashBag()->add('messages', ['type'    => 'success',

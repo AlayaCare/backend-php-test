@@ -41,7 +41,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -54,12 +54,25 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = $app['dbOrm']->table('todos')->select()->where('user_id', '=', $user['id'])->getQuery();
+    	$page = $request->query->get('page');
+    	
+    	if(! $page)
+    		$page = 0;
+    	else
+    		$page -= 1;
+	
+	    $sql   = $app['dbOrm']->table('todos')->count()->where('user_id', '=', $user['id'])->getQuery();
+	    $counter = ceil($app['db']->fetchAssoc($sql)['COUNTER'] / 5);
+
+    
+        $sql = $app['dbOrm']->table('todos')->select()->where('user_id', '=', $user['id'])->paginate(5, $page)->getQuery();
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
             'user' => $user,
+            'pageNumber' => $counter,
+            'currentPage' => $page + 1,
         ]);
     }
 })

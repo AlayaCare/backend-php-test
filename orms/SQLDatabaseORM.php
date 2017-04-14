@@ -45,6 +45,13 @@ class SQLDatabaseORM
 		return $this;
 	}
 	
+	public function count()
+	{
+		$this->sql = 'SELECT COUNT(*) AS COUNTER FROM `' . $this->tableName . '`';
+		
+		return $this;
+	}
+	
 	public function insert ($fields, $values)
 	{
 		
@@ -80,6 +87,15 @@ class SQLDatabaseORM
 	public function delete()
 	{
 		$this->sql = 'DELETE FROM `' . $this->tableName . '`';
+		
+		return $this;
+	}
+	
+	public function paginate($limit, $pageNum)
+	{
+		$queryOffset = $pageNum * $limit;
+		
+		$this->sql = $this->sql . ' LIMIT ' . $limit . ' OFFSET ' . $queryOffset;
 		
 		return $this;
 	}

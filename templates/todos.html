@@ -58,5 +58,23 @@
             </form>
         </tr>
     </table>
+    <div class="btn-toolbar" role="toolbar">
+        {% if currentPage - 1 <= 0 %}
+            <a href=#" class="btn btn-default" disabled><span class="glyphicon glyphicon-chevron-left"></span></a>
+        {% else %}
+            <a href="{{ app.request.baseurl }}/todo?page={{ currentPage - 1 }}" class="btn btn-default"><span class="glyphicon glyphicon-chevron-left"></span></a>
+        {% endif %}
+
+        {% for i in range(1, pageNumber) %}
+            <a href="{{ app.request.baseurl }}/todo?page={{ i }}" class="btn btn-default">{{ i }}</a>
+        {% endfor %}
+
+        {% if currentPage + 1 > pageNumber %}
+        <a href=#" class="btn btn-default" disabled><span class="glyphicon glyphicon-chevron-right"></span></a>
+        {% else %}
+        <a href="{{ app.request.baseurl }}/todo?page={{ currentPage + 1 }}" class="btn btn-default"><span
+                class="glyphicon glyphicon-chevron-right"></span></a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

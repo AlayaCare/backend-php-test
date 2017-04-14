@@ -1,5 +1,6 @@
 <?php
 
+use Providers\DatabaseServiceProvider;
 use Silex\Application;
 use Silex\Provider\SessionServiceProvider;
 use Silex\Provider\TwigServiceProvider;
@@ -29,5 +30,7 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+
+$app->register(new DatabaseServiceProvider());
 
 return $app;

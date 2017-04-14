@@ -1,5 +1,5 @@
 database:
-    host    : localhost
+    host    : 127.0.0.1
     dbname  : ac_todos
-    user    : root
-    password:
+    user    : homestead
+    password: secret

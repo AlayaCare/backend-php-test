@@ -17,7 +17,7 @@
                   <td>{{ todo.id }}</td>
                 <td>
                   <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
-                                       <button type="submit" class="btn btn-sm btn-link"><span class="glyphicon glyphicon-{{ todo.completed ? 'check' : 'unchecked' }}" aria-hidden="true"></span></button>
+                                       <button type="submit" class="btn btn-sm btn-link"><span class="glyphicon glyphicon-{{ todo.completed ? 'check' : 'unchecked' }}"></span></button>
                                    </form>
                 </td>
                 <td>{{ todo.description }}</td>

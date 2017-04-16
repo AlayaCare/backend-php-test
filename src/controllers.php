@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Constraints as assert; // The ValidatorServiceProvider provides a service for validating data
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -73,9 +74,18 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
+    // validator is added to check whether the description field is empty or not
+    //if description is not empty then only it add the record.
+    $descriptionerror = $app['validator']->validate($description,new assert\NotBlank());
+    if(!count($descriptionerror))
+    {
+      $sql="INSERT INTO todos (user_id,description) VALUES ('$user_id','$description')";
+      $app['db']->executeUpdate($sql);
+    }
+    else {
+      //This alert messege will pop up when description feild is empty
+      $app['session']->getFlashBag()->add('alert','Description feild should not be empty !');
+    }
     return $app->redirect('/todo');
 });
 

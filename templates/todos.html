@@ -11,11 +11,16 @@
   {% endif %}
     <h1>Todo List:</h1>
     <table class="table table-striped">
-         <th>#</th><th>User</th><th>Description</th><th>JSON</th><th></th>
+         <th>#</th><th>Completed</th><th>User</th><th>Description</th><th>JSON</th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
+              <td class="center">
+                 <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                     <button type="submit" class="btn btn-sm btn-link"><span class="glyphicon glyphicon-{{ todo.completed ? 'check' : 'unchecked' }}" aria-hidden="true"></span></button>
+                 </form>
+             </td>
+             <td class="center">{{ todo.user_id }}</td>
                 <td>{{ todo.description }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">

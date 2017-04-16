@@ -42,7 +42,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request,$id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -55,11 +55,18 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
+        $no_row=4; // # of rows per page for pagination
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $all_todos = count($app['db']->fetchAll($sql));
+        $nopage= ceil($all_todos/$no_row);
+        $page_no= $request->get('p') ?: '1';
+        $offset= ($page_no-1)*$no_row;
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT $no_row OFFSET $offset";
         $todos = $app['db']->fetchAll($sql);
-
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'nopage' => $nopage,
+             'page_no' => $page_no,
         ]);
     }
 })

@@ -2,6 +2,13 @@
 
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
+    {# check the session flashbag for an alert to display #}
+  {% set flashbag_alerts = app.session.flashbag.get('alert') %}
+  {% if flashbag_alerts is not empty  %}
+  {% for alert in flashbag_alerts %}
+  <div class="alert alert-warning" role="alert">{{ alert }}</div>
+  {% endfor %}
+  {% endif %}
     <h1>Todo List:</h1>
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>

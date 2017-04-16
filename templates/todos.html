@@ -14,17 +14,21 @@
          <th>#</th><th>Completed</th><th>User</th><th>Description</th><th>JSON</th><th></th>
         {% for todo in todos %}
             <tr>
-                <td>{{ todo.id }}</td>
-              <td class="center">
-                 <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
-                     <button type="submit" class="btn btn-sm btn-link"><span class="glyphicon glyphicon-{{ todo.completed ? 'check' : 'unchecked' }}" aria-hidden="true"></span></button>
-                 </form>
-             </td>
-             <td class="center">{{ todo.user_id }}</td>
-                <td>{{ todo.description }}</td>
+                  <td>{{ todo.id }}</td>
+                <td>
+                  <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                                       <button type="submit" class="btn btn-sm btn-link"><span class="glyphicon glyphicon-{{ todo.completed ? 'check' : 'unchecked' }}"></span></button>
+                                   </form>
+                </td>
+                <td>{{ todo.user_id }}</td>
+                {% if todo.completed %}
+                 <td><s>{{ todo.description }}</s></td>
+             {% else %}
+                 <td>{{ todo.description }}</td>
+             {% endif %}
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
-                      view
+                       view
                     </a>
                 </td>
                 <td>
@@ -45,5 +49,14 @@
             </form>
         </tr>
     </table>
+  <div class="text-center">
+         <nav aria-label="Page navigation">
+             <ul class="pagination pagination-sm">
+                 {% for num in 1..nopage %}
+                     <li {{ (num in page_no) ? "class=\"active\"" : ""}}><a href="?p={{ num }}">{{ num }}</a></li>
+                 {% endfor %}
+             </ul>
+         </nav>
+     </div>
 </div>
 {% endblock %}

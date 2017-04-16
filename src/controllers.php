@@ -88,7 +88,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     }
     return $app->redirect('/todo');
 });
-
+$app->match('/todo/done/{id}', function ($id) use ($app) {
+     // this will mark the task as completed
+     $sql = "UPDATE `todos` SET `completed` = !completed WHERE `todos`.`id` = '$id'";
+    $app['db']->executeUpdate($sql);
+    return $app->redirect('/todo');
+ });
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 

@@ -30,6 +30,9 @@ $app->match('/login', function (Request $request) use ($app) {
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
         }
+          else {
+           $app['session']->getFlashBag()->add('alert', 'Incorrect Username and/or Password');
+        }
     }
 
     return $app['twig']->render('login.html', array());

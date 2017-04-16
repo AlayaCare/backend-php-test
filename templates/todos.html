@@ -20,6 +20,7 @@
                                        <button type="submit" class="btn btn-sm btn-link"><span class="glyphicon glyphicon-{{ todo.completed ? 'check' : 'unchecked' }}"></span></button>
                                    </form>
                 </td>
+                <td>{{ todo.user_id }}</td>
                 <td>{{ todo.description }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">

@@ -1,29 +1,50 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
+
 <div class="col-md-4 col-md-offset-4">
+    {% for alert in app.session.flashbag.get('error') %}
+    <div class="alert alert-danger" role="alert">{{ alert }}</div>
+    {% endfor %}
+    {% for alert in app.session.flashbag.get('success') %}
+    <div class="alert alert-success" role="alert">{{ alert }}</div>
+    {% endfor %}
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th colspan="2">Actions</th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
+                            {% if todo.status == 'COMPLETED' %}
+                                <s>{{ todo.description }}</s>
+                            {% else %}
+                                {{ todo.description }}
+                            {% endif %}
                     </a>
+                </td>
+                <td>
+                    {% if todo.status != 'COMPLETED' %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+                    </form>
+                    {% endif %}
+
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
+                    
                 </td>
             </tr>
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
+                <td colspan="4">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
@@ -32,5 +53,36 @@
             </form>
         </tr>
     </table>
+</div>
+<div class="col-md-4 col-md-offset-4">
+    <nav aria-label="Page navigation" style="text-align:center">
+      <ul class="pagination">
+        <li {% if page == 1 %}class="disabled"{% endif %}>
+          <a href="{{ app.request.baseurl }}/todos/{{ page-1 }}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        {% for i in 1..page_count %}
+            {% if page == i %}
+                <li class="active"><a href="{{ app.request.baseurl }}/todos/{{ i }}">{{ i }}</a></li>
+            {% else %}
+                <li><a href="{{ app.request.baseurl }}/todos/{{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if page != page_count %}
+        <li>
+          <a href="{{ app.request.baseurl }}/todos/{{ page+1 }}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+        {% else %}
+        <li class="disabled">
+          <a href="#" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
 </div>
 {% endblock %}

@@ -21,13 +21,17 @@ $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
 
+    $dba = new DatabaseAccessModel($app);
+
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = $dba->getUserLogin($username, $password);
 
         if ($user){
             $app['session']->set('user', $user);
-            return $app->redirect('/todo');
+            return $app->redirect('/todos');
+        }else{
+            $app['session']->getFlashBag()->add('error', 'Wrong login credentials.');
+            return $app->redirect('/login');
         }
     }
 
@@ -41,28 +45,63 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
+    $dba = new DatabaseAccessModel($app);
+
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $dba->getTodo($id);
 
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
+        if($user['id'] != $todo['user_id']){
+            $app['session']->getFlashBag()->add('error', 'Invalid or forbidden todo.');
+            return $app->redirect('/todos');
+        }
+
+        if($format == 'json'){
+            return $app['twig']->render('todo_json.html', [
+                'todo' => $todo,
+                'encoded_todo' => json_encode($todo),
+            ]);
+        }else{
+            return $app['twig']->render('todo.html', [
+                'todo' => $todo,
+            ]);
+        }
+
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
+        $app['session']->getFlashBag()->add('error', 'Invalid or forbidden todo.');
+        return $app->redirect('/todos');
     }
 })
-->value('id', null);
+->value('id', null)
+->value('format', null);
+
+$app->get('/todos/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $dba = new DatabaseAccessModel($app);
+
+    //pagination management
+    $todos_count = $dba->getTodoCountByUser($user['id']);
+    $page_count = ceil($todos_count/5);
+    $start = ($page-1)*5;
+    $limit = 5;
+
+    $todos = $dba->getTodosByUser($user['id'], $start, $limit);
+
+    return $app['twig']->render('todos.html', [
+        'todos' => $todos,
+        'page' => $page,
+        'page_count' => $page_count
+    ]);
+
+})
+->value('page', 1);
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
@@ -70,20 +109,63 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
+    $dba = new DatabaseAccessModel($app);
+
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if(empty($description)){
+        $app['session']->getFlashBag()->add('error', 'The todo description can\'t be empty.');
+        return $app->redirect('/todo');
+    }
 
-    return $app->redirect('/todo');
+    $insert_todo = $dba->insertTodo($user_id, $description);
+
+    $app['session']->getFlashBag()->add('success', 'You successfulyl added a new todo.');
+
+    return $app->redirect('/todos');
 });
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $dba = new DatabaseAccessModel($app);
 
-    return $app->redirect('/todo');
+    $todo = $dba->getTodo($id);
+
+    if($user['id'] != $todo['user_id']){
+        $app['session']->getFlashBag()->add('error', 'Invalid or forbidden todo.');
+        return $app->redirect('/todos');
+    }
+
+    $delete_todo = $dba->deleteTodo($id);
+
+    $app['session']->getFlashBag()->add('success', 'The todo #'.$id.' has been successfully deleted.');
+
+    return $app->redirect('/todos');
+});
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $dba = new DatabaseAccessModel($app);
+
+    $todo = $dba->getTodo($id);
+
+    if($user['id'] != $todo['user_id']){
+        $app['session']->getFlashBag()->add('error', 'Invalid or forbidden todo.');
+        return $app->redirect('/todos');
+    }
+
+    $dba = new DatabaseAccessModel($app);
+    $complete_todo = $dba->completeTodo($id);
+
+    $app['session']->getFlashBag()->add('success', 'The todo #'.$id.' has been successfully completed.');
+
+    return $app->redirect('/todos');
 });

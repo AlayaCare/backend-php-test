@@ -70,19 +70,30 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
 ->value('format', null);
 
 
-$app->get('/todos/', function () use ($app) {
+$app->get('/todos/{page}', function ($page) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+    //pagination management
+    $sql = "SELECT count(*) as count FROM todos WHERE user_id = '${user['id']}' GROUP BY user_id";
+    $todos_count = $app['db']->fetchAssoc($sql);
+
+    $page_count = ceil($todos_count['count']/5);
+    $start = ($page-1)*5;
+    $limit = 5;
+
+    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' ORDER BY id ASC LIMIT ".$start.",".$limit;
     $todos = $app['db']->fetchAll($sql);
 
     return $app['twig']->render('todos.html', [
         'todos' => $todos,
+        'page' => $page,
+        'page_count' => $page_count
     ]);
 
-});
+})
+->value('page', 1);
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {

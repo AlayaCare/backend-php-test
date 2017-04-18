@@ -52,4 +52,35 @@
         </tr>
     </table>
 </div>
+<div class="col-md-4 col-md-offset-4">
+    <nav aria-label="Page navigation" style="text-align:center">
+      <ul class="pagination">
+        <li {% if page == 1 %}class="disabled"{% endif %}>
+          <a href="{{ app.request.baseurl }}/todos/{{ page-1 }}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        {% for i in 1..page_count %}
+            {% if page == i %}
+                <li class="active"><a href="{{ app.request.baseurl }}/todos/{{ i }}">{{ i }}</a></li>
+            {% else %}
+                <li><a href="{{ app.request.baseurl }}/todos/{{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if page != page_count %}
+        <li>
+          <a href="{{ app.request.baseurl }}/todos/{{ page+1 }}" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+        {% else %}
+        <li class="disabled">
+          <a href="#" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+</div>
 {% endblock %}

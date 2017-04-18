@@ -2,20 +2,17 @@
 
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
-    <h1>Todo:</h1>
+    <h1>Encoded Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th colspan="2">Actions</th>
+        <th>Json</th><th colspan="2">Actions</th>
         <tr>
-            <td>{{ todo.id }}</td>
-            <td>{{ todo.user_id }}</td>
-            <td>{{ todo.description }}</td>
+            <td>{{ encoded_todo }}</td>
             <td>
                 {% if todo.is_completed == 0 %}
                 <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
                 </form>
                 {% endif %}
-
             </td>
             <td>
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
@@ -24,10 +21,9 @@
             </td>
         </tr>
     </table>
-
 </div>
 <div class="col-md-4 col-md-offset-4">
-<a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">View json encoded version of this todo.</a>
+<a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">View regular version of this todo.</a>
 </div>
 
 {% endblock %}

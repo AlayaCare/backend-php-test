@@ -8,7 +8,7 @@
         <tr>
             <td>{{ encoded_todo }}</td>
             <td>
-                {% if todo.status != 'COMPLETED' %}
+                {% if todo.is_completed == 0 %}
                 <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
                 </form>

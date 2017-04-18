@@ -2,6 +2,8 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Entity\Todo;
+use Entity\User;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -21,9 +23,14 @@ $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
 
+
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = $app->em->getRepository('Entity\User')->findOneBy(
+            array(
+                "username" => $username,
+                "password" => $password
+            )
+        );
 
         if ($user){
             $app['session']->set('user', $user);
@@ -48,13 +55,16 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
 
     if ($id){
 
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app->em->getRepository('Entity\Todo')->find(
+            array(
+                "id" => $id
+            )
+        );
 
         if($format == 'json'){
             return $app['twig']->render('todo_json.html', [
                 'todo' => $todo,
-                'encoded_todo' => json_encode($todo),
+                'encoded_todo' => $todo->getJson(),
             ]);
         }else{
             return $app['twig']->render('todo.html', [
@@ -76,15 +86,24 @@ $app->get('/todos/{page}', function ($page) use ($app) {
     }
 
     //pagination management
-    $sql = "SELECT count(*) as count FROM todos WHERE user_id = '${user['id']}' GROUP BY user_id";
-    $todos_count = $app['db']->fetchAssoc($sql);
+    $todos_count = $app->em->getRepository('Entity\Todo')->findBy(
+        array(
+            "user_id" => $user->getId()
+        )
+    );
 
-    $page_count = ceil($todos_count['count']/5);
+    $page_count = ceil(count($todos_count)/5);
     $start = ($page-1)*5;
     $limit = 5;
 
-    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' ORDER BY id ASC LIMIT ".$start.",".$limit;
-    $todos = $app['db']->fetchAll($sql);
+    $todos = $app->em->getRepository('Entity\Todo')->findBy(
+        array(
+            "user_id" => $user->getId()
+        ),
+        array(
+            "id" => 'ASC'
+        ),
+        $limit, $start);
 
     return $app['twig']->render('todos.html', [
         'todos' => $todos,
@@ -101,7 +120,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
+    $user_id = $user->getId();
     $description = $request->get('description');
 
     if(empty($description)){
@@ -109,8 +128,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/todo');
     }
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    $todo = new Todo();
+    $todo->setUserId($user_id);
+    $todo->setDescription($description);
+    $todo->setIs_Completed(0);
+    $app->em->persist($todo);
+    $app->em->flush();
 
     $app['session']->getFlashBag()->add('success', 'You successfulyl added a new todo.');
 
@@ -120,8 +143,14 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $todo = $app->em->getRepository('Entity\Todo')->find(
+        array(
+            "id" => $id
+        )
+    );
+
+    $app->em->remove($todo);
+    $app->em->flush();
 
     $app['session']->getFlashBag()->add('success', 'You successfulyl deleted todo #'.$id.'.');
 
@@ -130,8 +159,16 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
 
 $app->match('/todo/complete/{id}', function ($id) use ($app) {
-    $sql = "UPDATE todos SET status = 'COMPLETED' WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+
+    $todo = $app->em->getRepository('Entity\Todo')->find(
+        array(
+            "id" => $id
+        )
+    );
+
+    $todo->setIs_Completed(1);
+    $app->em->persist($todo);
+    $app->em->flush();
 
     $app['session']->getFlashBag()->add('success', 'You successfulyl completed todo #'.$id.'.');
 

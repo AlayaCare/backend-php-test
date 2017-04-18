@@ -17,7 +17,7 @@
                 <td>{{ todo.user_id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                            {% if todo.status == 'COMPLETED' %}
+                            {% if todo.is_completed %}
                                 <s>{{ todo.description }}</s>
                             {% else %}
                                 {{ todo.description }}
@@ -25,7 +25,7 @@
                     </a>
                 </td>
                 <td>
-                    {% if todo.status != 'COMPLETED' %}
+                    {% if todo.is_completed == 0 %}
                     <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
                     </form>
@@ -42,7 +42,7 @@
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
+                <td colspan="4">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required>
                 </td>
                 <td>

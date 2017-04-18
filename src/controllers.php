@@ -61,6 +61,11 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
             )
         );
 
+        if($todo->getUser_Id() != $user->getId()){
+            $app['session']->getFlashBag()->add('error', 'Invalid or forbidden todo.');
+            return $app->redirect('/todos');
+        }
+
         if($format == 'json'){
             return $app['twig']->render('todo_json.html', [
                 'todo' => $todo,
@@ -142,12 +147,20 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 
     $todo = $app->em->getRepository('Entity\Todo')->find(
         array(
             "id" => $id
         )
     );
+
+    if($todo->getUser_Id() != $user->getId()){
+        $app['session']->getFlashBag()->add('error', 'Invalid or forbidden todo.');
+        return $app->redirect('/todos');
+    }
 
     $app->em->remove($todo);
     $app->em->flush();
@@ -159,12 +172,20 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
 
 $app->match('/todo/complete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 
     $todo = $app->em->getRepository('Entity\Todo')->find(
         array(
             "id" => $id
         )
     );
+
+    if($todo->getUser_Id() != $user->getId()){
+        $app['session']->getFlashBag()->add('error', 'Invalid or forbidden todo.');
+        return $app->redirect('/todos');
+    }
 
     $todo->setIs_Completed(1);
     $app->em->persist($todo);

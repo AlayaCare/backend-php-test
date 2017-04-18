@@ -5,6 +5,9 @@
     {% for alert in app.session.flashbag.get('error') %}
     <div class="alert alert-danger" role="alert">{{ alert }}</div>
     {% endfor %}
+    {% for alert in app.session.flashbag.get('success') %}
+    <div class="alert alert-success" role="alert">{{ alert }}</div>
+    {% endfor %}
     <h1>Todo List:</h1>
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th colspan="2">Actions</th>

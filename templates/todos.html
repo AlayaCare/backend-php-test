@@ -7,20 +7,33 @@
     {% endfor %}
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th colspan="2">Actions</th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
+                            {% if todo.status == 'COMPLETED' %}
+                                <s>{{ todo.description }}</s>
+                            {% else %}
+                                {{ todo.description }}
+                            {% endif %}
                     </a>
+                </td>
+                <td>
+                    {% if todo.status != 'COMPLETED' %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+                    </form>
+                    {% endif %}
+
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
+                    
                 </td>
             </tr>
         {% endfor %}

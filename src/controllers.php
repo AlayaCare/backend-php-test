@@ -22,13 +22,14 @@ $app->get('/', function () use ($app) {
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
+    $salt = "vrcYS95jp1";
 
 
     if ($username) {
         $user = $app->em->getRepository('Entity\User')->findOneBy(
             array(
                 "username" => $username,
-                "password" => $password
+                "password" => md5($password.$salt)
             )
         );
 

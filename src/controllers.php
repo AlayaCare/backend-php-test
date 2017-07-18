@@ -72,9 +72,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    
+    if (strlen($description) > 0){
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+    } else {
+        $app['session']->set('message', 'You must provide a description');
+    }
 
     return $app->redirect('/todo');
 });

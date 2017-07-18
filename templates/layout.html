@@ -31,6 +31,16 @@
       </div>
     </nav>
 
+    {% if app.session.get('message')  %}
+    <div class="bs-example bs-example-standalone" data-example-id=dismissible-alert-js>
+        <div class="alert alert-warning alert-dismissible fade in" role=alert>
+            <button type=button class=close data-dismiss=alert aria-label=Close
+            ><span aria-hidden=true>&times;</span></button>
+          {{ app.session.get('message') }}
+          {{ app.session.set('message', '') }}
+    </div>
+   {% endif %}
+
     <div class="container">
       <div class="row">
         {% block content %}{% endblock %}

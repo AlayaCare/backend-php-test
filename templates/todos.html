@@ -45,5 +45,14 @@
             </form>
         </tr>
     </table>
+	<div class="pagin">
+        {% if page > 1 %}
+            <a href="{{ app.request.baseurl }}/todo/page/{{ page - 1 }}"><span class="glyphicon glyphicon-menu-left glyphicon-white"></span></a>
+        {% endif %}
+        Page {{ page }} of {{ last_page }}</td>
+        {% if page < last_page %}
+            <a href="{{ app.request.baseurl }}/todo/page/{{ page + 1 }}"><span class="glyphicon glyphicon-menu-right glyphicon-white"></span></a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

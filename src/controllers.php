@@ -3,6 +3,8 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+define('PER_PAGE', 5);
+
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
 
@@ -41,11 +43,12 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', $ref = function ($id, $page) use ($app) 
+{
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
+			
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
@@ -54,16 +57,26 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+		
+		$sql = "SELECT COUNT(*) FROM todos WHERE user_id = '${user['id']}'";
+		$todos = $app['db']->fetchAssoc($sql);
+		$total_items = $todos['COUNT(*)'];
+		$last_page = round($total_items / PER_PAGE);
+		
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT " . PER_PAGE . " OFFSET " . (($page-1)*PER_PAGE);
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+			'page' => $page,
+			'last_page' => $last_page
         ]);
     }
 })
-->value('id', null);
+->value('id', null)->value('page',1);
 
+$app->get('/todo/page/{page}', $ref)
+->value('page', 1)->value('id',null);
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {

@@ -9,3 +9,7 @@ body {
 .markedcompleted {
     text-decoration: line-through;
 }
+
+.pagin {
+    test-align:right;
+}

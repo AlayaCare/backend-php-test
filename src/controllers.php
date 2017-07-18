@@ -113,3 +113,16 @@ $app->match('/todo/uncomplete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+$app->get('/todo/json/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "SELECT * FROM todos WHERE id = '$id'";
+    $todo = $app['db']->fetchAssoc($sql);
+
+	$arr = array('id' => $todo['id'], 'user_id' => $todo['user_id'], 'description' => $todo['description'], 'completed' => $todo['completed']);
+	return json_encode($arr);
+    
+});

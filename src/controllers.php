@@ -76,23 +76,32 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (strlen($description) > 0){
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+		$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo added');
     } else {
-        $app['session']->set('message', 'You must provide a description');
+		$request->getSession()
+			->getFlashBag()
+			->add('msg', 'A description is required');
     }
 
     return $app->redirect('/todo');
 });
 
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
+$app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
+	$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo deleted');
+			
     return $app->redirect('/todo');
 });
 
-$app->match('/todo/complete/{id}', function ($id) use ($app) {
+$app->match('/todo/complete/{id}', function ($id, Request $request) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -100,10 +109,14 @@ $app->match('/todo/complete/{id}', function ($id) use ($app) {
     $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
+	$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo completed');
+			
     return $app->redirect('/todo');
 });
 
-$app->match('/todo/uncomplete/{id}', function ($id) use ($app) {
+$app->match('/todo/uncomplete/{id}', function ($id, Request $request) use ($app) {
 	if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -111,6 +124,10 @@ $app->match('/todo/uncomplete/{id}', function ($id) use ($app) {
     $sql = "UPDATE todos SET completed = 0 WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
+	$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo uncompleted');
+			
     return $app->redirect('/todo');
 });
 

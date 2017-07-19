@@ -3,6 +3,7 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+
 define('PER_PAGE', 5);
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
@@ -24,8 +25,8 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $model = new model;
+		$user = $model->Validate_user($username, $password, $app);
 
         if ($user){
             $app['session']->set('user', $user);
@@ -58,18 +59,13 @@ $app->get('/todo/{id}', $ref = function ($id, $page) use ($app)
         ]);
     } else {
 		
-		$sql = "SELECT COUNT(*) FROM todos WHERE user_id = '${user['id']}'";
-		$todos = $app['db']->fetchAssoc($sql);
-		$total_items = $todos['COUNT(*)'];
-		$last_page = round($total_items / PER_PAGE);
-		
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT " . PER_PAGE . " OFFSET " . (($page-1)*PER_PAGE);
-        $todos = $app['db']->fetchAll($sql);
+		$model = new model;
+		$todos = $model->Get_Todos($user['id'],PER_PAGE, $page, $app);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
 			'page' => $page,
-			'last_page' => $last_page
+			'last_page' => $model->Get_LastPage()
         ]);
     }
 })
@@ -87,8 +83,9 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
     
     if (strlen($description) > 0){
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $model = new model;
+		$model->Add_Todo($user_id, $description, $app);
+		
 		$request->getSession()
 			->getFlashBag()
 			->add('msg', 'Todo added');
@@ -104,9 +101,9 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-
+	$model = new model;
+	$model->Delete_Todo($id, $app);
+ 
 	$request->getSession()
 			->getFlashBag()
 			->add('msg', 'Todo deleted');
@@ -119,8 +116,8 @@ $app->match('/todo/complete/{id}', function ($id, Request $request) use ($app) {
         return $app->redirect('/login');
     }
 	
-    $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+	$model = new model;
+    $model->Complete_Todo($id, $app);
 
 	$request->getSession()
 			->getFlashBag()
@@ -133,9 +130,9 @@ $app->match('/todo/uncomplete/{id}', function ($id, Request $request) use ($app)
 	if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
-    $sql = "UPDATE todos SET completed = 0 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+	
+    $model = new model;
+    $model->Uncomplete_Todo($id, $app);
 
 	$request->getSession()
 			->getFlashBag()
@@ -149,8 +146,8 @@ $app->get('/todo/json/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "SELECT * FROM todos WHERE id = '$id'";
-    $todo = $app['db']->fetchAssoc($sql);
+	$model = new model;
+    $todo = $model->Get_Todo($id, $app);
 
 	$arr = array('id' => $todo['id'], 'user_id' => $todo['user_id'], 'description' => $todo['description'], 'completed' => $todo['completed']);
 	return json_encode($arr);

@@ -25,7 +25,7 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $model = new model;
+        $model = new model(null);
 		$user = $model->Validate_user($username, $password, $app);
 
         if ($user){
@@ -50,17 +50,17 @@ $app->get('/todo/{id}', $ref = function ($id, $page) use ($app)
         return $app->redirect('/login');
     }
 			
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+	$model = new model($user['id']);
+	
+    if ($id){        
+		$todo = $model->Get_Todo($id, $app);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
 		
-		$model = new model;
-		$todos = $model->Get_Todos($user['id'],PER_PAGE, $page, $app);
+		$todos = $model->Get_Todos(PER_PAGE, $page, $app);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -83,8 +83,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
     
     if (strlen($description) > 0){
-        $model = new model;
-		$model->Add_Todo($user_id, $description, $app);
+        $model = new model($user_id);
+		$model->Add_Todo($description, $app);
 		
 		$request->getSession()
 			->getFlashBag()
@@ -100,8 +100,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
-
-	$model = new model;
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+	
+	$model = new model($user['id']);
 	$model->Delete_Todo($id, $app);
  
 	$request->getSession()
@@ -116,7 +119,7 @@ $app->match('/todo/complete/{id}', function ($id, Request $request) use ($app) {
         return $app->redirect('/login');
     }
 	
-	$model = new model;
+	$model = new model($user['id']);
     $model->Complete_Todo($id, $app);
 
 	$request->getSession()
@@ -131,7 +134,7 @@ $app->match('/todo/uncomplete/{id}', function ($id, Request $request) use ($app)
         return $app->redirect('/login');
     }
 	
-    $model = new model;
+    $model = new model($user['id']);
     $model->Uncomplete_Todo($id, $app);
 
 	$request->getSession()
@@ -146,7 +149,7 @@ $app->get('/todo/json/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-	$model = new model;
+	$model = new model($user['id']);
     $todo = $model->Get_Todo($id, $app);
 
 	$arr = array('id' => $todo['id'], 'user_id' => $todo['user_id'], 'description' => $todo['description'], 'completed' => $todo['completed']);

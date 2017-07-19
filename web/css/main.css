@@ -5,3 +5,11 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+
+.markedcompleted {
+    text-decoration: line-through;
+}
+
+.pagin {
+    test-align:right;
+}

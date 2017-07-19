@@ -4,16 +4,29 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}" {% if todo.completed %} class="markedcompleted"{% endif %}>
                        {{ todo.description }}
                     </a>
                 </td>
+				{% if todo.completed %}
+					<td>
+								<form method="post" action="{{ app.request.baseurl }}/todo/uncomplete/{{ todo.id }}">
+									<button type="submit" class="btn btn-xs btn-warning"><span class="glyphicon glyphicon-unchecked glyphicon-white"></span></button>
+								</form>
+							</td>
+				{% else %}
+					<td>
+								<form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+									<button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
+								</form>
+							</td>
+				{% endif %}
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
@@ -24,7 +37,7 @@
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required>
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
@@ -32,5 +45,14 @@
             </form>
         </tr>
     </table>
+	<div class="pagin">
+        {% if page > 1 %}
+            <a href="{{ app.request.baseurl }}/todo/page/{{ page - 1 }}"><span class="glyphicon glyphicon-menu-left glyphicon-white"></span></a>
+        {% endif %}
+        Page {{ page }} of {{ last_page }}</td>
+        {% if page < last_page %}
+            <a href="{{ app.request.baseurl }}/todo/page/{{ page + 1 }}"><span class="glyphicon glyphicon-menu-right glyphicon-white"></span></a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

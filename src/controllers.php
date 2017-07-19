@@ -3,6 +3,9 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+
+define('PER_PAGE', 5);
+
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
 
@@ -22,8 +25,8 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $model = new model(null);
+		$user = $model->Validate_user($username, $password, $app);
 
         if ($user){
             $app['session']->set('user', $user);
@@ -41,29 +44,35 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', $ref = function ($id, $page) use ($app) 
+{
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+			
+	$model = new model($user['id']);
+	
+    if ($id){        
+		$todo = $model->Get_Todo($id, $app);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+		
+		$todos = $model->Get_Todos(PER_PAGE, $page, $app);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+			'page' => $page,
+			'last_page' => $model->Get_LastPage()
         ]);
     }
 })
-->value('id', null);
+->value('id', null)->value('page',1);
 
+$app->get('/todo/page/{page}', $ref)
+->value('page', 1)->value('id',null);
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
@@ -72,18 +81,78 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    
+    if (strlen($description) > 0){
+        $model = new model($user_id);
+		$model->Add_Todo($description, $app);
+		
+		$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo added');
+    } else {
+		$request->getSession()
+			->getFlashBag()
+			->add('msg', 'A description is required');
+    }
 
     return $app->redirect('/todo');
 });
 
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-
+$app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+	
+	$model = new model($user['id']);
+	$model->Delete_Todo($id, $app);
+ 
+	$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo deleted');
+			
     return $app->redirect('/todo');
+});
+
+$app->match('/todo/complete/{id}', function ($id, Request $request) use ($app) {
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+	
+	$model = new model($user['id']);
+    $model->Complete_Todo($id, $app);
+
+	$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo completed');
+			
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/uncomplete/{id}', function ($id, Request $request) use ($app) {
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+	
+    $model = new model($user['id']);
+    $model->Uncomplete_Todo($id, $app);
+
+	$request->getSession()
+			->getFlashBag()
+			->add('msg', 'Todo uncompleted');
+			
+    return $app->redirect('/todo');
+});
+
+$app->get('/todo/json/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+	$model = new model($user['id']);
+    $todo = $model->Get_Todo($id, $app);
+
+	$arr = array('id' => $todo['id'], 'user_id' => $todo['user_id'], 'description' => $todo['description'], 'completed' => $todo['completed']);
+	return json_encode($arr);
+    
 });

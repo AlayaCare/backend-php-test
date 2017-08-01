@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Todo\InvalidCredentials;
 use Todo\User;
 
@@ -88,9 +89,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    //validate description
     $description = trim($request->get('description'));
-    if ($description != '') {
+
+    //validate description
+    $errors = $app['validator']->validate($description, new NotBlank());
+
+    if (count($errors) == 0) {
         $loggedInUser = new User($userData, $app['db']);
 
         //logged in user adds a reminder

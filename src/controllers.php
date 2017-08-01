@@ -2,8 +2,10 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Todo\InvalidCredentials;
+use Todo\User;
 
-$app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
+$app['twig'] = $app->share($app->extend('twig', function ($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
 
     return $twig;
@@ -18,21 +20,29 @@ $app->get('/', function () use ($app) {
 
 
 $app->match('/login', function (Request $request) use ($app) {
-    $username = $request->get('username');
-    $password = $request->get('password');
+    if ($request->isMethod(Request::METHOD_POST)) {
+        try {
+            //attempt to login a user using the provided credentials
+            $userData = User::login(
+                $request->get('username'),
+                $request->get('password'),
+                $app['db']
+            );
 
-    if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+            //store user data in session
+            $app['session']->set('user', $userData);
 
-        if ($user){
-            $app['session']->set('user', $user);
+            //redirect to reminder list
             return $app->redirect('/todo');
+        } catch (InvalidCredentials $e) {
+            //redirect to GET login to avoid re-posting with refresh
+            return $app->redirect('/login');
         }
     }
 
-    return $app['twig']->render('login.html', array());
-});
+    //display login form
+    return $app['twig']->render('login.html');
+})->method("GET|POST");
 
 
 $app->get('/logout', function () use ($app) {
@@ -42,48 +52,55 @@ $app->get('/logout', function () use ($app) {
 
 
 $app->get('/todo/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
+    if (null === $userData = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
+    $loggedInUser = new User($userData, $app['db']);
 
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+    //obtain reminders
+    $reminders = $loggedInUser->getReminders($id);
 
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
+    if (null !== $id) {
+        //a collection with one reminder expected
+        if (empty($reminders)) {
+            //invalid id provided return a 404 Not Found response
+            return $app->abort(
+                Response::HTTP_NOT_FOUND,
+                'Unknown reminder id: ' . $id
+            );
+        }
+
+        //render the reminder
+        return $app['twig']->render('todo.html', ['todo' => reset($reminders)]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
+        //render all reminders
+        return $app['twig']->render('todos.html', ['todos' => $reminders]);
     }
 })
 ->value('id', null);
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
+    if (null === $userData = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
+    $loggedInUser = new User($userData, $app['db']);
 
-    $user_id = $user['id'];
-    $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    //logged in user adds a reminder
+    $loggedInUser->addReminder($request->get('description'));
 
     return $app->redirect('/todo');
 });
 
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
+$app->post('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $userData = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    $loggedInUser = new User($userData, $app['db']);
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    //logged in user deletes a reminder
+    $loggedInUser->deleteReminder($id);
 
     return $app->redirect('/todo');
 });

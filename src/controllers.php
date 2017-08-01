@@ -35,6 +35,9 @@ $app->match('/login', function (Request $request) use ($app) {
             //redirect to reminder list
             return $app->redirect('/todo');
         } catch (InvalidCredentials $e) {
+            //incorrect login credentials, prepare the error message
+            $app['session']->getFlashBag()->add('problemMessage', $e->getMessage());
+
             //redirect to GET login to avoid re-posting with refresh
             return $app->redirect('/login');
         }
@@ -89,6 +92,9 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     //logged in user adds a reminder
     $loggedInUser->addReminder($request->get('description'));
 
+    //flash message
+    $app['session']->getFlashBag()->add('successMessage', 'Reminder created successfully.');
+
     return $app->redirect('/todo');
 });
 
@@ -101,6 +107,9 @@ $app->post('/todo/delete/{id}', function ($id) use ($app) {
 
     //logged in user deletes a reminder
     $loggedInUser->deleteReminder($id);
+
+    //flash message
+    $app['session']->getFlashBag()->add('successMessage', 'Reminder deleted successfully.');
 
     return $app->redirect('/todo');
 });

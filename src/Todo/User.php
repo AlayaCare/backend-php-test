@@ -4,6 +4,7 @@ namespace Todo;
 
 use Doctrine\DBAL\Connection;
 use PDO;
+use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
 
 class User
 {
@@ -41,9 +42,7 @@ class User
         $builder->select('*')
             ->from('users')
             ->where('username = ?')
-            ->andWhere('password = ?')
-            ->setParameter(0, $username, PDO::PARAM_STR)
-            ->setParameter(1, $password, PDO::PARAM_STR);
+            ->setParameter(0, $username, PDO::PARAM_STR);
 
         $records = $builder->execute()->fetchAll();
 
@@ -51,7 +50,15 @@ class User
         $userFound = count($records) == 1;
 
         if ($userFound) {
-            return reset($records);
+            $record = reset($records);
+
+            //verify password
+            $validPassword = (new BCryptPasswordEncoder(10))
+                ->isPasswordValid($record['password'], $password, 'salt is not used');
+        }
+
+        if ($userFound && $validPassword) {
+            return $record;
         }
 
         //invalid credentials

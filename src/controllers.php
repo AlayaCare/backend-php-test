@@ -2,6 +2,10 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Todo\Entity\Todo;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -72,9 +76,22 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
+    $validator = Validation::createValidator();
+    $violations = $validator->validate($description, array(
+        new Length(array('min' => 3)),
+        new NotBlank(),
+    ));
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if(0 !== count($violations)){
+        $errors = [];
+        foreach ($violations as $violation) {
+            $app['session']->getFlashBag()->add('errors', $violation->getMessage());
+        }
+
+    }else{
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+    }
 
     return $app->redirect('/todo');
 });

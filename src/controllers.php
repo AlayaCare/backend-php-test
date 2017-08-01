@@ -87,13 +87,21 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $userData = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-    $loggedInUser = new User($userData, $app['db']);
 
-    //logged in user adds a reminder
-    $loggedInUser->addReminder($request->get('description'));
+    //validate description
+    $description = trim($request->get('description'));
+    if ($description != '') {
+        $loggedInUser = new User($userData, $app['db']);
 
-    //flash message
-    $app['session']->getFlashBag()->add('successMessage', 'Reminder created successfully.');
+        //logged in user adds a reminder
+        $loggedInUser->addReminder($description);
+
+        //flash message
+        $app['session']->getFlashBag()->add('successMessage', 'Reminder created successfully.');
+    } else {
+        //empty description provided
+        $app['session']->getFlashBag()->add('problemMessage', 'Please provide a reminder description.');
+    }
 
     return $app->redirect('/todo');
 });

@@ -64,7 +64,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         $todo = $em->getRepository(Todo::class)->findOneBy(
             [
                 "id" => $id,
-                "user_id" => $user['id']
+                "user_id" => $app['user_id']
             ]);
         if (!$todo) {
             $app['monolog']->info(sprintf("Task '%s' not found.", $id));
@@ -122,11 +122,16 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $em = $app['db.orm.em'];
     $todo = $em->getRepository(Todo::class)->find($id);
-    $em->remove($todo);
-    $em->flush();
-    $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
-    $app['session']->getFlashBag()->add('type', 'success');
 
+    if($todo->canDelete($app['user_id'])){
+        $em->remove($todo);
+        $em->flush();
+        $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
+        $app['session']->getFlashBag()->add('type', 'success');
+    }else{
+        $app['session']->getFlashBag()->add('flashMsg', 'You can\'t remove this task!');
+        $app['session']->getFlashBag()->add('type', 'danger');
+    }
     return $app->redirect('/todo');
 })->before($before);
 

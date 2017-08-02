@@ -79,4 +79,12 @@ class Todo
 		];
     }
 
+    public function canDelete($user_id){
+    	if($user_id == $this->user_id){
+    		return true;
+    	}else{
+    		return false;
+    	}
+    }
+
 }

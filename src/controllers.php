@@ -46,7 +46,7 @@ $app->match('/login', function (Request $request) use ($app) {
         }
     }
 
-    return $app['twig']->render('login.html', array());
+    return $app['twig']->render('login.html', []);
 });
 
 
@@ -95,10 +95,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $app['user_id'];
     $description = $request->get('description');
     $validator = Validation::createValidator();
-    $violations = $validator->validate($description, array(
-        new Length(array('min' => 3)),
+    $violations = $validator->validate($description, [
+        new Length(['min' => 3]),
         new NotBlank(),
-    ));
+    ]);
 
     if(0 !== count($violations)){
         foreach ($violations as $violation) {

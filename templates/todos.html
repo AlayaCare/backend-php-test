@@ -13,7 +13,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -24,16 +24,31 @@
                     </a>
                 </td>
                 <td>
+                    {% if(todo.is_complete) == 0 %}
+                        <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}">
+                            <button type="submit" class="btn btn-xs btn-success" title="Mark as complete">
+                                <span class="glyphicon glyphicon-check glyphicon-white"></span>
+                            </button>
+                        </form>
+                    {% else %}
+                        <button type="submit" class="btn btn-xs btn-info" title="Task done">
+                                <span class='glyphicon glyphicon-thumbs-up'></span>
+                        </button>
+                    {% endif %}
+                </td>
+                <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        <button type="submit" class="btn btn-xs btn-danger" title="Delete">
+                            <span class="glyphicon glyphicon-remove glyphicon-white"></span>
+                        </button>
                     </form>
                 </td>
             </tr>
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                <td colspan="4">
+                    <input type="textbox" name="description" class="form-control small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>

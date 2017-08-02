@@ -91,7 +91,14 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         }
 
         //render all reminders
-        return $app['twig']->render('todos.html', ['todos' => $reminders, 'paginator' => $paginator]);
+        return $app['twig']->render(
+            'todos.html',
+            [
+                'todos' => $reminders,
+                'paginator' => $paginator,
+                'page' => $page
+            ]
+        );
     }
 })->value('id', null);
 

@@ -4,10 +4,8 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <tr>
-            <th></th><th>Description</th><th></th>
-        </tr>
-        {% include 'todo_tr.html' with {'todo': todo} %}
+        {% include 'todo_th.html' %}
+        {% include 'todo_tr.html' with {'page': 1, 'index' : 1} %}
     </table>
 </div>
 

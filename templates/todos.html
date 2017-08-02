@@ -1,11 +1,11 @@
 {% extends "layout.html" %}
 
 {% block content %}
-{% set errors = app.session.flashbag.get('errors') %}
+{% set flashMsg = app.session.flashbag.get('flashMsg') %}
 
-{% for error in errors %}
-<div class="alert alert-danger">
-    {{ error }}
+{% for message in flashMsg %}
+<div class="alert alert-info">
+    {{ message }}
 </div>
 {% endfor %}
 

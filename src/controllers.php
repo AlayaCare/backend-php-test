@@ -81,14 +81,14 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     ));
 
     if(0 !== count($violations)){
-        $errors = [];
         foreach ($violations as $violation) {
-            $app['session']->getFlashBag()->add('errors', $violation->getMessage());
+            $app['session']->getFlashBag()->add('flashMsg', $violation->getMessage());
         }
 
     }else{
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add('flashMsg', 'Task added successfuly!');
     }
 
     return $app->redirect('/todo');
@@ -99,7 +99,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
-
+    $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
     return $app->redirect('/todo');
 });
 

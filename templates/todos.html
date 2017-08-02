@@ -2,9 +2,10 @@
 
 {% block content %}
 {% set flashMsg = app.session.flashbag.get('flashMsg') %}
+{% set type = app.session.flashbag.get('type') %}
 
 {% for message in flashMsg %}
-<div class="alert alert-info">
+<div class="alert alert-{{type[0]}}">
     {{ message }}
 </div>
 {% endfor %}

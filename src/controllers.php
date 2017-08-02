@@ -2,10 +2,12 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Todo\Entity\Todo;
+use Entity\Todo;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Pagerfanta\Pagerfanta;
+use Pagerfanta\Adapter\ArrayAdapter;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -51,16 +53,29 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-
+        // finding task by id and user_id
+        $em = $app['db.orm.em'];
+        $todo = $em->getRepository(Todo::class)->findOneBy(
+            [
+                "id" => $id,
+                "user_id" => $user['id']
+            ]);
+        if (!$todo) {
+            $app['monolog']->info(sprintf("Task '%s' not found.", $id));
+            $app['session']->getFlashBag()->add('flashMsg', "Task $id not found.");
+            $app['session']->getFlashBag()->add('type', 'danger');
+            return $app->redirect('/todo');
+        }
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
 
+    } else {
+        $em = $app['db.orm.em'];
+        $todos = $em->getRepository(Todo::class)->findBy(
+            [
+            "user_id" => $user['id']
+            ]);
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
         ]);
@@ -83,12 +98,16 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if(0 !== count($violations)){
         foreach ($violations as $violation) {
             $app['session']->getFlashBag()->add('flashMsg', $violation->getMessage());
+            $app['session']->getFlashBag()->add('type', 'danger');
         }
-
     }else{
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+
+        $em = $app['db.orm.em'];
+        $todo = new Todo($user_id, $description);
+        $em->persist($todo);
+        $em->flush();
         $app['session']->getFlashBag()->add('flashMsg', 'Task added successfuly!');
+        $app['session']->getFlashBag()->add('type', 'success');
     }
 
     return $app->redirect('/todo');
@@ -97,9 +116,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $em = $app['db.orm.em'];
+    $todo = $em->getRepository(Todo::class)->find($id);
+    $em->remove($todo);
+    $em->flush();
     $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
+    $app['session']->getFlashBag()->add('type', 'success');
+
     return $app->redirect('/todo');
 });
 

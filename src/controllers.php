@@ -186,13 +186,15 @@ $app->post('/todo/delete/{id}', function ($id) use ($app) {
     //flash message
     $app['session']->getFlashBag()->add('successMessage', 'Reminder deleted successfully.');
 
+    //check for pagination parts in the referer URL
     $referer = $app['request']->headers->get('referer');
-    $parts = parse_url($app['request']->headers->get('referer'));
+    $parts = parse_url($referer);
 
     if (array_key_exists('query', $parts)) {
         parse_str($parts['query'], $query);
 
         if (array_key_exists('page', $query)) {
+            //redirect to the same page the delete call came from
             return $app->redirect($referer);
         }
     }

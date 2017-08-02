@@ -13,13 +13,11 @@ $app['twig'] = $app->share($app->extend('twig', function ($twig, $app) {
     return $twig;
 }));
 
-
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
     ]);
 });
-
 
 $app->match('/login', function (Request $request) use ($app) {
     if ($request->isMethod(Request::METHOD_POST)) {
@@ -49,12 +47,10 @@ $app->match('/login', function (Request $request) use ($app) {
     return $app['twig']->render('login.html');
 })->method("GET|POST");
 
-
 $app->get('/logout', function () use ($app) {
     $app['session']->set('user', null);
     return $app->redirect('/');
 });
-
 
 $app->get('/todo/{id}', function ($id) use ($app) {
     if (null === $userData = $app['session']->get('user')) {
@@ -62,12 +58,12 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
     $loggedInUser = new User($userData, $app['db']);
 
-    //obtain reminders
-    $reminders = $loggedInUser->getReminders($id);
+    if (null !== $id) {//id provided, display a single reminder
 
-    if (null !== $id) {
-        //a collection with one reminder expected
-        if (empty($reminders)) {
+        //find the reminder
+        $reminder = $loggedInUser->findReminder($id);
+
+        if (empty($reminder)) {
             //invalid id provided return a 404 Not Found response
             return $app->abort(
                 Response::HTTP_NOT_FOUND,
@@ -76,13 +72,28 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         }
 
         //render the reminder
-        return $app['twig']->render('todo.html', ['todo' => reset($reminders)]);
+        return $app['twig']->render('todo.html', ['todo' => $reminder]);
     } else {
+        //prepare pagination params
+        $page = $app['request']->get('page', 1);
+        $totalCount = 0;
+        $itemsPerPage = 10;
+
+        //fetch reminders
+        $reminders = $loggedInUser->getReminders($itemsPerPage, $page, $totalCount);
+
+        //prepare paginator
+        $paginator = new Paginator\Paginator($totalCount, $itemsPerPage, $page);
+
+        //in case the page doesn't have any items to show, redirect to the last page
+        if (empty($reminders) && $page > 1) {
+            return $app->redirect('/todo?page=' . $paginator->count());
+        }
+
         //render all reminders
-        return $app['twig']->render('todos.html', ['todos' => $reminders]);
+        return $app['twig']->render('todos.html', ['todos' => $reminders, 'paginator' => $paginator]);
     }
-})
-    ->value('id', null);
+})->value('id', null);
 
 $app->get('/todo/{id}/json', function ($id) use ($app) {
     if (null === $userData = $app['session']->get('user')) {
@@ -91,10 +102,10 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     $loggedInUser = new User($userData, $app['db']);
 
     //obtain reminders
-    $reminders = $loggedInUser->getReminders($id);
+    $reminder = $loggedInUser->findReminder($id);
 
     //a collection with one reminder expected
-    if (empty($reminders)) {
+    if (empty($reminder)) {
         //invalid id provided return a 404 Not Found response
         return $app->abort(
             Response::HTTP_NOT_FOUND,
@@ -103,7 +114,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     }
 
     //render the reminder as JSON
-    return new JsonResponse(reset($reminders));
+    return new JsonResponse($reminder);
 });
 
 
@@ -112,6 +123,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
+    //get description from request
     $description = trim($request->get('description'));
 
     //validate description
@@ -130,7 +142,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $app['session']->getFlashBag()->add('problemMessage', 'Please provide a reminder description.');
     }
 
-    return $app->redirect('/todo');
+    //compute last page
+    $loggedInUser->getReminders(10, 1, $totalCount);
+    $lastPage = (int) ($totalCount / 10) + 1;
+
+    //redirect to the last page
+    return $app->redirect('/todo?page=' . $lastPage);
 });
 
 $app->post('/todo/{id}/toggle-status', function ($id) use ($app) {
@@ -170,5 +187,17 @@ $app->post('/todo/delete/{id}', function ($id) use ($app) {
     //flash message
     $app['session']->getFlashBag()->add('successMessage', 'Reminder deleted successfully.');
 
+    $referer = $app['request']->headers->get('referer');
+    $parts = parse_url($app['request']->headers->get('referer'));
+
+    if (array_key_exists('query', $parts)) {
+        parse_str($parts['query'], $query);
+
+        if (array_key_exists('page', $query)) {
+            return $app->redirect($referer);
+        }
+    }
+
+    //redirect back to reminder list
     return $app->redirect('/todo');
 });

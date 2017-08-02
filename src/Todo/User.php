@@ -68,10 +68,12 @@ class User
     /**
      * Provides a collection of reminders for this user.
      *
-     * @param string|null $reminderId An optional parameter used to fetch a reminder with a particular id.
+     * @param int $perPage Number of items per page
+     * @param int $page Page number
+     * @param int $total Will capture the number of total reminders
      * @return array
      */
-    public function getReminders($reminderId = null)
+    public function getReminders($perPage = null, $page = 1, &$total = null)
     {
         //build query
         $builder = $this->connection->createQueryBuilder();
@@ -80,19 +82,58 @@ class User
             ->where('user_id = ?')
             ->setParameter(0, $this->data['id'], PDO::PARAM_INT);
 
-        if ($reminderId !== null) {
-            $builder->andWhere('id = ?')
-                ->setParameter(1, $reminderId);
+        if ($perPage !== null && is_numeric($perPage)) {
+            //give total number of reminders
+            $totalQuery = $this->connection->createQueryBuilder();
+            $totalQuery->select('count(*) AS total')
+                ->from('todos')
+                ->where('user_id = ?')
+                ->setParameter(0, $this->data['id']);
+
+            $totalRecord = $totalQuery->execute()->fetch();
+            $total = $totalRecord['total'];
+
+            //consider paginate parameters
+            $builder->setFirstResult($perPage * ($page - 1))
+                ->setMaxResults($perPage);
         }
 
         $reminders = [];
         //converting status to boolean
         foreach ($builder->execute()->fetchAll() as $row) {
-            $row['is_completed'] = (bool) $row['is_completed'];
+            $row['is_completed'] = (bool)$row['is_completed'];
             $reminders[] = $row;
         }
 
         return $reminders;
+    }
+
+    /**
+     * Produces data for the reminder with a given id.
+     * Will return null if reminder not found.
+     *
+     * @param string $reminderId
+     * @return array|null
+     */
+    public function findReminder($reminderId)
+    {
+        //build query
+        $builder = $this->connection->createQueryBuilder();
+        $builder->select('*')
+            ->from('todos')
+            ->where('user_id = ?')
+            ->setParameter(0, $this->data['id'], PDO::PARAM_INT)
+            ->andWhere('id = ?')
+            ->setParameter(1, $reminderId);
+
+        $dataSet = $builder->execute()->fetchAll();
+
+        if (count($dataSet) == 1) {
+            $reminder = reset($dataSet);
+            $reminder['is_completed'] = (bool)$reminder['is_completed'];
+
+            return $reminder;
+        }
     }
 
     /**

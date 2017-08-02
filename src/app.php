@@ -15,8 +15,9 @@ $app->register(new SessionServiceProvider());
 $app->register(new UrlGeneratorServiceProvider());
 $app->register(new ValidatorServiceProvider());
 $app->register(new ServiceControllerServiceProvider());
-$app->register(new TwigServiceProvider());
+$app->register(new TwigServiceProvider(), ['twig.path' => __DIR__.'/../templates']);
 $app->register(new HttpFragmentServiceProvider());
+$app->register(new Paginator\Provider\PaginatorServiceProvider());
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
 $app->register(new DoctrineServiceProvider, array(

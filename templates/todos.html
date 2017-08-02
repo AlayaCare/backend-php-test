@@ -10,10 +10,16 @@
         {% for todo in todos %}
             {% include 'todo_tr.html' with {'todo': todo} %}
         {% endfor %}
+
+        <tr>
+            <td colspan="3" class="text-center">
+            {{ paginator(paginator) }}
+            </td>
+        </tr>
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="2">
-                    <input type="text" required name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="text" autofocus required name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>

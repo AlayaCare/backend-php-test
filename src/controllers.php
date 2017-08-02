@@ -82,7 +82,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app['twig']->render('todos.html', ['todos' => $reminders]);
     }
 })
-->value('id', null);
+    ->value('id', null);
 
 $app->get('/todo/{id}/json', function ($id) use ($app) {
     if (null === $userData = $app['session']->get('user')) {
@@ -131,6 +131,30 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     }
 
     return $app->redirect('/todo');
+});
+
+$app->post('/todo/{id}/toggle-status', function ($id) use ($app) {
+    if (null === $userData = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $loggedInUser = new User($userData, $app['db']);
+
+    //logged in toggles reminder status
+    if ($loggedInUser->toggleReminderStatus($id)) {
+        //flash success message
+        $app['session']->getFlashBag()->add('successMessage', 'Reminder status changed.');
+
+    } else {
+        //flash error message
+        $app['session']->getFlashBag()->add(
+            'problemMessage',
+            'There was a problem changing reminder status. ID: ' . $id
+        );
+    }
+
+    //redirect back to the referer
+    return $app->redirect($app['request']->headers->get('referer'));
 });
 
 

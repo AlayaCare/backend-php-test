@@ -85,8 +85,14 @@ class User
                 ->setParameter(1, $reminderId);
         }
 
-        //return the fetched data
-        return $builder->execute()->fetchAll();
+        $reminders = [];
+        //converting status to boolean
+        foreach ($builder->execute()->fetchAll() as $row) {
+            $row['is_completed'] = (bool) $row['is_completed'];
+            $reminders[] = $row;
+        }
+
+        return $reminders;
     }
 
     /**
@@ -121,6 +127,29 @@ class User
     {
         $builder = $this->connection->createQueryBuilder();
         $builder->delete('todos')
+            ->where('user_id = ?')
+            ->andWhere('id = ?')
+            ->setParameter(0, $this->data['id'])
+            ->setParameter(1, $reminderId);
+
+        $affectedRows = $builder->execute();
+
+        return $affectedRows == 1;
+    }
+
+    /**
+     * Changes status for a reminder with a given id.
+     *
+     * Will return false if there's a problem.
+     *
+     * @param string $reminderId
+     * @return bool
+     */
+    public function toggleReminderStatus($reminderId)
+    {
+        $builder = $this->connection->createQueryBuilder();
+        $builder->update('todos')
+            ->set('is_completed', 'NOT is_completed')
             ->where('user_id = ?')
             ->andWhere('id = ?')
             ->setParameter(0, $this->data['id'])

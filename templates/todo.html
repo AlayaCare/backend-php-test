@@ -7,17 +7,7 @@
         <tr>
             <th></th><th>Description</th><th></th>
         </tr>
-        <tr>
-            <td>
-                <a title="View JSON" href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json"><span class='glyphicon glyphicon-eye-open'></span></a>
-            </td>
-            <td>{{ todo.description }}</td>
-            <td>
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                    <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                </form>
-            </td>
-        </tr>
+        {% include 'todo_tr.html' with {'todo': todo} %}
     </table>
 </div>
 

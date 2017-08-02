@@ -1,5 +1,6 @@
 <?php
 
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -82,6 +83,28 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 })
 ->value('id', null);
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $userData = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    $loggedInUser = new User($userData, $app['db']);
+
+    //obtain reminders
+    $reminders = $loggedInUser->getReminders($id);
+
+    //a collection with one reminder expected
+    if (empty($reminders)) {
+        //invalid id provided return a 404 Not Found response
+        return $app->abort(
+            Response::HTTP_NOT_FOUND,
+            'Unknown reminder id: ' . $id
+        );
+    }
+
+    //render the reminder as JSON
+    return new JsonResponse(reset($reminders));
+});
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {

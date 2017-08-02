@@ -122,6 +122,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $userData = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
+    $loggedInUser = new User($userData, $app['db']);
 
     //get description from request
     $description = trim($request->get('description'));
@@ -130,8 +131,6 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $errors = $app['validator']->validate($description, new NotBlank());
 
     if (count($errors) == 0) {
-        $loggedInUser = new User($userData, $app['db']);
-
         //logged in user adds a reminder
         $loggedInUser->addReminder($description);
 

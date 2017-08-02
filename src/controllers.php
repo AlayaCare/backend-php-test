@@ -68,7 +68,6 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
-
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
@@ -110,4 +109,20 @@ $app->post('/todo/completed/{id}', function ($id) use ($app) {
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');
+});
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "SELECT * FROM todos where user_id = '${user['id']}' and id='$id'";
+    $query = $app['db']->fetchAll($sql);
+
+    $response = new \Symfony\Component\HttpFoundation\JsonResponse();
+    $response->setEncodingOptions(JSON_NUMERIC_CHECK);
+    $response->setData(array('suppliers' => $query));
+
+    return $response;
+
 });

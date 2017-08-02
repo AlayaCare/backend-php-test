@@ -1,0 +1,30 @@
+<tr>
+    <td>{{ (page - 1)*10 + index}}.</td>
+    <td>
+        <div class="btn-group">
+            <form method="post" action="{{ app.request.baseurl }}/todo/{{ todo.id }}/toggle-status">
+                <button title="Change Status" type="submit" class="btn btn-link btn-xs">
+                    <span class="glyphicon {{ (todo.is_completed) ? 'glyphicon-minus' : 'glyphicon-ok' }}"></span>
+                </button>
+
+                <a class="btn btn-xs" title="View JSON" href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json"><span class='glyphicon glyphicon-eye-open'></span></a>
+            </form>
+        </div>
+    </td>
+    <td>
+        {% if todo.is_completed %}
+        <s>
+            {% endif %}
+            <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">{{ todo.description }}</a>
+
+            {% if todo.is_completed %}
+        </s>
+        {% endif %}
+
+    </td>
+    <td>
+        <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+            <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+        </form>
+    </td>
+</tr>

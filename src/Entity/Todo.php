@@ -64,4 +64,19 @@ class Todo
         return $this->is_complete;
     }
 
+    public function setIs_complete($is_complete)
+    {
+		$this->is_complete = $is_complete;
+		return $this->is_complete;
+    }
+
+    public function getJson(){
+		return [
+		'id' => $this->id,
+		'user_id' => $this->user_id,
+		'description' => $this->description,
+		'is_complete' => $this->is_complete
+		];
+    }
+
 }

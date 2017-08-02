@@ -22,6 +22,15 @@ $app->get('/', function () use ($app) {
     ]);
 });
 
+$before = (function (Request $request) use ($app) {
+    // redirect the user to the login screen if access to the Resource is protected
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }else{
+        $user = $app['session']->get('user');
+        $app['user_id'] = $user['id'];
+    }
+});
 
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
@@ -48,9 +57,6 @@ $app->get('/logout', function () use ($app) {
 
 
 $app->get('/todo/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
 
     if ($id){
         // finding task by id and user_id
@@ -74,20 +80,19 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         $em = $app['db.orm.em'];
         $todos = $em->getRepository(Todo::class)->findBy(
             [
-            "user_id" => $user['id']
+            "user_id" => $app['user_id']
             ]);
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
         ]);
     }
 })
+->before($before)
 ->value('id', null);
 
 $app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
-    $user_id = $user['id'];
+
+    $user_id = $app['user_id'];
     $description = $request->get('description');
     $validator = Validation::createValidator();
     $violations = $validator->validate($description, array(
@@ -111,11 +116,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     }
 
     return $app->redirect('/todo');
-});
+})->before($before);
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-
     $em = $app['db.orm.em'];
     $todo = $em->getRepository(Todo::class)->find($id);
     $em->remove($todo);
@@ -124,28 +128,38 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $app['session']->getFlashBag()->add('type', 'success');
 
     return $app->redirect('/todo');
-});
+})->before($before);
 
 $app->post('/todo/completed/{id}', function ($id) use ($app) {
 
-    $sql = "UPDATE todos set is_complete = 1 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $em = $app['db.orm.em'];
+    $todo = $em->getRepository(Todo::class)->find($id);
+    $todo->setIs_complete(1);
+    $em->flush();
+    $app['session']->getFlashBag()->add('flashMsg', 'Task updated!');
+    $app['session']->getFlashBag()->add('type', 'success');
 
     return $app->redirect('/todo');
 });
 
 $app->get('/todo/{id}/json', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
+    $user_id = $app['user_id'];
+    $em = $app['db.orm.em'];
+
+    $todo = $em->getRepository(Todo::class)->findOneBy([
+        'user_id' => $user_id,
+        'id' => $id
+        ]);
+
+    if (count($todo) > 0) {
+        $response = new \Symfony\Component\HttpFoundation\JsonResponse();
+        $response->setEncodingOptions(JSON_NUMERIC_CHECK);
+        $response->setData(['json' => $todo->getJson()]);
+        return $response;
+    }else{
+        $app['session']->getFlashBag()->add('flashMsg', 'Nothing to show!');
+        $app['session']->getFlashBag()->add('type', 'danger');
+
+        return $app->redirect('/todo');
     }
-
-    $sql = "SELECT * FROM todos where user_id = '${user['id']}' and id='$id'";
-    $query = $app['db']->fetchAll($sql);
-
-    $response = new \Symfony\Component\HttpFoundation\JsonResponse();
-    $response->setEncodingOptions(JSON_NUMERIC_CHECK);
-    $response->setData(array('suppliers' => $query));
-
-    return $response;
-
-});
+})->before($before);

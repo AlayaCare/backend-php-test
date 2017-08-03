@@ -11,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
 class Todo
 {
     /**
+     * @ManyToOne(targetEntity="User", inversedBy="todos")
+     */
+    private $user;
+
+    /**
      * @var integer
      * 
      * @Column(name="id", type="integer")
@@ -42,6 +47,10 @@ class Todo
     	$this->user_id = $user_id;
     	$this->is_complete = 0;
     	$this->description =  $description;
+    }
+
+    public function getUser(){
+        return $this->user;
     }
 
     public function getId()
@@ -80,11 +89,10 @@ class Todo
     }
 
     public function canDelete($user_id){
-    	if($user_id == $this->user_id){
+        if($user_id == $this->user_id)
     		return true;
-    	}else{
+        else
     		return false;
-    	}
     }
 
 }

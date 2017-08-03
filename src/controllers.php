@@ -6,8 +6,7 @@ use Entity\Todo;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Pagerfanta\Pagerfanta;
-use Pagerfanta\Adapter\ArrayAdapter;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -56,7 +55,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request, $id) use ($app) {
 
     if ($id){
         // finding task by id and user_id
@@ -77,13 +76,25 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         ]);
 
     } else {
+
+        $page_number = $request->get('page_number') == null ? 1 : $request->get('page_number');
+        $totalPerPage = 10;
         $em = $app['db.orm.em'];
-        $todos = $em->getRepository(Todo::class)->findBy(
-            [
-            "user_id" => $app['user_id']
-            ]);
+        $dql = "SELECT t FROM Entity\Todo t where t.user_id = ".$app['user_id'];
+        $query = $em->createQuery($dql)
+                       ->setFirstResult($totalPerPage * ($page_number - 1))
+                       ->setMaxResults($totalPerPage);
+        $paginator = new Paginator($query);
+
+        if(count($paginator)/$page_number > 10){
+            $next_page = $page_number+1;
+        }else{
+            $next_page = $page_number;
+        }
+
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'todos' => $query->getResult(),
+            'next_page' => $next_page
         ]);
     }
 })

@@ -57,6 +57,14 @@
             </tr>
         {% endfor %}
         <tr>
+            <td colspan = 5>
+                <a href="{{app.request.baseurl}}/todo?page_number={{app.request.get('page_number') ? max(app.request.get('page_number') - 1, 1) : 1}}">Prev</a>
+            </td>
+            <td>
+                <a href="{{app.request.baseurl}}/todo?page_number={{next_page}}">Next</a>
+            </td>
+        </tr>
+        <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="5">
                     <input type="textbox" name="description" class="form-control small-6 small-center" placeholder="Description...">

@@ -3,14 +3,21 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Entity\Todo;
+use Entity\User;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
-    $twig->addGlobal('user', $app['session']->get('user'));
+    if($app['session']->get('user') !== NULL){
+        $em = $app['db.orm.em'];
+        $user = $em->getRepository(User::class)->find($app['session']->get('user')->getId());
+    }else{
+        $user = NULL;
+    }
 
+    $twig->addGlobal('user', $user);
     return $twig;
 }));
 
@@ -25,21 +32,27 @@ $before = (function (Request $request) use ($app) {
     // redirect the user to the login screen if access to the Resource is protected
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
-    }else{
-        $user = $app['session']->get('user');
-        $app['user_id'] = $user['id'];
     }
 });
 
-$app->match('/login', function (Request $request) use ($app) {
+$app->get('/login', function (Request $request) use ($app) {
+    return $app['twig']->render('login.html', []);
+});
+
+
+$app->post('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $em = $app['db.orm.em'];
 
-        if ($user){
+        $user = $em->getRepository(User::class)->findOneBy([
+            "username" => $username,
+            "password" => $password
+            ]);
+
+        if ($user !== null){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
         }
@@ -63,7 +76,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         $todo = $em->getRepository(Todo::class)->findOneBy(
             [
                 "id" => $id,
-                "user_id" => $app['user_id']
+                "user_id" => $user->getId()
             ]);
         if (!$todo) {
             $app['monolog']->info(sprintf("Task '%s' not found.", $id));
@@ -76,17 +89,18 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         ]);
 
     } else {
-
-        $page_number = $request->get('page_number') == null ? 1 : $request->get('page_number');
+        $page_number = $request->get('page_number') == null ? 1 : intval($request->get('page_number'));
+        if($page_number == 0)
+            ++$page_number;
         $totalPerPage = 10;
         $em = $app['db.orm.em'];
-        $dql = "SELECT t FROM Entity\Todo t where t.user_id = ".$app['user_id'];
+        $dql = "SELECT t FROM Entity\Todo t where t.user_id = ".$app['session']->get('user')->getId();
         $query = $em->createQuery($dql)
                        ->setFirstResult($totalPerPage * ($page_number - 1))
                        ->setMaxResults($totalPerPage);
         $paginator = new Paginator($query);
-
-        if(count($paginator)/$page_number > 10){
+        $result = count($paginator)/$page_number;
+        if($result > 10){
             $next_page = $page_number+1;
         }else{
             $next_page = $page_number;

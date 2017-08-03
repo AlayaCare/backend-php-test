@@ -76,7 +76,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         $todo = $em->getRepository(Todo::class)->findOneBy(
             [
                 "id" => $id,
-                "user_id" => $user->getId()
+                "user_id" => $app['session']->get('user')->getId()
             ]);
         if (!$todo) {
             $app['monolog']->info(sprintf("Task '%s' not found.", $id));

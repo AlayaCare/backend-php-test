@@ -148,7 +148,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $em = $app['db.orm.em'];
     $todo = $em->getRepository(Todo::class)->find($id);
 
-    if($todo->canDelete($app['user_id'])){
+    if($todo->canDelete($app['session']->get('user')->getId())){
         $em->remove($todo);
         $em->flush();
         $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
@@ -173,7 +173,7 @@ $app->post('/todo/completed/{id}', function ($id) use ($app) {
 });
 
 $app->get('/todo/{id}/json', function ($id) use ($app) {
-    $user_id = $app['user_id'];
+    $user_id = $app['session']->get('user')->getId();
     $em = $app['db.orm.em'];
 
     $todo = $em->getRepository(Todo::class)->findOneBy([

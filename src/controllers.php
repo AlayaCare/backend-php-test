@@ -1,26 +1,25 @@
 <?php
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Entity\Todo;
 use Entity\User;
-use Symfony\Component\Validator\Validation;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Doctrine\ORM\Tools\Pagination\Paginator;
+use Symfony\Component\Validator\Validation;
 
-$app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
-    if($app['session']->get('user') !== NULL){
+$app['twig'] = $app->share($app->extend('twig', function ($twig, $app) {
+    if ($app['session']->get('user') !== null) {
         $em = $app['db.orm.em'];
         $user = $em->getRepository(User::class)->find($app['session']->get('user')->getId());
-    }else{
-        $user = NULL;
+    } else {
+        $user = null;
     }
 
     $twig->addGlobal('user', $user);
+
     return $twig;
 }));
-
 
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
@@ -39,7 +38,6 @@ $app->get('/login', function (Request $request) use ($app) {
     return $app['twig']->render('login.html', []);
 });
 
-
 $app->post('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
@@ -48,78 +46,77 @@ $app->post('/login', function (Request $request) use ($app) {
         $em = $app['db.orm.em'];
 
         $user = $em->getRepository(User::class)->findOneBy([
-            "username" => $username,
-            "password" => $password
+            'username' => $username,
+            'password' => $password,
             ]);
 
-        if ($user !== null){
+        if ($user !== null) {
             $app['session']->set('user', $user);
+
             return $app->redirect('/todo');
         }
     }
-    $app['session']->getFlashBag()->add('flashMsg', "The user name and password combination is not valid");
+    $app['session']->getFlashBag()->add('flashMsg', 'The user name and password combination is not valid');
     $app['session']->getFlashBag()->add('type', 'danger');
 
     return $app['twig']->render('login.html', []);
 });
 
-
 $app->get('/logout', function () use ($app) {
     $app['session']->set('user', null);
+
     return $app->redirect('/');
 });
 
-
 $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
-
-    if ($id){
+    if ($id) {
         // finding task by id and user_id
         $em = $app['db.orm.em'];
         $todo = $em->getRepository(Todo::class)->findOneBy(
             [
-                "id" => $id,
-                "user_id" => $app['session']->get('user')->getId()
-            ]);
+                'id' => $id,
+                'user_id' => $app['session']->get('user')->getId(),
+            ]
+        );
         if (!$todo) {
             $app['monolog']->info(sprintf("Task '%s' not found.", $id));
             $app['session']->getFlashBag()->add('flashMsg', "Task $id not found.");
             $app['session']->getFlashBag()->add('type', 'danger');
+
             return $app->redirect('/todo');
         }
+
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
-
-    } else {
-        $page_number = $request->get('page_number') == null ? 1 : intval($request->get('page_number'));
-        if($page_number == 0){
-            ++$page_number;
-        }
-        $totalPerPage = 10;
-        $em = $app['db.orm.em'];
-        $dql = "SELECT t FROM Entity\Todo t where t.user_id = ".$app['session']->get('user')->getId();
-        $query = $em->createQuery($dql)
+    }
+    $page_number = $request->get('page_number') === null ? 1 : (int) ($request->get('page_number'));
+    if ($page_number === 0) {
+        ++$page_number;
+    }
+    $totalPerPage = 10;
+    $em = $app['db.orm.em'];
+    $dql = "SELECT t FROM Entity\Todo t where t.user_id = ".$app['session']->get('user')->getId();
+    $query = $em->createQuery($dql)
                        ->setFirstResult($totalPerPage * ($page_number - 1))
                        ->setMaxResults($totalPerPage);
-        $paginator = new Paginator($query);
-        $result = count($paginator)/$page_number;
-        if($result > 10){
-            $next_page = $page_number+1;
-        }else{
-            $next_page = $page_number;
-        }
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $query->getResult(),
-            'next_page' => $next_page
-        ]);
+    $paginator = new Paginator($query);
+    $result = count($paginator) / $page_number;
+    if ($result > 10) {
+        $next_page = $page_number + 1;
+    } else {
+        $next_page = $page_number;
     }
+
+    return $app['twig']->render('todos.html', [
+            'todos' => $query->getResult(),
+            'next_page' => $next_page,
+        ]);
 })
 ->before($before)
 ->value('id', null);
 
 $app->post('/todo/add', function (Request $request) use ($app) {
-
     $user_id = $app['session']->get('user')->getId();
     $description = $request->get('description');
     $validator = Validation::createValidator();
@@ -128,12 +125,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         new NotBlank(),
     ]);
 
-    if(0 !== count($violations)){
+    if (0 !== count($violations)) {
         foreach ($violations as $violation) {
             $app['session']->getFlashBag()->add('flashMsg', $violation->getMessage());
             $app['session']->getFlashBag()->add('type', 'danger');
         }
-    }else{
+    } else {
         $em = $app['db.orm.em'];
         $user = $em->getRepository(User::class)->find($app['session']->get('user')->getId());
         $todo = new Todo($user, $description);
@@ -147,30 +144,29 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     return $app->redirect('/todo');
 })->before($before);
 
-
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $em = $app['db.orm.em'];
     $todo = $em->getRepository(Todo::class)->find($id);
-    if(count($todo) > 0){
-        if($todo->canDelete($app['session']->get('user')->getId())){
+    if (count($todo) > 0) {
+        if ($todo->canDelete($app['session']->get('user')->getId())) {
             $em->remove($todo);
             $em->flush();
             $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
             $app['session']->getFlashBag()->add('type', 'success');
-        }else{
+        } else {
             $app['session']->getFlashBag()->add('flashMsg', 'You can\'t remove this task!');
             $app['session']->getFlashBag()->add('type', 'danger');
         }
     }
+
     return $app->redirect('/todo');
 })->before($before);
 
 $app->post('/todo/completed/{id}', function ($id) use ($app) {
-
     $em = $app['db.orm.em'];
     $todo = $em->getRepository(Todo::class)->findOneBy([
         'user_id' => $app['session']->get('user')->getId(),
-        'id' => $id
+        'id' => $id,
         ]);
 
     if (count($todo) > 0) {
@@ -179,7 +175,7 @@ $app->post('/todo/completed/{id}', function ($id) use ($app) {
         $em->flush();
         $app['session']->getFlashBag()->add('flashMsg', 'Task updated!');
         $app['session']->getFlashBag()->add('type', 'success');
-    }else{
+    } else {
         $app['session']->getFlashBag()->add('flashMsg', 'We couldn\'t update the task requested');
         $app['session']->getFlashBag()->add('type', 'danger');
     }
@@ -193,15 +189,14 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
 
     $todo = $em->getRepository(Todo::class)->findOneBy([
         'user_id' => $user_id,
-        'id' => $id
+        'id' => $id,
         ]);
 
     if (count($todo) > 0) {
         return json_encode($todo);
-    }else{
-        $app['session']->getFlashBag()->add('flashMsg', 'Nothing to show!');
-        $app['session']->getFlashBag()->add('type', 'danger');
-
-        return $app->redirect('/todo');
     }
+    $app['session']->getFlashBag()->add('flashMsg', 'Nothing to show!');
+    $app['session']->getFlashBag()->add('type', 'danger');
+
+    return $app->redirect('/todo');
 })->before($before);

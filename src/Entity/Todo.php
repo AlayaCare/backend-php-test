@@ -43,10 +43,12 @@ class Todo
      */
     private $is_complete;
     
-    public function __construct($user_id, $description){
-    	$this->user_id = $user_id;
+    public function __construct($user, $description){
+        $this->user = $user;
+        $this->user_id = $user->getId();
     	$this->is_complete = 0;
     	$this->description =  $description;
+
     }
 
     public function getUser(){

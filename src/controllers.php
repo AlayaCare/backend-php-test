@@ -117,7 +117,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
 
 $app->post('/todo/add', function (Request $request) use ($app) {
 
-    $user_id = $app['user_id'];
+    $user_id = $app['session']->get('user')->getId();
     $description = $request->get('description');
     $validator = Validation::createValidator();
     $violations = $validator->validate($description, [
@@ -131,11 +131,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
             $app['session']->getFlashBag()->add('type', 'danger');
         }
     }else{
-
         $em = $app['db.orm.em'];
-        $todo = new Todo($user_id, $description);
+        $user = $em->getRepository(User::class)->find($app['session']->get('user')->getId());
+        $todo = new Todo($user, $description);
         $em->persist($todo);
         $em->flush();
+
         $app['session']->getFlashBag()->add('flashMsg', 'Task added successfuly!');
         $app['session']->getFlashBag()->add('type', 'success');
     }

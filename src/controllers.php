@@ -197,7 +197,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
         ]);
 
     if (count($todo) > 0) {
-        return json_encode($todo->jsonSerialize());
+        return json_encode($todo);
     }else{
         $app['session']->getFlashBag()->add('flashMsg', 'Nothing to show!');
         $app['session']->getFlashBag()->add('type', 'danger');

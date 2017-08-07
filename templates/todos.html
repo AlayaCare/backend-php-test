@@ -35,7 +35,7 @@
                     </a>
                 </td>
                 <td>
-                    {% if(todo.is_complete) == 0 %}
+                    {% if(todo.isComplete) == 0 %}
                         <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}">
                             <button type="submit" class="btn btn-xs btn-success" title="Mark as complete">
                                 <span class="glyphicon glyphicon-check glyphicon-white"></span>

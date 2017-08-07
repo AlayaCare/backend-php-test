@@ -13,18 +13,20 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class User
 {
-	 /**
+    /**
      * @OneToMany(targetEntity="Todo", mappedBy="user")
      */
-
 	private $todos;
+
     /**
      * @var integer
      * @GeneratedValue(strategy="AUTO")
      * @Column(name="id", type="integer")
      * @Id
      */
+
     private $id;
+
      /**
      * @var string
      * 
@@ -34,14 +36,17 @@ class User
      *     htmlPattern = "^[a-zA-Z\-0-9]+$"
      * )
      */
+
     private $username;
+
     /**
      * @var string
      * 
      * @Column(name="password", type="string", length=255)
      */
+
     private $password;
-    
+
     public function getId(){
     	return $this->id;
     }

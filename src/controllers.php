@@ -92,8 +92,9 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
 
     } else {
         $page_number = $request->get('page_number') == null ? 1 : intval($request->get('page_number'));
-        if($page_number == 0)
+        if($page_number == 0){
             ++$page_number;
+        }
         $totalPerPage = 10;
         $em = $app['db.orm.em'];
         $dql = "SELECT t FROM Entity\Todo t where t.user_id = ".$app['session']->get('user')->getId();
@@ -166,15 +167,15 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
 $app->post('/todo/completed/{id}', function ($id) use ($app) {
 
+    $em = $app['db.orm.em'];
     $todo = $em->getRepository(Todo::class)->findOneBy([
         'user_id' => $app['session']->get('user')->getId(),
         'id' => $id
         ]);
 
     if (count($todo) > 0) {
-        $em = $app['db.orm.em'];
         $todo = $em->getRepository(Todo::class)->find($id);
-        $todo->setIs_complete(1);
+        $todo->setIsComplete(1);
         $em->flush();
         $app['session']->getFlashBag()->add('flashMsg', 'Task updated!');
         $app['session']->getFlashBag()->add('type', 'success');

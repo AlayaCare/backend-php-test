@@ -13,8 +13,8 @@ class Todo implements JsonSerializable
 {
     /**
      * @ManyToOne(targetEntity="User", inversedBy="todos")
-     *
      */
+
     private $user;
 
     /**
@@ -24,27 +24,33 @@ class Todo implements JsonSerializable
      * @Id
      * @GeneratedValue(strategy="AUTO")
      */
+
     private $id;
+
     /**
      * @var integer
      * 
      * @Column(name="user_id", type="integer")
      */
+
     private $user_id;
+
     /**
      * @var string
      * 
      * @Column(name="description", type="string", length=255)
      */
+
     private $description;
-    
+
     /**
      * @var tinyint
      * 
      * @Column(name="is_complete", type="boolean")
      */
+
     private $is_complete;
-    
+
     public function __construct($user, $description){
         $this->user = $user;
         $this->user_id = $user->getId();
@@ -62,7 +68,7 @@ class Todo implements JsonSerializable
         return $this->id;
     }
 
-    public function getUser_id()
+    public function getUserId()
     {
         return $this->user_id;
     }
@@ -72,12 +78,12 @@ class Todo implements JsonSerializable
         return $this->description;
     }
 
-    public function getIs_complete()
+    public function getIsComplete()
     {
         return $this->is_complete;
     }
 
-    public function setIs_complete($is_complete)
+    public function setIsComplete($is_complete)
     {
         $this->is_complete = $is_complete;
         return $this->is_complete;
@@ -85,18 +91,14 @@ class Todo implements JsonSerializable
 
     public function jsonSerialize() {
         return [
-        'id' => $this->id,
-        'user_id' => $this->user_id,
-        'description' => $this->description,
-        'is_complete' => $this->is_complete
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'description' => $this->description,
+            'is_complete' => $this->is_complete
         ];
     }
 
     public function canDelete($user_id){
-        if($user_id == $this->user_id){
-            return true;
-        }else{
-            return false;
-        }
+        return ($user_id == $this->user_id);
     }
 }

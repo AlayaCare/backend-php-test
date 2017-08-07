@@ -57,6 +57,8 @@ $app->post('/login', function (Request $request) use ($app) {
             return $app->redirect('/todo');
         }
     }
+    $app['session']->getFlashBag()->add('flashMsg', "The combination of login and password is not valid");
+    $app['session']->getFlashBag()->add('type', 'danger');
 
     return $app['twig']->render('login.html', []);
 });

@@ -1,6 +1,7 @@
 <?php
 namespace Entity;
 use Doctrine\ORM\Mapping as ORM;
+use JsonSerializable;
 /**
  * Todos
  *
@@ -8,10 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
  * @Table(name="todos")
  * documentation https://symfony.com/doc/current/doctrine.html
  */
-class Todo
+class Todo implements JsonSerializable
 {
     /**
      * @ManyToOne(targetEntity="User", inversedBy="todos")
+     *
      */
     private $user;
 
@@ -23,7 +25,7 @@ class Todo
      * @GeneratedValue(strategy="AUTO")
      */
     private $id;
-     /**
+    /**
      * @var integer
      * 
      * @Column(name="user_id", type="integer")
@@ -46,8 +48,8 @@ class Todo
     public function __construct($user, $description){
         $this->user = $user;
         $this->user_id = $user->getId();
-    	$this->is_complete = 0;
-    	$this->description =  $description;
+        $this->is_complete = 0;
+        $this->description =  $description;
 
     }
 
@@ -77,24 +79,24 @@ class Todo
 
     public function setIs_complete($is_complete)
     {
-		$this->is_complete = $is_complete;
-		return $this->is_complete;
+        $this->is_complete = $is_complete;
+        return $this->is_complete;
     }
 
-    public function getJson(){
-		return [
-		'id' => $this->id,
-		'user_id' => $this->user_id,
-		'description' => $this->description,
-		'is_complete' => $this->is_complete
-		];
+    public function jsonSerialize() {
+        return [
+        'id' => $this->id,
+        'user_id' => $this->user_id,
+        'description' => $this->description,
+        'is_complete' => $this->is_complete
+        ];
     }
 
     public function canDelete($user_id){
-        if($user_id == $this->user_id)
-    		return true;
-        else
-    		return false;
+        if($user_id == $this->user_id){
+            return true;
+        }else{
+            return false;
+        }
     }
-
 }

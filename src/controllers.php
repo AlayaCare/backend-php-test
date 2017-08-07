@@ -150,27 +150,38 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $em = $app['db.orm.em'];
     $todo = $em->getRepository(Todo::class)->find($id);
-
-    if($todo->canDelete($app['session']->get('user')->getId())){
-        $em->remove($todo);
-        $em->flush();
-        $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
-        $app['session']->getFlashBag()->add('type', 'success');
-    }else{
-        $app['session']->getFlashBag()->add('flashMsg', 'You can\'t remove this task!');
-        $app['session']->getFlashBag()->add('type', 'danger');
+    if(count($todo) > 0){
+        if($todo->canDelete($app['session']->get('user')->getId())){
+            $em->remove($todo);
+            $em->flush();
+            $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
+            $app['session']->getFlashBag()->add('type', 'success');
+        }else{
+            $app['session']->getFlashBag()->add('flashMsg', 'You can\'t remove this task!');
+            $app['session']->getFlashBag()->add('type', 'danger');
+        }
     }
     return $app->redirect('/todo');
 })->before($before);
 
 $app->post('/todo/completed/{id}', function ($id) use ($app) {
 
-    $em = $app['db.orm.em'];
-    $todo = $em->getRepository(Todo::class)->find($id);
-    $todo->setIs_complete(1);
-    $em->flush();
-    $app['session']->getFlashBag()->add('flashMsg', 'Task updated!');
-    $app['session']->getFlashBag()->add('type', 'success');
+    $todo = $em->getRepository(Todo::class)->findOneBy([
+        'user_id' => $app['session']->get('user')->getId(),
+        'id' => $id
+        ]);
+
+    if (count($todo) > 0) {
+        $em = $app['db.orm.em'];
+        $todo = $em->getRepository(Todo::class)->find($id);
+        $todo->setIs_complete(1);
+        $em->flush();
+        $app['session']->getFlashBag()->add('flashMsg', 'Task updated!');
+        $app['session']->getFlashBag()->add('type', 'success');
+    }else{
+        $app['session']->getFlashBag()->add('flashMsg', 'We couldn\'t update the task requested');
+        $app['session']->getFlashBag()->add('type', 'danger');
+    }
 
     return $app->redirect('/todo');
 });
@@ -185,10 +196,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
         ]);
 
     if (count($todo) > 0) {
-        $response = new \Symfony\Component\HttpFoundation\JsonResponse();
-        $response->setEncodingOptions(JSON_NUMERIC_CHECK);
-        $response->setData(['json' => $todo->getJson()]);
-        return $response;
+        return json_encode($todo->jsonSerialize());
     }else{
         $app['session']->getFlashBag()->add('flashMsg', 'Nothing to show!');
         $app['session']->getFlashBag()->add('type', 'danger');

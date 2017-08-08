@@ -1,30 +1,87 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
+
+<div id="flash-messages">
+    {% for flashMessage in app.session.flashbag.get('success') %}
+        <div class="alert alert-success">
+            <button class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|raw|nl2br }}
+        </div>
+    {% endfor %}
+
+    {% for flashMessage in app.session.flashbag.get('error') %}
+        <div class="alert alert-danger">
+            <button class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|raw|nl2br }}
+        </div>
+    {% endfor %}
+
+    {% for flashMessage in app.session.flashbag.get('info') %}
+        <div class="alert alert-info">
+            <button class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|raw|nl2br }}
+        </div>
+    {% endfor %}
+</div>
+
+<div class="col-md-12">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th>
+        <th>User</th>
+        <th>Description</th>
+        <th>View Json</th>
+        <th>Complete?</th>
+        <th>Delete</th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
+                <td>{{ todo.user.username }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
                        {{ todo.description }}
                     </a>
                 </td>
                 <td>
+                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" class="btn btn-xs btn-warning" title="View JSON format">
+                        <span class="glyphicon glyphicon-eye-open glyphicon-white"></span>
+                    </a>
+                </td>
+                <td>
+                    {% if(todo.isComplete) == 0 %}
+                        <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}">
+                            <button type="submit" class="btn btn-xs btn-success" title="Mark as complete">
+                                <span class="glyphicon glyphicon-check glyphicon-white"></span>
+                            </button>
+                        </form>
+                    {% else %}
+                        <button type="submit" class="btn btn-xs btn-info" title="Task done">
+                                <span class='glyphicon glyphicon-thumbs-up'></span>
+                        </button>
+                    {% endif %}
+                </td>
+                <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        <button type="submit" class="btn btn-xs btn-danger" title="Delete">
+                            <span class="glyphicon glyphicon-remove glyphicon-white"></span>
+                        </button>
                     </form>
                 </td>
             </tr>
         {% endfor %}
         <tr>
+            <td colspan = 5>
+                <a href="{{app.request.baseurl}}/todo?page_number={{app.request.get('page_number') ? max(app.request.get('page_number') - 1, 1) : 1}}">Prev</a>
+            </td>
+            <td>
+                <a href="{{app.request.baseurl}}/todo?page_number={{next_page}}">Next</a>
+            </td>
+        </tr>
+        <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                <td colspan="5">
+                    <input type="textbox" name="description" class="form-control small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>

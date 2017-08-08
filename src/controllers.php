@@ -80,9 +80,7 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
         );
         if (!$todo) {
             $app['monolog']->info(sprintf("Task '%s' not found.", $id));
-            $app['session']->getFlashBag()->add('flashMsg', "Task $id not found.");
-            $app['session']->getFlashBag()->add('type', 'danger');
-
+            $app['session']->getFlashBag()->add('error', "Task $id not found.");
             return $app->redirect('/todo');
         }
 
@@ -127,8 +125,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     if (0 !== count($violations)) {
         foreach ($violations as $violation) {
-            $app['session']->getFlashBag()->add('flashMsg', $violation->getMessage());
-            $app['session']->getFlashBag()->add('type', 'danger');
+            $app['session']->getFlashBag()->add('error', $violation->getMessage());
         }
     } else {
         $em = $app['db.orm.em'];
@@ -137,8 +134,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $em->persist($todo);
         $em->flush();
 
-        $app['session']->getFlashBag()->add('flashMsg', 'Task added successfuly!');
-        $app['session']->getFlashBag()->add('type', 'success');
+        $app['session']->getFlashBag()->add('success', 'Task added successfuly!');
     }
 
     return $app->redirect('/todo');
@@ -151,11 +147,9 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
         if ($todo->canDelete($app['session']->get('user')->getId())) {
             $em->remove($todo);
             $em->flush();
-            $app['session']->getFlashBag()->add('flashMsg', 'Task removed successfuly!');
-            $app['session']->getFlashBag()->add('type', 'success');
+            $app['session']->getFlashBag()->add('success', 'Task removed successfuly!');
         } else {
-            $app['session']->getFlashBag()->add('flashMsg', 'You can\'t remove this task!');
-            $app['session']->getFlashBag()->add('type', 'danger');
+            $app['session']->getFlashBag()->add('error', 'You can\'t remove this task!');
         }
     }
 
@@ -173,11 +167,9 @@ $app->post('/todo/completed/{id}', function ($id) use ($app) {
         $todo = $em->getRepository(Todo::class)->find($id);
         $todo->setIsComplete(1);
         $em->flush();
-        $app['session']->getFlashBag()->add('flashMsg', 'Task updated!');
-        $app['session']->getFlashBag()->add('type', 'success');
+        $app['session']->getFlashBag()->add('success', 'Task updated!');
     } else {
-        $app['session']->getFlashBag()->add('flashMsg', 'We couldn\'t update the task requested');
-        $app['session']->getFlashBag()->add('type', 'danger');
+        $app['session']->getFlashBag()->add('error', 'We couldn\'t update the task requested');
     }
 
     return $app->redirect('/todo');
@@ -195,8 +187,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     if (count($todo) > 0) {
         return json_encode($todo);
     }
-    $app['session']->getFlashBag()->add('flashMsg', 'Nothing to show!');
-    $app['session']->getFlashBag()->add('type', 'danger');
+    $app['session']->getFlashBag()->add('error', 'Nothing to show!');
 
     return $app->redirect('/todo');
 })->before($before);

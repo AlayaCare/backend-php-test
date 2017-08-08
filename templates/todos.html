@@ -1,15 +1,29 @@
 {% extends "layout.html" %}
 
 {% block content %}
-{% set flashMsg = app.session.flashbag.get('flashMsg') %}
-{% set type = app.session.flashbag.get('type') %}
 
-{% for message in flashMsg %}
-<div class="alert alert-{{type[0]}}">
-    {{ message }}
+<div id="flash-messages">
+    {% for flashMessage in app.session.flashbag.get('success') %}
+        <div class="alert alert-success">
+            <button class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|raw|nl2br }}
+        </div>
+    {% endfor %}
+
+    {% for flashMessage in app.session.flashbag.get('error') %}
+        <div class="alert alert-danger">
+            <button class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|raw|nl2br }}
+        </div>
+    {% endfor %}
+
+    {% for flashMessage in app.session.flashbag.get('info') %}
+        <div class="alert alert-info">
+            <button class="close" data-dismiss="alert">&times;</button>
+            {{ flashMessage|raw|nl2br }}
+        </div>
+    {% endfor %}
 </div>
-{% endfor %}
-
 
 <div class="col-md-12">
     <h1>Todo List:</h1>

@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="col-md-4 col-md-offset-4">
+    <h1>JSON</h1>
+    <table class="table table-striped display" id="example" width="100%" cellspacing="0">
+        <th>#</th><th>User</th><th>Description</th><th>JSON</th>
+        <tr>
+            
+            <td>{{ todo.id }}</td>
+            <td>{{ todo.user_id }}</td>
+            <td>{{ todo.description }}</td>
+			<td>{{ json }}</td>
+           
+        </tr>
+    </table>
+</div>
+
+{% endblock %}

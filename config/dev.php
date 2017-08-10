@@ -5,3 +5,7 @@ require __DIR__.'/prod.php';
 
 // enable the debug mode
 $app['debug'] = true;
+
+$app['base_url'] = 'http://localhost/backend/index.php';
+
+

@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="col-md-4 col-md-offset-4">
+    <h1>Todo:</h1>
+    <table class="table table-striped display" id="example" width="100%" cellspacing="0">
+        <th>#</th><th>User ID</th><th>Description</th><th></th>
+        <tr>
+            <td>{{ todo.id }}</td>
+            <td>{{ todo.user_id }}</td>
+            <td>{{ todo.description }}</td>
+            <td>
+                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <button type="submit" class="btn btn-xs btn-danger allow_rem"><span class="glyphicon glyphicon-remove glyphicon-white" ></span></button>
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+
+{% endblock %}

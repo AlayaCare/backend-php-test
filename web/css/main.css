@@ -5,3 +5,10 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+.error
+{
+	color: #ff0000;
+	font-family: 'sans-script';
+	font-size: 14px;
+	font-style: italic;
+}

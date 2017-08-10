@@ -8,7 +8,7 @@ use Symfony\Component\Filesystem\Tests\Demo;
 
 if(!strchr($app['base_url'],'web'))
 {
-	$app['base_url'] = 'http://localhost/backend/web/index.php';
+	$app['base_url'] = 'http://'.$_SERVER['HTTP_HOST'].'/backend/web/index.php';
 }
 
 //echo '<pre>'; print_r($app); exit;

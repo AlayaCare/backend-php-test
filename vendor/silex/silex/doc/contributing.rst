@@ -1,0 +1,38 @@
+Contributing
+============
+
+We are open to contributions to the Silex code. If you find a bug or want to
+contribute a provider, just follow these steps:
+
+* Fork `the Silex repository <https://github.com/silexphp/Silex>`_;
+
+* Make your feature addition or bug fix;
+
+* Add tests for it;
+
+* Optionally, add some documentation;
+
+* `Send a pull request
+  <https://help.github.com/articles/creating-a-pull-request>`_, to the correct
+  `target branch`_.
+
+If you have a big change or would like to discuss something,
+please join us on the `mailing list
+<http://groups.google.com/group/silex-php>`_.
+
+.. note::
+
+    Any code you contribute must be licensed under the MIT
+    License.
+
+Writing Documentation
+=====================
+
+The documentation is written in `reStructuredText
+<http://docutils.sourceforge.net/rst.html>`_ and can be generated using `sphinx
+<http://sphinx-doc.org>`_.
+
+.. code-block:: bash
+
+    $ cd doc
+    $ sphinx-build -b html . build

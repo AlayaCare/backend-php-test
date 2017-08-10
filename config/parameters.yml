@@ -1,5 +1,0 @@
-parameters:
-    database_host:     localhost
-    database_name:     ac_todos
-    database_user:     root
-    database_password: 

@@ -99,8 +99,21 @@ $app->post('/todo/changestatus/{id}', function (Request $request,$id) use ($app)
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
+    $user_id = $user['id'];
     $status = $request->get('status');
-    $sql = "Update todos set status = $status where id = $id";
+    $sql = "Update todos set status = $status where id = '$id' and user_id = '$user_id'";
     $app['db']->executeUpdate($sql);
      return $app->redirect('/todo/'.$id);
+});
+
+$app->match('/todo/{id}/json',function ($id) use ($app) {
+     if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+        $user_id = $user['id'];
+        $sql = "SELECT id,user_id,description FROM todos WHERE id = '$id' and user_id = '$user_id'";
+        $todo = $app['db']->fetchAssoc($sql);
+        return json_encode($todo);
+    
+
 });

@@ -25,17 +25,21 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-
+        $em = $app['orm.em'];
+        $user = $em->getRepository('\App\Entity\User')->findOneBy(array('username' => $username));
+        
         if ($user){
-            $app['session']->set('user', $user);
-            return $app->redirect('/todo');
+            if($user->getPassword()==md5($user->getId()."-".$password))
+            {
+                $userArray = Array("id"=>$user->getId(),"username"=>$user->getUserName());
+                $app['session']->set('user', $userArray);
+                return $app->redirect('/todo');
+            }
         }
     }
 
     return $app['twig']->render('login.html', array());
-});
+});     
 
 
 $app->get('/logout', function () use ($app) {

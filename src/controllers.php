@@ -42,19 +42,10 @@ $app->get('/logout', function () use ($app) {
     return $app->redirect('/');
 });
 
-
-$app->match('/todo/{id}', function (Request $request,$id) use ($app) {
+$app->post('/todo', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
-    } else {
         $page = $request->get('page');
         $prepage = $request->get('prepage');
         $page = intval($page);
@@ -67,6 +58,45 @@ $app->match('/todo/{id}', function (Request $request,$id) use ($app) {
         {
             $prepage = 10;
         }
+        $startRecord = ($page-1)*$prepage;
+        $countSql = "SELECT count(*) as total FROM todos WHERE user_id = '${user['id']}'";
+        $count = $app['db']->fetchAll($countSql);
+        $totalrecords = intval($count[0]["total"]);
+        $totalpages = ceil($totalrecords/$prepage);
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' limit $startRecord,$prepage";
+        $todos = $app['db']->fetchAll($sql);
+        $pageinfo = Array(
+                        "totalrecords" =>$totalrecords,
+                        "totalpages" => $totalpages,
+                        "page"=>$page,
+                        "prepage"=>$prepage,
+                        "start"=>$startRecord+1,
+                        "end"=>$startRecord+count($todos),
+                            );
+
+        return $app['twig']->render('todos.html', [
+            'todos' => $todos,
+            'pageinfo' => $pageinfo
+        ]);  
+})
+->value('id', null);
+
+
+$app->get('/todo/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+        return $app['twig']->render('todo.html', [
+            'todo' => $todo,
+        ]);
+    } else {
+        
+        $page = 1;
+        $prepage = 10;
         $startRecord = ($page-1)*$prepage;
         $countSql = "SELECT count(*) as total FROM todos WHERE user_id = '${user['id']}'";
         $count = $app['db']->fetchAll($countSql);

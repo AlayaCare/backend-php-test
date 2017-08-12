@@ -3,6 +3,7 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Entity\Todo;
 
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
@@ -133,8 +134,15 @@ $app->post('/todo/add', function (Request $request) use ($app) {
      if (count($errors) > 0) {
         $app['session']->getFlashBag()->add('message', "The description should not be blank.");    
     } else {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql); 
+        //$sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        //$app['db']->executeUpdate($sql); 
+        $todo = new Todo();
+        $todo->setUserId($user_id);
+        $todo->setDescription($description);
+        $todo->setStatus(0);
+        $em = $app['orm.em'];
+        $em->persist($todo);
+        $em->flush();
          $app['session']->getFlashBag()->add('message', "New Todo $description has been added to your todo list");  
     }
      return $app->redirect('/todo');
@@ -143,9 +151,21 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-    $app['session']->getFlashBag()->add('message', "Todo No.$id has been deleted");
+     if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    $em = $app['orm.em'];
+    $todo = $em->find('\App\Entity\Todo', $id);
+     if($todo->getUserId()==$user['id'])
+    {
+        $em->remove($todo); 
+        $em->flush(); 
+        $app['session']->getFlashBag()->add('message', "Todo No.$id has been deleted");
+    }
+    else
+    {
+          $app['session']->getFlashBag()->add('message', "You can't delete Todo No.$id");
+    }
     return $app->redirect('/todo');
 });
 
@@ -155,8 +175,14 @@ $app->post('/todo/changestatus/{id}', function (Request $request,$id) use ($app)
     }
     $user_id = $user['id'];
     $status = $request->get('status');
-    $sql = "Update todos set status = $status where id = '$id' and user_id = '$user_id'";
-    $app['db']->executeUpdate($sql);
+    $em = $app['orm.em'];
+    $todo = $em->find('\App\Entity\Todo', $id);
+     if($todo->getUserId()==$user['id'])
+    {
+        $todo->setStatus($status);
+        $em->persist($todo); 
+        $em->flush(); 
+    }
      return $app->redirect('/todo/'.$id);
 });
 
@@ -164,10 +190,18 @@ $app->match('/todo/{id}/json',function ($id) use ($app) {
      if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-        $user_id = $user['id'];
-        $sql = "SELECT id,user_id,description FROM todos WHERE id = '$id' and user_id = '$user_id'";
-        $todo = $app['db']->fetchAssoc($sql);
-        return json_encode($todo);
+        $em = $app['orm.em'];
+        $todo = $em->find('\App\Entity\Todo', $id);
+
+        if($todo->getUserId()==$user['id'])
+        {
+              $todoArray = Array("id"=>$todo->getId(),"user_id"=>$todo->getUserId(),"description"=>$todo->getDescription());
+        }
+        else
+        {
+            $todoArray = Array();
+        }
+        return json_encode($todoArray);
     
 
 });

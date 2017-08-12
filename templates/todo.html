@@ -4,11 +4,22 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Status</th><th></th><th></th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
+            <td>{{ todo.status==0?'Working':"Completed"}}</td>
+            <td>
+            <form method="post" action="{{ app.request.baseurl }}/todo/changestatus/{{ todo.id }}">
+                 <input type="hidden" id="status" name="status" value="" />
+                 {% if todo.status == 0  %}
+                        <button type="submit" onclick="document.getElementById('status').value = 1;" class="btn btn-xs btn-danger">Completed</button>
+                 {% else %}
+                     <button type="submit" onclick="document.getElementById('status').value = 0;" class="btn btn-xs btn-danger">Working</button>
+                 {% endif %}
+            </form>
+            </td>
             <td>
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

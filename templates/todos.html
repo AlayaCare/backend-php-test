@@ -1,6 +1,11 @@
 {% extends "layout.html" %}
 
 {% block content %}
+{% for message in app.session.flashbag.get('message') %}
+<div class="message">
+  <div class="message"><strong>{{ message }}</strong></div>
+</div>
+{% endfor %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
@@ -14,7 +19,7 @@
                        {{ todo.description }}
                     </a>
                 </td>
-                 <td>{{ todo.status==0?'Waiting':"Finished"}}</td>
+                 <td>{{ todo.status==0?'Need to do':"Completed"}}</td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

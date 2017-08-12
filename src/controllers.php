@@ -2,7 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Validator\Constraints as Assert;
+
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -50,7 +50,6 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
-
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
@@ -73,7 +72,6 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
     $errors = $app['validator']->validate(trim($description), new Assert\NotBlank());
      if (count($errors) > 0) {
           return $app['twig']->render('msg.html', [
@@ -95,4 +93,14 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');
+});
+
+$app->post('/todo/changestatus/{id}', function (Request $request,$id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    $status = $request->get('status');
+    $sql = "Update todos set status = $status where id = $id";
+    $app['db']->executeUpdate($sql);
+     return $app->redirect('/todo/'.$id);
 });

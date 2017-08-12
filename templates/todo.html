@@ -9,14 +9,14 @@
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
-            <td>{{ todo.status==0?'Need to do':"Completed"}}</td>
+            <td>{{ todo.status==0?'Working':"Completed"}}</td>
             <td>
             <form method="post" action="{{ app.request.baseurl }}/todo/changestatus/{{ todo.id }}">
                  <input type="hidden" id="status" name="status" value="" />
                  {% if todo.status == 0  %}
-                        <button type="submit" onclick="document.getElementById('status').value = 1;" class="btn btn-xs btn-danger">Need to do</button>
+                        <button type="submit" onclick="document.getElementById('status').value = 1;" class="btn btn-xs btn-danger">Completed</button>
                  {% else %}
-                     <button type="submit" onclick="document.getElementById('status').value = 0;" class="btn btn-xs btn-danger">Completed</button>
+                     <button type="submit" onclick="document.getElementById('status').value = 0;" class="btn btn-xs btn-danger">Working</button>
                  {% endif %}
             </form>
             </td>

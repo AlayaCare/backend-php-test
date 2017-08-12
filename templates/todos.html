@@ -19,7 +19,7 @@
                        {{ todo.description }}
                     </a>
                 </td>
-                 <td>{{ todo.status==0?'Need to do':"Completed"}}</td>
+                 <td>{{ todo.status==0?'Working':"Completed"}}</td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
@@ -27,6 +27,34 @@
                 </td>
             </tr>
         {% endfor %}
+        <tr>
+          <td colspan="4">
+         <form method="post" id="pageform" action="{{ app.request.baseurl }}/todo">
+         　　　<input type="hidden" id="page" name="page" value="{{ pageinfo.page }}" />
+             Paqes {{ pageinfo.page }}/{{ pageinfo.totalpages }} Records {{ pageinfo.start }}- {{ pageinfo.end }}/{{ pageinfo.totalrecords }}<br>
+         　   {% if pageinfo.page > 1  %}
+                <a href="#" onClick="document.getElementById('page').value='1';document.getElementById('pageform').submit()" style="cursor:hand"> First </a>
+                <a href="#" onClick="document.getElementById('page').value='{{ pageinfo.page - 1 }}';document.getElementById('pageform').submit()" style="cursor:hand"> Previous </a>
+              {% else %}
+              First 
+              Previous
+              {% endif %} 
+               {{ pageinfo.page }}
+              {% if pageinfo.page < pageinfo.totalpages %}
+                <a href="#" onClick="document.getElementById('page').value='{{ pageinfo.page + 1 }}';document.getElementById('pageform').submit()" style="cursor:hand"> Next </a>
+                <a href="#" onClick="document.getElementById('page').value='{{ pageinfo.totalpages }}';document.getElementById('pageform').submit()" style="cursor:hand"> Last </a>
+              {% else %}
+              Next 
+              Last
+              {% endif %} 
+
+
+              <input type="input" onChange="document.getElementById('pageform').submit()" size="2" id="prepage" name="prepage" value="{{ pageinfo.prepage }}" />
+              <button type="submit" class="btn btn-sm btn-primary">Go</button> 
+
+         </form>
+        </td>
+        </tr>
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">

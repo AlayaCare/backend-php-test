@@ -1,33 +1,39 @@
 <?php
 
-use Silex\Application;
+use Silex\Provider\HttpCacheServiceProvider;
 use Silex\Provider\SessionServiceProvider;
 use Silex\Provider\TwigServiceProvider;
 use Silex\Provider\UrlGeneratorServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
-use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
 
-$app = new Application();
 $app->register(new SessionServiceProvider());
 $app->register(new UrlGeneratorServiceProvider());
 $app->register(new ValidatorServiceProvider());
 $app->register(new ServiceControllerServiceProvider());
-$app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
+$app->register(new HttpCacheServiceProvider());
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
-$app->register(new DoctrineServiceProvider, array(
-    'db.options' => array(
-        'driver'    => 'pdo_mysql',
-        'host'      => $app['config']['database']['host'],
-        'dbname'    => $app['config']['database']['dbname'],
-        'user'      => $app['config']['database']['user'],
-        'password'  => $app['config']['database']['password'],
-        'charset'   => 'utf8',
+
+$app->register(new Silex\Provider\DoctrineServiceProvider());
+$app->register(new Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider());
+
+$app->register(new TwigServiceProvider(), array(
+    'twig.options' => array(
+        'cache' => isset($app['twig.options.cache']) ? $app['twig.options.cache'] : false,
+        'strict_variables' => true,
     ),
+    'twig.path' => array(__DIR__ . '/../templates')
 ));
+
+// Should be replace by SecurityServiceProvider
+$app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
+    $twig->addGlobal('user', $app['session']->get('user'));
+
+    return $twig;
+}));
 
 return $app;

@@ -56,7 +56,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     } else {
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
         $todos = $app['db']->fetchAll($sql);
-
+	
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
         ]);
@@ -94,6 +94,28 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $app['session']->getFlashBag()->add('messageType', 'warning');
     $app['session']->getFlashBag()->add('message', "TODO #{$id} removed successfully");
+
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+
+    $sql = "UPDATE todos SET status=1 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add('messageType', 'success');
+    $app['session']->getFlashBag()->add('message', "TODO #{$id} completed");
+
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/notcomplete/{id}', function ($id) use ($app) {
+
+    $sql = "UPDATE todos SET status=0 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add('messageType', 'success');
+    $app['session']->getFlashBag()->add('message', "TODO #{$id} changed to not completed");
 
     return $app->redirect('/todo');
 });

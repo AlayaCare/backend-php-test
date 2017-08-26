@@ -73,8 +73,15 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if( strlen($description) < 1 ){
+        $app['session']->getFlashBag()->add('messageType', 'danger');
+        $app['session']->getFlashBag()->add('message', 'Description is required');
+    }else{
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add('messageType', 'success');
+        $app['session']->getFlashBag()->add('message', 'TODO added successfully');
+    }
 
     return $app->redirect('/todo');
 });
@@ -84,6 +91,9 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add('messageType', 'warning');
+    $app['session']->getFlashBag()->add('message', "TODO #{$id} removed successfully");
 
     return $app->redirect('/todo');
 });

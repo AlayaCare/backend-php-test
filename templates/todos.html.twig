@@ -17,19 +17,24 @@
         <th colspan="2"></th>
         {% for todo in todos %}
             <tr class="{{ todo.completed ? 'completed' : '' }}">
-                <td>{{ todo.id }}</td>
+                {% if currentPage > 1 %}
+                    <td>{{ ((currentPage - 1) * itemsPerPage + 1) + loop.index }}</td>
+                {% else %}
+                    <td>{{ loop.index}}</td>
+                {% endif %}
+
                 <td class="description">
-                    <a href="{{ app.request.baseurl }}/todos/{{ todo.id }}">
+                    <a href="{{ path('todos-view', {'id': todo.id}) }}">
                        {{ todo.description }}
                     </a>
                 </td>
                 <td class="actions">
-                    {% include 'actions.html.twig' with {'todo': todo} only %}
+                    {% include 'actions.html.twig' with {'todo': todo, 'currentPage': currentPage} only %}
                 </td>
             </tr>
         {% endfor %}
         <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todos/add">
+            <form method="post" action="{{ path('todos-add', { 'page': currentPage}) }}">
                 <td colspan="2">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
@@ -39,5 +44,7 @@
             </form>
         </tr>
     </table>
+
+    {% include "pagination.html.twig" %}
 </div>
 {% endblock %}

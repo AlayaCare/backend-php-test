@@ -1,19 +1,5 @@
 <?php
 
-/* --------------------------------------------------------------- */
-/*                       CONVERT CONTROLLERS                       */
-/* --------------------------------------------------------------- */
-
-$app['controllers']->convert('todo', function ($id) use ($app) {
-    if ($id) {
-        return $app['repository.todo']->find($id);
-    }
-});
-
-/* --------------------------------------------------------------- */
-/*                    INSTANCIATE CONTROLLERS                      */
-/* --------------------------------------------------------------- */
-
 $app['controller.index'] = $app->share(function ($app) {
     return new App\Controller\IndexController($app, $app['request']);
 });

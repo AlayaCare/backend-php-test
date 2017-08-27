@@ -35,11 +35,31 @@ class TodoController extends BaseController
      */
     public function indexAction()
     {
+        $limit = 5;
+
         $this->isUserLoggedIn();
 
-        $todos = $this->em->getRepository('\App\Entity\Todo')->findByUser($this->getUserSession()['id']);
+        $userId = $this->getUserSession()['id'];
 
-        return $this->app['twig']->render('todos.html.twig', ['todos' => $todos]);
+        $total = $this->em
+            ->getRepository('App\Entity\Todo')
+            ->getListCountByUser($userId);
+
+        // Pagination
+        $numPages = ceil($total / $limit);
+        $currentPage = $this->request->query->get('page', 1);
+        $offset = ($currentPage - 1) * $limit;
+
+        $todos = $this->em->getRepository('App\Entity\Todo')->findListByUser($userId, $limit, $offset);
+
+        $data = array(
+            'todos' => $todos ? $todos : [],
+            'currentPage' => $currentPage,
+            'itemsPerPage' => $limit,
+            'numPages' => $numPages,
+        );
+
+        return $this->app['twig']->render('todos.html.twig', $data);
     }
 
     /**
@@ -69,7 +89,9 @@ class TodoController extends BaseController
     {
         $this->isUserLoggedIn();
 
+        $page = $this->request->query->get('page');
         $description = $this->request->get('description');
+
         $user = $this->em->getRepository('App\Entity\User')->find($this->getUserSession()['id']);
 
         $todo = new Todo();
@@ -81,7 +103,8 @@ class TodoController extends BaseController
 
         $this->app['session']->getFlashBag()->add('success', 'Todo has been added successfully');
 
-        return $this->app->redirect($this->app['url_generator']->generate('todos-index'));
+        return $this->app->redirect($this->app['url_generator']
+            ->generate('todos-index', array('page' => $page)));
     }
 
     /**
@@ -94,6 +117,7 @@ class TodoController extends BaseController
         $this->isUserLoggedIn();
 
         $id = $this->request->attributes->get('id');
+        $page = $this->request->query->get('page');
 
         if (!$id) {
             $this->app->abort(404, 'The requested todo was not found.');
@@ -110,6 +134,11 @@ class TodoController extends BaseController
 
         $this->app['session']->getFlashBag()->add('success', 'Todo has been deleted successfully');
 
+        if ($page) {
+            return $this->app->redirect($this->app['url_generator']
+                ->generate('todos-index', array('page' => $page)));
+        }
+
         return $this->app->redirect($this->app['url_generator']->generate('todos-index'));
     }
 
@@ -123,6 +152,7 @@ class TodoController extends BaseController
         $this->isUserLoggedIn();
 
         $id = $this->request->attributes->get('id');
+        $page = $this->request->query->get('page');
 
         if (!$id) {
             $this->app->abort(404, 'The requested todo was not found.');
@@ -137,6 +167,11 @@ class TodoController extends BaseController
         $todo->setCompleted(!$todo->getCompleted());
         $this->em->persist($todo);
         $this->em->flush();
+
+        if ($page) {
+            return $this->app->redirect($this->app['url_generator']
+                ->generate('todos-index', array('page' => $page)));
+        }
 
         return $this->app->redirect($this->app['url_generator']->generate('todos-index'));
     }

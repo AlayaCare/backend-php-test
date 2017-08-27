@@ -15,13 +15,11 @@
         <th>#</th>
         <th>Description</th>
         <th colspan="2"></th>
-        <tr>
+        <tr class="{{ todo.completed ? 'completed' : '' }}">
             <td>{{ todo.id }}</td>
-            <td>{{ todo.description }}</td>
-            <td>
-                <form method="post" action="{{ app.request.baseurl }}/todos/delete/{{ todo.id }}">
-                    <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                </form>
+            <td class="description">{{ todo.description }}</td>
+            <td class="actions">
+                {% include 'actions.html.twig' with {'todo': todo} only %}
             </td>
         </tr>
     </table>

@@ -96,7 +96,7 @@ class TodoController extends BaseController
         $id = $this->request->attributes->get('id');
 
         if (!$id) {
-            $this->app->abort(404, 'The requested artist was not found.');
+            $this->app->abort(404, 'The requested todo was not found.');
         }
 
         $todo = $this->em->getRepository('App\Entity\Todo')->find($id);
@@ -109,6 +109,34 @@ class TodoController extends BaseController
         $this->em->flush();
 
         $this->app['session']->getFlashBag()->add('success', 'Todo has been deleted successfully');
+
+        return $this->app->redirect($this->app['url_generator']->generate('todos-index'));
+    }
+
+    /**
+     * Complete or incomplete a Todo
+     *
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    public function completeAction()
+    {
+        $this->isUserLoggedIn();
+
+        $id = $this->request->attributes->get('id');
+
+        if (!$id) {
+            $this->app->abort(404, 'The requested todo was not found.');
+        }
+
+        $todo = $this->em->getRepository('App\Entity\Todo')->find($id);
+
+        if ($this->cannotUpdate($todo->getUser()->getId())) {
+            return $this->login();
+        }
+
+        $todo->setCompleted(!$todo->getCompleted());
+        $this->em->persist($todo);
+        $this->em->flush();
 
         return $this->app->redirect($this->app['url_generator']->generate('todos-index'));
     }

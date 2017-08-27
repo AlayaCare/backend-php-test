@@ -22,7 +22,7 @@ class Todo
     /**
      * @var string
      *
-     * @ORM\Column(name="description", type="string", length=255)
+     * @ORM\Column(name="description", type="string", length=255, nullable=false)
      */
     protected $description;
 
@@ -33,6 +33,13 @@ class Todo
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      */
     protected $user;
+
+    /**
+     * @var User
+     *
+     * @ORM\Column(name="completed", type="boolean", nullable=false)
+     */
+    protected $completed = false;
 
     /**
      * @return int
@@ -80,5 +87,21 @@ class Todo
     public function setUser($user)
     {
         $this->user = $user;
+    }
+
+    /**
+     * @return User
+     */
+    public function getCompleted()
+    {
+        return $this->completed;
+    }
+
+    /**
+     * @param User $completed
+     */
+    public function setCompleted($completed)
+    {
+        $this->completed = $completed;
     }
 }

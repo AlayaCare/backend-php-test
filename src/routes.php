@@ -58,5 +58,8 @@ $app->post('/todos/add', 'controller.todo:addAction')
 $app->match('/todos/delete/{id}', 'controller.todo:deleteAction')
     ->bind('todos-delete');
 
+$app->match('/todos/complete/{id}', 'controller.todo:completeAction')
+    ->bind('todos-complete');
+
 // Api
 $app->get('/api/todos/{id}', 'controller.api.todo:viewAction');

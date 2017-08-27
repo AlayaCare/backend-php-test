@@ -16,17 +16,15 @@
         <th>Description</th>
         <th colspan="2"></th>
         {% for todo in todos %}
-            <tr>
+            <tr class="{{ todo.completed ? 'completed' : '' }}">
                 <td>{{ todo.id }}</td>
-                <td>
+                <td class="description">
                     <a href="{{ app.request.baseurl }}/todos/{{ todo.id }}">
                        {{ todo.description }}
                     </a>
                 </td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todos/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
+                <td class="actions">
+                    {% include 'actions.html.twig' with {'todo': todo} only %}
                 </td>
             </tr>
         {% endfor %}
@@ -35,7 +33,7 @@
                 <td colspan="2">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
-                <td>
+                <td class="actions">
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>

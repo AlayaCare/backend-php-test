@@ -79,6 +79,8 @@ class TodoController extends BaseController
         $this->em->persist($todo);
         $this->em->flush();
 
+        $this->app['session']->getFlashBag()->add('success', 'Todo has been added successfully');
+
         return $this->app->redirect($this->app['url_generator']->generate('todos-index'));
     }
 
@@ -105,6 +107,8 @@ class TodoController extends BaseController
 
         $this->em->remove($todo);
         $this->em->flush();
+
+        $this->app['session']->getFlashBag()->add('success', 'Todo has been deleted successfully');
 
         return $this->app->redirect($this->app['url_generator']->generate('todos-index'));
     }

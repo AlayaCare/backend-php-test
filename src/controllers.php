@@ -3,6 +3,7 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
 
@@ -20,10 +21,10 @@ $app->get('/', function () use ($app) {
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
+    $data = new DataManager();
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = $data->getUser($app, $username, $password);
 
         if ($user){
             $app['session']->set('user', $user);
@@ -46,16 +47,16 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
+    $data = new DataManager();
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $data->getItem($app, $user['id'], $id);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+
+        $todos = $data->getAllItems($app, $user['id']);
 	
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -69,9 +70,9 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
+    $data = new DataManager();
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $data->getItem($app, $user['id'], $id);
 
         return $app['twig']->render('json.html', [
             'json' => json_encode($todo),
@@ -87,13 +88,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
+    $data = new DataManager();
 
     if( strlen($description) < 1 ){
         $app['session']->getFlashBag()->add('messageType', 'danger');
         $app['session']->getFlashBag()->add('message', 'Description is required');
     }else{
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $data->insertItem($app, $user_id, $description);
         $app['session']->getFlashBag()->add('messageType', 'success');
         $app['session']->getFlashBag()->add('message', 'TODO added successfully');
     }
@@ -104,8 +105,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
+    $data = new DataManager();
+    $data->deleteItem($app, $user_id, $id);
 
     $app['session']->getFlashBag()->add('messageType', 'warning');
     $app['session']->getFlashBag()->add('message', "TODO #{$id} removed successfully");
@@ -115,8 +118,11 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
 $app->match('/todo/complete/{id}', function ($id) use ($app) {
 
-    $sql = "UPDATE todos SET status=1 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
+    $data = new DataManager();
+    $status = 1;
+    $data->updateStatusItem($app, $user_id, $id, $status);
 
     $app['session']->getFlashBag()->add('messageType', 'success');
     $app['session']->getFlashBag()->add('message', "TODO #{$id} completed");
@@ -126,8 +132,11 @@ $app->match('/todo/complete/{id}', function ($id) use ($app) {
 
 $app->match('/todo/notcomplete/{id}', function ($id) use ($app) {
 
-    $sql = "UPDATE todos SET status=0 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
+    $data = new DataManager();
+    $status = 0;
+    $data->updateStatusItem($app, $user_id, $id, $status);    
 
     $app['session']->getFlashBag()->add('messageType', 'success');
     $app['session']->getFlashBag()->add('message', "TODO #{$id} changed to not completed");

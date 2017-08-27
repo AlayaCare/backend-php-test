@@ -43,8 +43,4 @@ class BaseController
     protected function login() {
         return $this->app->redirect($this->app['url_generator']->generate('login'));
     }
-
-    protected function notFound() {
-        return $this->app->json('Not found', 404);
-    }
 }

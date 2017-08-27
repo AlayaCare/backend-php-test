@@ -37,7 +37,7 @@ class TodoController extends BaseController
     {
         $this->isUserLoggedIn();
 
-        $todos = $this->em->getRepository('\App\Entity\Todo')->findByUser($user['id']);
+        $todos = $this->em->getRepository('\App\Entity\Todo')->findByUser($this->getUserSession()['id']);
 
         return $this->app['twig']->render('todos.html.twig', ['todos' => $todos]);
     }
@@ -99,7 +99,7 @@ class TodoController extends BaseController
 
         $todo = $this->em->getRepository('App\Entity\Todo')->find($id);
 
-        if (!$this->cannotUpdate($todo->getUser()->getId())) {
+        if ($this->cannotUpdate($todo->getUser()->getId())) {
             return $this->login();
         }
 

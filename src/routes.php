@@ -26,6 +26,10 @@ $app['controller.todo'] = $app->share(function ($app) {
     return new App\Controller\TodoController($app, $app['request'], $app['orm.em']);
 });
 
+$app['controller.api.todo'] = $app->share(function ($app) {
+    return new App\Controller\ApiTodoController($app, $app['request'], $app['orm.em']);
+});
+
 /* --------------------------------------------------------------- */
 /*                         REGISTER ROUTES                         */
 /* --------------------------------------------------------------- */
@@ -53,3 +57,6 @@ $app->post('/todos/add', 'controller.todo:addAction')
 
 $app->match('/todos/delete/{id}', 'controller.todo:deleteAction')
     ->bind('todos-delete');
+
+// Api
+$app->get('/api/todos/{id}', 'controller.api.todo:viewAction');

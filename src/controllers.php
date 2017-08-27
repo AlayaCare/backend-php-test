@@ -65,6 +65,22 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->get('/todo/page/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $data = new DataManager();
+
+    $todos = $data->getAllItems($app, $user['id'], $page);
+
+        return $app['twig']->render('todos.html', [
+            'todos' => $todos,
+        ]);
+
+})
+->value('id', null);
+
 $app->get('/todo/{id}/json', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');

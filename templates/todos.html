@@ -12,6 +12,8 @@
     {% endfor %}
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th><th></th>
+	{% set pages=1 %}
+	{% set actualpage=1 %}
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -34,10 +36,23 @@
                     </form>
                 </td>
             </tr>
+	    {% set pages=todo.pages %}
+            {% set actualpage=todo.actualpage %}
         {% endfor %}
+	{% if pages > 1 %}
+        <tr>
+             <td colspan="5">
+                 <ul class="pagination">
+                     {% for i in 1..pages %}
+                     <li {% if actualpage == i %} class="active" {% endif %}><a href="{{ app.request.baseurl }}/todo/page/{{ i }}">{{ i }}</a></li>
+                     {% endfor %}
+                 </ul> 
+             </td>
+        </tr>
+        {% endif %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
+                <td colspan="4">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>

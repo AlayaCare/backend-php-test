@@ -36,15 +36,19 @@ public function getItem($app, $user_id, $item_id)
 }
 public function getAllItems($app, $user_id, $currentPage = 1)
 {
-    $sql = "SELECT * FROM todos WHERE user_id = '{$user_id}'";
+    //$sql = "SELECT * FROM todos WHERE user_id = '{$user_id}'";
 
-    $paginator = $this->paginate($app, $sql, $currentPage);
+    $paginator = $this->paginate($app, $user_id, $currentPage);
 
     return $paginator;
 }
 
-public function paginate($app, $sql, $page = 1, $limit = 5)
+public function paginate($app, $user_id, $page = 1, $limit = 7)
 {
+    $offset = ($page - 1)*$limit;
+    $sql = "SELECT *,  CEILING((SELECT count(*) from todos WHERE user_id = '{$user_id}') / {$limit}) as pages, {$page} as actualpage from todos WHERE user_id = '{$user_id}' LIMIT {$limit} OFFSET {$offset}";
+   // $sql = "SELECT * FROM todos WHERE user_id = '{$user_id}'";
+   // $sql = $sql.' LIMIT '.$limit.' OFFSET '.$offset;
     $paginator = $app['db']->fetchAll($sql);
 
     return $paginator;

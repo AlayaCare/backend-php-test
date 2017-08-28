@@ -51,7 +51,8 @@ $loginBefore = function () use ($app) {
     }
 };
 $app->get('/todo', 'todo.controller:index')->before($loginBefore);
-$app->get('/todo/{id}', 'todo.controller:show')->value('id', null)->before($loginBefore);
+$app->get('/todo/{id}', 'todo.controller:show')->value('id', null)->value('view','html')->before($loginBefore);
+$app->get('/todo/{id}/json', 'todo.controller:show')->value('id', null)->value('view','json')->before($loginBefore);
 $app->post('/todo/add', 'todo.controller:add')->before($loginBefore);
 $app->match('/todo/delete/{id}', 'todo.controller:delete')->value('id', null)->before($loginBefore);
 $app->match('/todo/completed/{id}', 'todo.controller:setCompleted')->value('id', null)->before($loginBefore);

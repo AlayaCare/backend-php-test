@@ -57,16 +57,21 @@ class TodoController
     }
 
     /**
-     * @param $id
+     * @param int $id
+     * @param string $view
      * @return mixed
      */
-    public function show($id)
+    public function show($id, $view)
     {
         $todo = $this->todoRepository->getTodo($id);
 
-        return $this->app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
+        if ($view == 'json') {
+            return $this->app->json($todo);
+        } else {
+            return $this->app['twig']->render('todo.html', [
+                'todo' => $todo,
+            ]);
+        }
     }
 
     /**

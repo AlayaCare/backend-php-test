@@ -4,7 +4,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th>Delete</th><th>Completed</th>
+        <th>#</th><th>User</th><th>Description</th><th>Delete</th><th>Completed</th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -36,15 +36,20 @@
                     </form>
                     {% endif %}
                 </td>
+                <td>
+                    <a href="/todo/{{ todo.id }}/json">
+                        View as JSON
+                    </a>
+                </td>
             </tr>
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="4">
+                <td colspan="5">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
-                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Add new task</button>
                 </td>
             </form>
         </tr>

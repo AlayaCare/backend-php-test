@@ -4,7 +4,9 @@ use Silex\Application;
 use Silex\Provider\SessionServiceProvider;
 use Silex\Provider\TwigServiceProvider;
 use Silex\Provider\UrlGeneratorServiceProvider;
+use Silex\Provider\FormServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
+use Silex\Provider\TranslationServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
@@ -14,6 +16,10 @@ $app = new Application();
 $app->register(new SessionServiceProvider());
 $app->register(new UrlGeneratorServiceProvider());
 $app->register(new ValidatorServiceProvider());
+$app->register(new TranslationServiceProvider(), array(
+    'translator.domains' => array(),
+));
+$app->register(new FormServiceProvider());
 $app->register(new ServiceControllerServiceProvider());
 $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());

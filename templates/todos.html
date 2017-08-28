@@ -32,5 +32,10 @@
             </form>
         </tr>
     </table>
+    {% for alert in app.session.flashbag.get('add-todo-form') %}
+    <div class="error-message">
+        <div class="alert"><strong>{{ alert }}</strong></div>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

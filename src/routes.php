@@ -12,19 +12,19 @@ $app->get('/logout', 'controller.authentication:logoutAction')
     ->bind('logout');
 
 // TodoList management
-$app->get('/todos', 'controller.todo:indexAction')
+$app->get('/account/todos', 'controller.todo:indexAction')
     ->bind('todos-index');
 
-$app->get('/todos/{id}', 'controller.todo:viewAction')
+$app->get('/account/todos/{id}', 'controller.todo:viewAction')
     ->bind('todos-view');
 
-$app->post('/todos/add', 'controller.todo:addAction')
+$app->post('/account/todos/add', 'controller.todo:addAction')
     ->bind('todos-add');
 
-$app->match('/todos/delete/{id}', 'controller.todo:deleteAction')
+$app->match('/account/todos/delete/{id}', 'controller.todo:deleteAction')
     ->bind('todos-delete');
 
-$app->match('/todos/complete/{id}', 'controller.todo:completeAction')
+$app->match('/account/todos/complete/{id}', 'controller.todo:completeAction')
     ->bind('todos-complete');
 
 // Api

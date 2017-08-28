@@ -21,25 +21,15 @@ class BaseController
         return $this->request->getCurrentRequest();
     }
 
-    // TODO needs to be moved and secured
-    protected function isUserLoggedIn() {
-        if (null === $this->getUserSession()) {
-            $this->login();
-        }
-    }
-
-    // TODO needs to be moved and secured
     protected function getUserSession() {
-        return $this->app['session']->get('user');
+        return $this->app['security.token_storage']->getToken()->getUser();
     }
 
-    // TODO needs to be moved and secured
     protected function cannotUpdate($id) {
         $user = $this->getUserSession();
-        return null === $user || ($user && $id && intval($user['id']) !== $id);
+        return null === $user || ($user && $id && intval($user->getId()) !== $id);
     }
 
-    // TODO needs to be moved and secured
     protected function login() {
         return $this->app->redirect($this->app['url_generator']->generate('login'));
     }

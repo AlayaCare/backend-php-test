@@ -33,20 +33,18 @@ class AuthenticationController extends BaseController
      */
     public function loginAction()
     {
-        $username = $this->request->get('username');
-        $password = $this->request->get('password');
-        
-        if ($username) {
-            $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-            $user = $this->app['db']->fetchAssoc($sql);
+        $form = $this->app['form.factory']->createBuilder('form')
+            ->add('username', 'text', array('label' => 'Username', 'data' => $this->app['session']->get('_security.last_username')))
+            ->add('password', 'password', array('label' => 'Password'))
+            ->add('login', 'submit')
+            ->getForm();
 
-            if ($user){
-                $this->app['session']->set('user', $user);
-                return $this->app->redirect('/todos');
-            }
-        }
+        $data = array(
+            'form'  => $form->createView(),
+            'error' => $this->app['security.last_error']($this->request),
+        );
 
-        return $this->app['twig']->render('login.html.twig', array());
+        return $this->app['twig']->render('login.html.twig', $data);
     }
 
     /**
@@ -56,7 +54,7 @@ class AuthenticationController extends BaseController
      */
     public function logoutAction()
     {
-        $this->app['session']->set('user', null);
-        return $this->app->redirect('/');
+        $this->app['session']->clear();
+        return $this->app->redirect($this->app['url_generator']->generate('homepage'));
     }
 }

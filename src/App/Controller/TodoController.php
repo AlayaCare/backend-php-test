@@ -37,9 +37,7 @@ class TodoController extends BaseController
     {
         $limit = 5;
 
-        $this->isUserLoggedIn();
-
-        $userId = $this->getUserSession()['id'];
+        $userId = $this->getUserSession()->getId();
 
         $total = $this->em
             ->getRepository('App\Entity\Todo')
@@ -68,8 +66,6 @@ class TodoController extends BaseController
      */
     public function viewAction()
     {
-        $this->isUserLoggedIn();
-
         $id = $this->request->attributes->get('id');
         $todo = $this->em->getRepository('App\Entity\Todo')->find($id);
 
@@ -87,13 +83,11 @@ class TodoController extends BaseController
      */
     public function addAction()
     {
-        $this->isUserLoggedIn();
-
         $page = $this->request->query->get('page');
         $description = $this->request->get('description');
 
         // Create a new Todo
-        $user = $this->em->getRepository('App\Entity\User')->find($this->getUserSession()['id']);
+        $user = $this->em->getRepository('App\Entity\User')->find($this->getUserSession()->getId());
         $todo = new Todo();
         $todo->setDescription($description);
         $todo->setUser($user);
@@ -132,8 +126,6 @@ class TodoController extends BaseController
      */
     public function deleteAction()
     {
-        $this->isUserLoggedIn();
-
         $id = $this->request->attributes->get('id');
         $page = $this->request->query->get('page');
 
@@ -167,8 +159,6 @@ class TodoController extends BaseController
      */
     public function completeAction()
     {
-        $this->isUserLoggedIn();
-
         $id = $this->request->attributes->get('id');
         $page = $this->request->query->get('page');
 

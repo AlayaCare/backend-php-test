@@ -25,10 +25,10 @@
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            {% if user %}
+              {% if is_granted('ROLE_USER') %}
               <li>
                   <a href="/logout">
-                      <span class="glyphicon glyphicon-user"></span> {{ user.username }}
+                      <span class="glyphicon glyphicon-user"></span> {{ app.user.username }}
                       Logout
                   </a>
               </li>

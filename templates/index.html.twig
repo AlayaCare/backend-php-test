@@ -1,6 +1,130 @@
 {% extends "layout.html.twig" %}
 
 {% block content %}
-    <h1>README</h1>
+    <h1> Introduction </h1>
+    <p>
+        Hi, my name is Anne-Sophie, in this home page I will explain and give you more information about the work I did.
+        It was a very interesting challenge for me because I never worked with Silex, so it was a good opportunity
+        for me to play around with it. My experience in PHP is based on Zend Framework 2 and Laravel 5.
+    </p>
+    <h3> Updates: Run the project </h3>
+    <p>
+        I updated several things so here are the new steps :
+<pre>
+<b>php composer.phar install (or composer install)</b>
+
+# create schema with Doctrine
+<b>php vendor/bin/doctrine orm:schema-tool:create</b>
+
+# if you use homestead as defined in the following section (Dev environment)
+# default db user is <b>homestead</b> and default password is <b>secret</b>
+
+<b>mysql -u root database < resources/fixtures_asdemesy.sql</b> </pre>
+    The two updated users are:
+    <ul>
+        <li>Username: <b>asdemesy | password: user1</b> </li>
+        <li>Username: <b>alayacare | password: user2</b> </li>
+    </ul>
+    </p>
+
+
+    <h3> Tasks </h3>
+        All the tasks that are completed can be display in the todo list with user <b>asdemesy</b>
+
+        <p>Just a little precision for TASK 2: As a user I can mark a todo as completed: I did not write a migration script for this
+        one but I used doctrine instead by executing the following command
+<pre>
+php vendor/bin/doctrine orm:schema-tool:update
+</pre>
+
+    <h3> Dev environment </h3>
+    <p>
+        To run the application locally, I used <b>Laravel homestead vagrant machine</b>. Here are quick steps to follow :
+
+        <ul>
+            <li>
+                Download Vagrant and Virtual Box
+
+                Once VirtualBox / VMware and Vagrant have been installed, you should add the laravel/homestead box to your Vagrant installation using the following command in your terminal. It will take a few minutes to download the box, depending on your Internet connection speed:
+                If this command fails, make sure your Vagrant installation is up to date.
+            </li>
+            <li>
+                <pre>vagrant box add laravel/homestead</pre>
+            </li>
+            <li>
+                Clone Homestead project
+                <pre>
+cd ~
+
+git clone https://github.com/laravel/homestead.git Homestead</pre>
+            </li>
+            <li>
+                Once you have cloned the Homestead repository, run the bash <b>init.sh</b> command from the Homestead directory to create the <b>Homestead.yaml configuration</b> file. The Homestead.yaml file will be placed in the <b>~/.homestead</b> hidden directory:
+                <pre>
+# Mac / Linux...
+bash init.sh</pre>
+            </li>
+            <li>
+                Update your <b>host</b> file
+                <pre>
+sudo vim /etc/hosts
+
+
+# Example of a host file
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1	localhost
+255.255.255.255	broadcasthost
+::1             localhost
+fe80::1%lo0	localhost
+
+# Morel local address
+192.168.10.10   todos.dev</pre>
+            </li>
+            <li>
+                Update your <b>Homestead.yaml</b> file
+                <pre>
+vim ~/.homestead/Homestead.yaml
+
+ip: "192.168.10.10"
+memory: 2048
+cpus: 1
+provider: virtualbox
+
+authorize: ~/.ssh/id_rsa.pub
+
+keys:
+    - ~/.ssh/id_rsa
+
+folders:
+    - map: ~/dev/todos           # project path
+      to: /home/vagrant/todos
+sites:
+    - map: morel.dev
+      to: /home/vagrant/todos/web
+
+databases:
+    - ac_todos</pre>
+            </li>
+            <li>
+                Start your Vagrant machine
+
+                Inside your <b>~/Homestead</b> folder execute the following commands:
+                <pre>vagrant up --provision</pre>
+
+                To go inside the Machine use:
+                <pre>vagrant ssh</pre>
+                To stop the machine use:
+                <pre>vagrant halt</pre>
+            </li>
+        </ul>
+    </p>
+
+    <hr>
+    <h3>README</h3>
     <pre class="well">{{ readme }}</pre>
 {% endblock %}

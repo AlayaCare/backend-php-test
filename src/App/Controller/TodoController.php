@@ -92,16 +92,34 @@ class TodoController extends BaseController
         $page = $this->request->query->get('page');
         $description = $this->request->get('description');
 
+        // Create a new Todo
         $user = $this->em->getRepository('App\Entity\User')->find($this->getUserSession()['id']);
-
         $todo = new Todo();
         $todo->setDescription($description);
         $todo->setUser($user);
 
-        $this->em->persist($todo);
-        $this->em->flush();
+        // Validation
+        $result = array(
+            'type' => 'success',
+            'message' => 'Todo has been added successfully'
+        );
 
-        $this->app['session']->getFlashBag()->add('success', 'Todo has been added successfully');
+        $errors = $this->app['validator']->validate($todo);
+
+        if (count($errors)) {
+            $error = $errors->getIterator()->current();
+            $message = ucfirst($error->getPropertyPath()) . ': ' .$error->getMessage();
+
+            $result['type'] = 'danger';
+            $result['message'] = $message;
+
+        } else {
+            $this->em->persist($todo);
+            $this->em->flush();
+        }
+
+        // Display flash bag message if error or success
+        $this->app['session']->getFlashBag()->add($result['type'], $result['message']);
 
         return $this->app->redirect($this->app['url_generator']
             ->generate('todos-index', array('page' => $page)));

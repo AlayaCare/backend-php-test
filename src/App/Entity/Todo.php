@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\TodoRepository")
@@ -40,6 +42,14 @@ class Todo
      * @ORM\Column(name="completed", type="boolean", nullable=false)
      */
     protected $completed = false;
+
+    /**
+     * Constraints
+     * @param ClassMetadata $metadata
+     */
+    static function loadValidatorMetadata(ClassMetadata $metadata) {
+        $metadata->addPropertyConstraint('description', new Assert\NotBlank());
+    }
 
     /**
      * @return int

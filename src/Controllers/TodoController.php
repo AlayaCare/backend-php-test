@@ -91,6 +91,7 @@ class TodoController
             }
         } else {
             $this->todoRepository->insertNewTodo($userId, $description);
+            $this->app['session']->getFlashBag()->add('add-todo-form', 'New task added: ' . $description);
         }
         return $this->app->redirect('/todo');
     }
@@ -102,6 +103,7 @@ class TodoController
     public function delete($id)
     {
         $this->todoRepository->deleteTodo($id);
+        $this->app['session']->getFlashBag()->add('add-todo-form', 'Task ' . $id . ' deleted');
         return $this->app->redirect('/todo');
     }
 

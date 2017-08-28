@@ -1,0 +1,26 @@
+{% if numPages > 1 %}
+    <nav aria-label="todos pagination">
+        <ul class="pagination">
+            <li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ path('todos-index', {'page': currentPage > 1 ? currentPage - 1 : 1}) }}" aria-label="Previous">
+
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">Previous</span>
+                </a>
+            </li>
+
+            {% for i in 1..numPages %}
+                <li class="page-item {{ currentPage == i ? 'active' : '' }}">
+                    <a class="page-link" href="{{  path('todos-index', {'page': i}) }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+
+            <li class="page-item {{ currentPage == numPages ? 'disabled' : '' }}">
+                <a class="page-link" href="{{ path('todos-index', {'page': currentPage < numPages ? currentPage + 1 : 1}) }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}

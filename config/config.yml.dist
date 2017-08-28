@@ -3,3 +3,5 @@ database:
     dbname  : ac_todos
     user    : root
     password:
+    driver  : pdo_mysql
+    charset : utf8

@@ -1,3 +1,5 @@
+:warning: (Spoiler alert) Changes are explained inside homepage of todos :warning:
+
 Alayacare PHP backend skill test
 ==========================
 

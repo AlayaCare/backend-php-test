@@ -1,0 +1,45 @@
+{% extends "layout.html.twig" %}
+
+{% block content %}
+<div class="col-md-4 col-md-offset-4">
+    <h1>Todo List:</h1>
+
+    {% include 'messages.html.twig' %}
+
+    <table class="table table-striped">
+        <th>#</th>
+        <th>Description</th>
+        <th colspan="2"></th>
+        {% for todo in todos %}
+            <tr class="{{ todo.completed ? 'completed' : '' }}">
+                {% if currentPage > 1 %}
+                    <td>{{ ((currentPage - 1) * itemsPerPage + 1) + loop.index }}</td>
+                {% else %}
+                    <td>{{ loop.index}}</td>
+                {% endif %}
+
+                <td class="description">
+                    <a href="{{ path('todos-view', {'id': todo.id}) }}">
+                       {{ todo.description }}
+                    </a>
+                </td>
+                <td class="actions">
+                    {% include 'actions.html.twig' with {'todo': todo, 'currentPage': currentPage} only %}
+                </td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <form method="post" action="{{ path('todos-add', { 'page': currentPage}) }}">
+                <td colspan="2">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                </td>
+                <td class="actions">
+                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                </td>
+            </form>
+        </tr>
+    </table>
+
+    {% include "pagination.html.twig" %}
+</div>
+{% endblock %}

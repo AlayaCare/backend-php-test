@@ -5,3 +5,21 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+
+.actions {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.btn-completed {
+    margin-left: 5px;
+}
+
+.completed {
+    background: lightgray !important;
+}
+
+.completed .description {
+    text-decoration: line-through;
+}

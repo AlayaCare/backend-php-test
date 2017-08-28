@@ -3,27 +3,56 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+    {% for message in app.session.flashbag.get('message') %}
+        {% for messageType in app.session.flashbag.get('messageType') %}
+            <div class="alert alert-{{ messageType }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th></th><th></th>
+	{% set pages=1 %}
+	{% set actualpage=1 %}
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}" {% if todo.status == 1 %} style="text-decoration: line-through;" {% endif %} >
                        {{ todo.description }}
                     </a>
                 </td>
+		<td>
+                    {% if todo.status == 0 %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success" title="Complete TODO"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+                    </form>
+                    {% endif %}
+                </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        <button type="submit" class="btn btn-xs btn-danger" title="Delete TODO"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
             </tr>
+	    {% set pages=todo.pages %}
+            {% set actualpage=todo.actualpage %}
         {% endfor %}
+	{% if pages > 1 %}
+        <tr>
+             <td colspan="5">
+                 <ul class="pagination">
+                     {% for i in 1..pages %}
+                     <li {% if actualpage == i %} class="active" {% endif %}><a href="{{ app.request.baseurl }}/todo/page/{{ i }}">{{ i }}</a></li>
+                     {% endfor %}
+                 </ul> 
+             </td>
+        </tr>
+        {% endif %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
+                <td colspan="4">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>

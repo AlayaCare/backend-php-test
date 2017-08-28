@@ -8,6 +8,7 @@
 
 namespace App\Controllers;
 
+use App\Repositories\TodoRepository;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -26,14 +27,21 @@ class TodoController
     protected $user;
 
     /**
+     * @var TodoRepository
+     */
+    protected $todoRepository;
+
+    /**
      * TodoController constructor.
      * @param Application $app
+     * @param TodoRepository $todoRepository
      * @codeCoverageIgnore
      */
-    public function __construct(Application $app)
+    public function __construct(Application $app, TodoRepository $todoRepository)
     {
         $this->app = $app;
         $this->user = $app['session']->get('user');
+        $this->todoRepository = $todoRepository;
     }
 
     /**
@@ -41,8 +49,7 @@ class TodoController
      */
     public function index()
     {
-        $sql = "SELECT * FROM todos WHERE user_id = '{$this->user['id']}'";
-        $todos = $this->app['db']->fetchAll($sql);
+        $todos = $this->todoRepository->getAllTodos($this->user['id']);
 
         return $this->app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -55,8 +62,7 @@ class TodoController
      */
     public function show($id)
     {
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $this->app['db']->fetchAssoc($sql);
+        $todo = $this->todoRepository->getTodo($id);
 
         return $this->app['twig']->render('todo.html', [
             'todo' => $todo,
@@ -69,7 +75,7 @@ class TodoController
      */
     public function add(Request $request)
     {
-        $user_id = $this->user['id'];
+        $userId = $this->user['id'];
         $description = $request->get('description');
         // Validate if description is not empty
         $errors = $this->app['validator']->validate($description, new Assert\NotBlank());
@@ -79,8 +85,7 @@ class TodoController
                 $this->app['session']->getFlashBag()->add('add-todo-form', $error->getMessage());
             }
         } else {
-            $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-            $this->app['db']->executeUpdate($sql);
+            $this->todoRepository->insertNewTodo($userId, $description);
         }
         return $this->app->redirect('/todo');
     }
@@ -91,10 +96,30 @@ class TodoController
      */
     public function delete($id)
     {
-        $sql = "DELETE FROM todos WHERE id = '$id'";
-        $this->app['db']->executeUpdate($sql);
-
+        $this->todoRepository->deleteTodo($id);
         return $this->app->redirect('/todo');
     }
+
+    /**
+     * @param $id
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    public function setCompleted($id)
+    {
+        $this->todoRepository->updateTodo($id, 1);
+        return $this->app->redirect('/todo');
+    }
+
+    /**
+     * @param $id
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    public function setUncompleted($id)
+    {
+        $this->todoRepository->updateTodo($id, 0);
+        return $this->app->redirect('/todo');
+    }
+
+
 
 }

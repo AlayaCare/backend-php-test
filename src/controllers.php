@@ -1,7 +1,7 @@
 <?php
 
 use App\Controllers\TodoController;
-
+use App\Repositories\TodoRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -43,7 +43,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 $app['todo.controller'] = $app->share(function() use ($app) {
-    return new TodoController($app);
+    return new TodoController($app, new TodoRepository($app));
 });
 $loginBefore = function () use ($app) {
     if (null === $user = $app['session']->get('user')) {
@@ -54,3 +54,5 @@ $app->get('/todo', 'todo.controller:index')->before($loginBefore);
 $app->get('/todo/{id}', 'todo.controller:show')->value('id', null)->before($loginBefore);
 $app->post('/todo/add', 'todo.controller:add')->before($loginBefore);
 $app->match('/todo/delete/{id}', 'todo.controller:delete')->value('id', null)->before($loginBefore);
+$app->match('/todo/completed/{id}', 'todo.controller:setCompleted')->value('id', null)->before($loginBefore);
+$app->match('/todo/uncompleted/{id}', 'todo.controller:setUncompleted')->value('id', null)->before($loginBefore);

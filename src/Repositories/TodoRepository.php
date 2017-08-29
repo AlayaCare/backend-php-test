@@ -8,7 +8,9 @@
 
 namespace App\Repositories;
 
+use App\Entities\Todo;
 use App\Objects\PaginatedObjects;
+use Doctrine\ORM\EntityManager;
 use Silex\Application;
 
 /**
@@ -25,12 +27,18 @@ class TodoRepository
     protected $app;
 
     /**
+     * @var EntityManager
+     */
+    protected $entityManager;
+
+    /**
      * TodoRepository constructor.
      * @param Application $application
      */
     public function __construct(Application $application)
     {
         $this->app = $application;
+        $this->entityManager = $application['orm.em'];
     }
 
     /**
@@ -40,16 +48,19 @@ class TodoRepository
      */
     public function getAllTodos($userId, $page = 1)
     {
-        $countSql = "SELECT COUNT(*) FROM todos WHERE user_id = ?";
-        $countResult  = $this->app['db']->executeQuery($countSql, [$userId]);
-        $count = (int) $countResult->fetchColumn();
+        $qb = $this->entityManager->getRepository(Todo::class)->createQueryBuilder('n');
+        $count = $qb->select('COUNT(n.id)')->where('n.userId = ?1')->setParameter(1,$userId)->getQuery()->getSingleScalarResult();
 
         $offset = ($page * self::TODO_LIMIT) - self::TODO_LIMIT;
-        $sql = "SELECT * FROM todos WHERE user_id = ? LIMIT " . self::TODO_LIMIT . " OFFSET " . $offset;
+        $todos = $qb->select('n')
+            ->where('n.userId = ?1')
+            ->setParameter(1,$userId)
+            ->setFirstResult($offset)
+            ->setMaxResults(self::TODO_LIMIT)
+            ->getQuery()
+            ->getResult();
 
-        $items = $this->app['db']->fetchAll($sql, [$userId]);
-
-        return new PaginatedObjects(self::TODO_LIMIT, $count, $items, $page);
+        return new PaginatedObjects(self::TODO_LIMIT, $count, $todos, $page);
     }
 
     /**

@@ -1,18 +1,20 @@
 <?php
 
+use App\Controllers\TodoController;
+use App\Repositories\TodoRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
-
+    $twig->addGlobal('app', $app);
     return $twig;
 }));
 
 
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
-        'readme' => file_get_contents('README.md'),
+        'readme' => file_get_contents('../README.md'),
     ]);
 });
 
@@ -22,8 +24,8 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $sql = "SELECT * FROM users WHERE username = ? and password = ?";
+        $user = $app['db']->fetchAssoc($sql, [$username, $password]);
 
         if ($user){
             $app['session']->set('user', $user);
@@ -40,50 +42,18 @@ $app->get('/logout', function () use ($app) {
     return $app->redirect('/');
 });
 
-
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app['todo.controller'] = $app->share(function() use ($app) {
+    return new TodoController($app, new TodoRepository($app));
+});
+$loginBefore = function () use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
-    }
-})
-->value('id', null);
-
-
-$app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
-
-    $user_id = $user['id'];
-    $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
-    return $app->redirect('/todo');
-});
-
-
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-
-    return $app->redirect('/todo');
-});
+};
+$app->get('/todo', 'todo.controller:index')->before($loginBefore);
+$app->get('/todo/{id}', 'todo.controller:show')->value('id', null)->value('view','html')->before($loginBefore);
+$app->get('/todo/{id}/json', 'todo.controller:show')->value('id', null)->value('view','json')->before($loginBefore);
+$app->post('/todo/add', 'todo.controller:add')->before($loginBefore);
+$app->match('/todo/delete/{id}', 'todo.controller:delete')->value('id', null)->before($loginBefore);
+$app->match('/todo/completed/{id}', 'todo.controller:setCompleted')->value('id', null)->before($loginBefore);
+$app->match('/todo/uncompleted/{id}', 'todo.controller:setUncompleted')->value('id', null)->before($loginBefore);

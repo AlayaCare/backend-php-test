@@ -4,7 +4,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Delete</th><th>Completed</th><th></th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
@@ -13,6 +13,26 @@
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
+            </td>
+            <td>
+                {% if todo.completed == 0 %}
+                <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}">
+                    <button type="checkbox" class="btn btn-xs btn-success">
+                        <span class="glyphicon glyphicon-unchecked glyphicon-white"></span>
+                    </button>
+                </form>
+                {% else %}
+                <form method="post" action="{{ app.request.baseurl }}/todo/uncompleted/{{ todo.id }}">
+                    <button type="checkbox" class="btn btn-xs btn-success active">
+                        <span class="glyphicon glyphicon-check glyphicon-white"></span>
+                    </button>
+                </form>
+                {% endif %}
+            </td>
+            <td>
+                <a href="/todo/{{ todo.id }}/json">
+                    View as JSON
+                </a>
             </td>
         </tr>
     </table>

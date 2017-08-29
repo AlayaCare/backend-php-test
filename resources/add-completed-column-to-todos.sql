@@ -1,0 +1,1 @@
+ALTER TABLE `todos` ADD `completed` TINYINT NOT NULL DEFAULT 0;

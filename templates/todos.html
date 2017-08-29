@@ -15,7 +15,7 @@
                     </a>
                 </td>
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}?page={{ currentPage }}">
                         <button type="submit" class="btn btn-xs btn-danger">
                             <span class="glyphicon glyphicon-remove glyphicon-white"></span>
                         </button>
@@ -23,13 +23,13 @@
                 </td>
                 <td>
                     {% if todo.completed == 0 %}
-                    <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}?page={{ currentPage }}">
                         <button type="checkbox" class="btn btn-xs btn-success">
                             <span class="glyphicon glyphicon-unchecked glyphicon-white"></span>
                         </button>
                     </form>
                     {% else %}
-                    <form method="post" action="{{ app.request.baseurl }}/todo/uncompleted/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/uncompleted/{{ todo.id }}?page={{ currentPage }}">
                         <button type="checkbox" class="btn btn-xs btn-success active">
                             <span class="glyphicon glyphicon-check glyphicon-white"></span>
                         </button>
@@ -44,7 +44,7 @@
             </tr>
         {% endfor %}
         <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todo/add">
+            <form method="post" action="{{ app.request.baseurl }}/todo/add?page={{ currentPage }}">
                 <td colspan="5">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
@@ -54,6 +54,11 @@
             </form>
         </tr>
     </table>
+    <ul class="pagination">
+        {% for i in range(1,nbPages) %}
+        <li {% if i == currentPage %} class="active" {% endif %}><a href="/todo?page={{ i }}">{{ i }}</a></li>
+        {% endfor %}
+    </ul>
     {% for alert in app.session.flashbag.get('add-todo-form') %}
     <div class="error-message">
         <div class="alert"><strong>{{ alert }}</strong></div>

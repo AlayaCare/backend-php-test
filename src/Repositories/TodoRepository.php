@@ -8,6 +8,7 @@
 
 namespace App\Repositories;
 
+use App\Objects\PaginatedObjects;
 use Silex\Application;
 
 /**
@@ -16,6 +17,8 @@ use Silex\Application;
  */
 class TodoRepository
 {
+    const TODO_LIMIT = 5;
+
     /**
      * @var Application
      */
@@ -32,12 +35,21 @@ class TodoRepository
 
     /**
      * @param $userId
-     * @return mixed
+     * @param int $page
+     * @return PaginatedObjects
      */
-    public function getAllTodos($userId)
+    public function getAllTodos($userId, $page = 1)
     {
-        $sql = "SELECT * FROM todos WHERE user_id = ?";
-        return $this->app['db']->fetchAll($sql, [$userId]);
+        $countSql = "SELECT COUNT(*) FROM todos WHERE user_id = ?";
+        $countResult  = $this->app['db']->executeQuery($countSql, [$userId]);
+        $count = (int) $countResult->fetchColumn();
+
+        $offset = ($page * self::TODO_LIMIT) - self::TODO_LIMIT;
+        $sql = "SELECT * FROM todos WHERE user_id = ? LIMIT " . self::TODO_LIMIT . " OFFSET " . $offset;
+
+        $items = $this->app['db']->fetchAll($sql, [$userId]);
+
+        return new PaginatedObjects(self::TODO_LIMIT, $count, $items, $page);
     }
 
     /**
@@ -47,6 +59,7 @@ class TodoRepository
     public function getTodo($id)
     {
         $sql = "SELECT * FROM todos WHERE id = ?";
+
         return $this->app['db']->fetchAssoc($sql, [$id]);
     }
 

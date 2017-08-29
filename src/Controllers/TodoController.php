@@ -45,14 +45,19 @@ class TodoController
     }
 
     /**
+     * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function index()
+    public function index(Request $request)
     {
-        $todos = $this->todoRepository->getAllTodos($this->user['id']);
+        $page = $request->get('page', 1);
+        $todos = $this->todoRepository->getAllTodos($this->user['id'], $page);
 
         return $this->app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'todos' => $todos->getItems(),
+            'total' => $todos->getTotal(),
+            'currentPage' => $todos->getPage(),
+            'nbPages' => $todos->getNbPages(),
         ]);
     }
 
@@ -93,40 +98,51 @@ class TodoController
             $this->todoRepository->insertNewTodo($userId, $description);
             $this->app['session']->getFlashBag()->add('add-todo-form', 'New task added: ' . $description);
         }
-        return $this->app->redirect('/todo');
+        return $this->redirectToTodoList($request);
     }
 
     /**
+     * @param Request $request
      * @param $id
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function delete($id)
+    public function delete(Request $request, $id)
     {
         $this->todoRepository->deleteTodo($id);
         $this->app['session']->getFlashBag()->add('add-todo-form', 'Task ' . $id . ' deleted');
-        return $this->app->redirect('/todo');
+        return $this->redirectToTodoList($request);
     }
 
     /**
+     * @param Request $request
      * @param $id
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function setCompleted($id)
+    public function setCompleted(Request $request, $id)
     {
         $this->todoRepository->updateTodo($id, 1);
-        return $this->app->redirect('/todo');
+        return $this->redirectToTodoList($request);
     }
 
     /**
+     * @param Request $request
      * @param $id
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function setUncompleted($id)
+    public function setUncompleted(Request $request, $id)
     {
         $this->todoRepository->updateTodo($id, 0);
-        return $this->app->redirect('/todo');
+        return $this->redirectToTodoList($request);
     }
 
-
+    /**
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    protected function redirectToTodoList(Request $request)
+    {
+        $page = $request->get('page', 1);
+        return $this->app->redirect('/todo?page=' . $page);
+    }
 
 }

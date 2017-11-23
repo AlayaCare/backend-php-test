@@ -20,6 +20,12 @@ class Gmodel
         return $this->app['db']->fetchAssoc($sql);
 	}
 	
+	function get_todos_by_userid($id) 
+	{
+	    $sql = "SELECT * FROM ". static::$table ." WHERE id = '$id' and user_id = '".$this->user_id."'";
+        return $todos = $this->app['db']->fetchAssoc($sql);
+	}
+	
 	function get_todos_by_userid_withlimit($offset, $rowsperpage)
 	{
        $sql = "SELECT * FROM ". static::$table ." WHERE user_id = '".$this->user_id."' LIMIT $offset, $rowsperpage";

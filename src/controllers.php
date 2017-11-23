@@ -76,6 +76,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 			$error = "Description field is required.";
 			throw new Exception($error);
 		} 
+		else {
+			$sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+			$app['db']->executeUpdate($sql);
+			$app['session']->getFlashBag()->add('success_message', "Todo is added successfully");
+		}
 	} catch (Exception $e) {
 		$app['session']->getFlashBag()->add('description_blank', $e->getMessage());
 	}
@@ -85,10 +90,16 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-
+	$user = login_check($app);
+	$user_id = "${user['id']}";
+	
+    $sql = "DELETE FROM todos WHERE id = '$id' and user_id = '$user_id'";
+    $returnFlag = $app['db']->executeUpdate($sql);
+	if(!empty($returnFlag)) {
+		$app['session']->getFlashBag()->add('success_message', "Todo is deleted successfully");
+	} else {
+		die('Something went wrong!');
+	}
     return $app->redirect('/todo');
 });
 
@@ -125,3 +136,18 @@ $app->match('/editstatus/{id}/{status}', function ($id, $status) use ($app) {
     return $app->redirect('/todo');
 })
 ->value('id', null);
+
+
+$app->match('/todo/{id}/json', function ($id) use ($app) {
+
+	$user = login_check($app);
+	$user_id = "${user['id']}";
+	$objGolb = new Gmodel($app, $user_id);
+	$todo = $objGolb->get_todos_by_userid($id);
+	if(empty($todo))
+	{
+		die("You are not permitted to view others todo!");
+	} else {
+		return $app->json($todo);
+	}
+});

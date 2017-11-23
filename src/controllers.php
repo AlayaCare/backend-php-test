@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Module\Generalmodel\Gmodel;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -42,9 +43,7 @@ $app->get('/logout', function () use ($app) {
 
 
 $app->get('/todo/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
+    $user = login_check($app);
 
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
@@ -101,3 +100,28 @@ function login_check($app)
 		return $user;
 	}	
 }
+
+$app->match('/editstatus/{id}/{status}', function ($id, $status) use ($app) {
+	$user = login_check($app);
+
+	if ($id and is_numeric($id)){
+		//update flage
+		$user_id = "${user['id']}";
+		$objGolb = new Gmodel($app, $user_id);
+		if($status == "Incomplete") {
+			$edit_status = "Complete";
+		} 
+		if( $status === "Complete") {
+			$edit_status = "Incomplete";
+		}
+		
+		$returnFlag = $objGolb->update_todo_status($id,$edit_status);
+		if(!empty($returnFlag)) {
+			$app['session']->getFlashBag()->add('success_message', "Status update successfully");
+		} else {
+			die('Something went wrong!');
+		}
+	}
+    return $app->redirect('/todo');
+})
+->value('id', null);

@@ -1,0 +1,1 @@
+ALTER TABLE `todos` ADD `status` ENUM('Complete','Incomplete') NOT NULL DEFAULT 'Incomplete' AFTER `description`;

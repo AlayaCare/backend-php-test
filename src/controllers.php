@@ -3,6 +3,7 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Module\Generalmodel\Gmodel;
+use Module\Generalmodel\Usermodel;
 use Custom\Pagination;
 use Custom\MyConstant;
 
@@ -25,9 +26,8 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-
+		$userObj = new Usermodel($app);
+		$user = $userObj->select_user($username, $password);
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
@@ -81,9 +81,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 			throw new Exception($error);
 		} 
 		else {
-			$sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-			$app['db']->executeUpdate($sql);
-			$app['session']->getFlashBag()->add('success_message', "Todo is added successfully");
+			$user_id = "${user['id']}";
+			$objGolb = new Gmodel($app, $user_id);
+			$successFlag = $objGolb->insert_todo($description);
+			if(!empty($successFlag)) 
+				$app['session']->getFlashBag()->add('success_message', "Todo is added successfully");
+			else
+				die("Something gone Wrong!");
 		}
 	} catch (Exception $e) {
 		$app['session']->getFlashBag()->add('description_blank', $e->getMessage());
@@ -97,8 +101,8 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 	$user = login_check($app);
 	$user_id = "${user['id']}";
 	
-    $sql = "DELETE FROM todos WHERE id = '$id' and user_id = '$user_id'";
-    $returnFlag = $app['db']->executeUpdate($sql);
+	$objGolb = new Gmodel($app, $user_id);
+	$returnFlag = $objGolb->delete_todo_by_id($id);
 	if(!empty($returnFlag)) {
 		$app['session']->getFlashBag()->add('success_message', "Todo is deleted successfully");
 	} else {

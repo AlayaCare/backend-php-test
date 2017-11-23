@@ -54,7 +54,7 @@ class Gmodel
 	
 	public function update_todo_status($id,$status)
 	{
-		echo $sql = "UPDATE `". static::$table ."` SET `status` = '".$status."' WHERE `id` = ".$id." and user_id = '".$this->user_id."'";
+		$sql = "UPDATE `". static::$table ."` SET `status` = '".$status."' WHERE `id` = ".$id." and user_id = '".$this->user_id."'";
 		$returnFlag = $this->app['db']->executeUpdate($sql);
 		return $returnFlag;
 	}

@@ -49,5 +49,9 @@
 			</td>
 		</tr>
     </table>
+	
+		{% for pagination in page_link %}
+			{{pagination.link|raw}}
+		{% endfor %}
 </div>
 {% endblock %}

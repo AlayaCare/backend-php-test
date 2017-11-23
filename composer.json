@@ -25,9 +25,11 @@
         "deralex/yaml-config-service-provider": "1.0.x-dev"
     },
     "autoload": {
+		"files": ["customlibrary/MyConstant.php"],
         "psr-0": { "": "src/" },
 		"psr-4": {
-			"Module\\Generalmodel\\":"module/generalmodel/"
+			"Module\\Generalmodel\\":"module/generalmodel/",
+			"Custom\\":"customlibrary/"
 			}
     },
     "extra": {

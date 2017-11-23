@@ -26,6 +26,12 @@ class Gmodel
         return $todos = $this->app['db']->fetchAssoc($sql);
 	}
 	
+	function get_todos_by_userid_new()
+	{
+        $sql = "SELECT * FROM ". static::$table ." WHERE user_id = '".$this->user_id."'";
+        return $todos = $this->app['db']->fetchAll($sql);
+	}
+	
 	function get_todos_by_userid_withlimit($offset, $rowsperpage)
 	{
        $sql = "SELECT * FROM ". static::$table ." WHERE user_id = '".$this->user_id."' LIMIT $offset, $rowsperpage";

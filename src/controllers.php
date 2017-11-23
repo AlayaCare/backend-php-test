@@ -3,6 +3,8 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Module\Generalmodel\Gmodel;
+use Custom\Pagination;
+use Custom\MyConstant;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -42,7 +44,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     $user = login_check($app);
 
     if ($id){
@@ -53,12 +55,14 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
+		$user_id = "${user['id']}";
+		$currentpage = !empty($request->query->get('currentpage')) ? (int)$request->query->get('currentpage') : 1;
+		$retunPagination = custom_pagination($currentpage, $user_id, $app);
+		$returnPagination = json_decode($retunPagination);
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'todos' => $returnPagination->todo, 'page_link' => $returnPagination->pagination
         ]);
+
     }
 })
 ->value('id', null);
@@ -151,3 +155,75 @@ $app->match('/todo/{id}/json', function ($id) use ($app) {
 		return $app->json($todo);
 	}
 });
+
+function custom_pagination($currentpage, $user_id, $app)
+{
+		$objGolb = new Gmodel($app, $user_id);
+		$todos = $objGolb->get_todos_by_userid_new();
+		$countvalue = count($todos);
+		$rowsperpage = 2;
+		$range = 3;
+		$obj_pagination = new Pagination($rowsperpage, $currentpage , $countvalue); //current page 1
+		$totalpages = $obj_pagination->get_total_page();
+		
+		if ($currentpage > $totalpages) {
+			$currentpage = $totalpages;
+		}
+		if ($currentpage < 1) {
+		    $currentpage = 1;
+		} 
+		
+		$offset = $obj_pagination->offset();
+		$objGolb = new Gmodel($app, $user_id);
+		$todos = $objGolb->get_todos_by_userid_withlimit($offset, $rowsperpage);
+		$first_prev = first_and_pre($currentpage);
+		$displayPageNumber = pagenumber($currentpage, $range, $totalpages);
+		$displayNextLast = next_and_last($currentpage, $totalpages);
+		
+		$paginationLink = $first_prev.$displayPageNumber.$displayNextLast;
+		
+		$pagination = array(array('link'=>$paginationLink));
+		return json_encode(array('todo'=>$todos,'pagination'=>$pagination));
+		
+}
+
+function first_and_pre($currentpage)
+{
+	$returnFPValue = "
+	<nav aria-label=\"Page navigation example\">
+		  <ul class=\"pagination\">";
+	if ($currentpage > 1) {
+	   $returnFPValue .= "<li class=\"page-item\"> <a class=\"page-link\" href='".BASE_URL."/todo?currentpage=1'>First</a> ";
+	   $prevpage = $currentpage - 1;
+	   $returnFPValue .= "<li class=\"page-item\"> <a class=\"page-link\" href='".BASE_URL."/todo?currentpage=$prevpage'>Prev</a> ";
+	} 
+	return $returnFPValue;
+}
+function pagenumber($currentpage, $range, $totalpages) 
+{ 
+	$returnPageNumberValue = "";
+	for ($x = ($currentpage - $range); $x < (($currentpage + $range)  + 1); $x++) {
+	   if (($x > 0) && ($x <= $totalpages)) {
+		  if ($x == $currentpage) {
+			 $returnPageNumberValue .=  "<li class=\"page-item active\"> <a class=\"active\" href='#'>$x </a> ";
+		  } else {
+			 $returnPageNumberValue .= "<li class=\"page-item\"> <a class=\"page-link\" href='".BASE_URL."/todo?currentpage=$x'>$x</a> ";
+		  } 
+	   }  
+	}
+	return $returnPageNumberValue;	
+}
+
+function next_and_last($currentpage, $totalpages)
+{   
+	$returnNextLast = "";
+	if ($currentpage != $totalpages) {
+	   $nextpage = $currentpage + 1;
+	   $returnNextLast .= "<li class=\"page-item\"> <a class=\"page-link\" href='".BASE_URL."/todo?currentpage=$nextpage'>Next</a> ";
+	   $returnNextLast .= "<li class=\"page-item\"> <a class=\"page-link\" href='".BASE_URL."/todo?currentpage=$totalpages'>Last</a> ";
+	} 
+	$returnNextLast .= "</ul>
+					</nav>";
+	return $returnNextLast;
+}
+

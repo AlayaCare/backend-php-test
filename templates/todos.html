@@ -31,6 +31,15 @@
                 </td>
             </form>
         </tr>
+		<tr>
+			<td colspan="3">
+				{% for description_blank in app.session.getFlashBag.get('description_blank') %}
+					<div class="error-message">
+						<div class="alert alert-danger"><strong>{{ description_blank }}</strong></div>
+					</div>
+				{% endfor %} 
+			</td>
+		</tr>
     </table>
 </div>
 {% endblock %}

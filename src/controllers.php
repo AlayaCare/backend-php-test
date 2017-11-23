@@ -66,17 +66,22 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
-
-    $user_id = $user['id'];
-    $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
-    return $app->redirect('/todo');
+	$user = login_check($app);
+	
+	try {
+		
+		$user_id = $user['id'];
+		$description = $request->get('description');
+		
+		if(empty($description)) {
+			$error = "Description field is required.";
+			throw new Exception($error);
+		} 
+	} catch (Exception $e) {
+		$app['session']->getFlashBag()->add('description_blank', $e->getMessage());
+	}
+	
+	return $app->redirect('/todo');
 });
 
 
@@ -87,3 +92,12 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+function login_check($app)
+{
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    } else {
+		return $user;
+	}	
+}

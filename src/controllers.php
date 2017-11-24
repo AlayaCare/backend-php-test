@@ -51,6 +51,9 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
 		$user_id = "${user['id']}";
 		$objGolb = new Gmodel($app, $user_id);
 		$todo = $objGolb->get_todos_by_userid($id);
+		if(empty($todo)) {
+				return $app->redirect('/todo');
+		}
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
@@ -73,7 +76,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 	
 	try {
 		$user_id = $user['id'];
-		$description = $request->get('description');
+		$description = trim($request->get('description'));
 		
 		if(empty($description)) {
 			$error = "Description field is required.";

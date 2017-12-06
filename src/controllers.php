@@ -12,12 +12,12 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
-        'readme' => file_get_contents('README.md'),
+        'readme' => file_get_contents('../README.md'),
     ]);
 });
 
-
 $app->match('/login', function (Request $request) use ($app) {
+    
     $username = $request->get('username');
     $password = $request->get('password');
 
@@ -73,17 +73,76 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    /**************************
+     *
+     * TASK 1
+     *
+     **************************/
+    if (isset($description) && !empty($description)) {
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+    } else {
+        /**************************
+         *
+         * TASK 4.a
+         *
+         **************************/
+        $app['session']->getFlashBag()->add('message', 'Cannot add empty description.');
+    }
 
     return $app->redirect('/todo');
 });
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
+
+    /**************************
+     *
+     * TASK 4.b
+     *
+     **************************/
+    $app['session']->getFlashBag()->add('message', 'Todo item has been deleted.');
+
     return $app->redirect('/todo');
+});
+
+/**************************
+ *
+ * TASK 2 + migration
+ *
+ **************************/
+$app->match('/todo/update/{id}', function ($id, Request $request) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $completed = ($request->get('completed') != null) ?: 0;
+
+    $sql = "UPDATE todos SET completed = '$completed' WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
+/**************************
+ *
+ * TASK 3
+ *
+ **************************/
+$app->match('/todo/{id}/json', function ($id, Request $request) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '${user['id']}'";
+    $todo = $app['db']->fetchAssoc($sql);
+
+    return $app->json($todo, Response::HTTP_OK)->setEncodingOptions(JSON_NUMERIC_CHECK);
 });

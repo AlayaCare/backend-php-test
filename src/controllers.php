@@ -41,11 +41,10 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
-
     $user_id = $user['id'];
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
@@ -55,11 +54,21 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '$user_id'";
+        $nbElementByPage = 5;
+        $sqlCount = "SELECT COUNT(id) as elementTotal FROM todos WHERE user_id = '$user_id'";
+        $elementTotal = $app['db']->fetchAssoc($sqlCount);
+        $elementTotal = $elementTotal['elementTotal'];
+
+        $nbPageTotal = floor($elementTotal/$nbElementByPage);
+        $currentPage = is_numeric($request->query->get('page')) ? intval($request->query->get('page')) : 0;
+        $offset = $currentPage*$nbElementByPage;
+        $sql = "SELECT * FROM todos WHERE user_id = '$user_id' LIMIT $offset, $nbElementByPage";
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'nbPageTotal' => $nbPageTotal,
+            'currentPage' => $currentPage
         ]);
     }
 })

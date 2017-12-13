@@ -46,15 +46,16 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
+    $user_id = $user['id'];
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
         $todo = $app['db']->fetchAssoc($sql);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $sql = "SELECT * FROM todos WHERE user_id = '$user_id'";
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
@@ -63,6 +64,26 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 })
 ->value('id', null);
+
+$app->match('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        $error = ["code" => 403, "message" => "cannot access"];
+        return $app->json($error);
+    }
+
+
+    $user_id = $user['id'];
+    if ($id) {
+        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
+        $todo = $app['db']->fetchAssoc($sql);
+        if ($todo) {
+            return $app->json($todo);
+        }
+    }
+
+    $error = ["code" => 404, "message" => "not found"];
+    return $app->json($error);
+});
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {

@@ -32,6 +32,16 @@
     </nav>
 
     <div class="container">
+
+        <div class="row">
+          {% for alert in app.session.flashbag.get('message') %}
+            <div class="alert alert-success"><strong>{{ alert }}</strong></div>
+          {% endfor %}
+          {% for alert in app.session.flashbag.get('error-message') %}
+            <div class="alert alert-danger"><strong>{{ alert }}</strong></div>
+          {% endfor %}
+        </div>
+
       <div class="row">
         {% block content %}{% endblock %}
       </div>

@@ -96,6 +96,9 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if(!empty($description)) {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add('message', 'Your new todo as been correctly added');
+    }else{
+        $app['session']->getFlashBag()->add('error-message', 'Your new todo cannot be added. Please add a description');
     }
     return $app->redirect('/todo');
 });
@@ -109,7 +112,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $user_id = $user['id'];
     $sql = "DELETE FROM todos WHERE id = '$id' AND user_id = '$user_id'";
     $app['db']->executeUpdate($sql);
-
+    $app['session']->getFlashBag()->add('message', 'Your todo as been correctly removed');
     return $app->redirect('/todo');
 });
 

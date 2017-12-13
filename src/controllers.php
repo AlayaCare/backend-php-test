@@ -2,6 +2,8 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Dal\TodoRepo;
+use Dal\UserRepo;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -22,8 +24,8 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $dal = new UserRepo($app['db']);
+        $user = $dal->login($username, $password);
 
         if ($user){
             $app['session']->set('user', $user);
@@ -45,25 +47,22 @@ $app->get('/todo/{id}', function (Request $request, $id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
+    $dal = new TodoRepo($app['db']);
     $user_id = $user['id'];
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $dal->findById($user_id, $id);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
         $nbElementByPage = 5;
-        $sqlCount = "SELECT COUNT(id) as elementTotal FROM todos WHERE user_id = '$user_id'";
-        $elementTotal = $app['db']->fetchAssoc($sqlCount);
-        $elementTotal = $elementTotal['elementTotal'];
+        $elementTotal = $dal->countAll($user_id);
 
         $nbPageTotal = floor($elementTotal/$nbElementByPage);
         $currentPage = is_numeric($request->query->get('page')) ? intval($request->query->get('page')) : 0;
         $offset = $currentPage*$nbElementByPage;
-        $sql = "SELECT * FROM todos WHERE user_id = '$user_id' LIMIT $offset, $nbElementByPage";
-        $todos = $app['db']->fetchAll($sql);
+        $todos = $dal->findLimited($user_id, $nbElementByPage, $offset);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -80,11 +79,11 @@ $app->match('/todo/{id}/json', function ($id) use ($app) {
         return $app->json($error);
     }
 
-
+    $dal = new TodoRepo($app['db']);
     $user_id = $user['id'];
     if ($id) {
-        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $dal->findById($user_id, $id);
+
         if ($todo) {
             return $app->json($todo);
         }
@@ -100,11 +99,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
+    $dal = new TodoRepo($app['db']);
     $user_id = $user['id'];
     $description = $request->get('description');
     if(!empty($description)) {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $dal->add($user_id, $description);
         $app['session']->getFlashBag()->add('message', 'Your new todo as been correctly added');
     }else{
         $app['session']->getFlashBag()->add('error-message', 'Your new todo cannot be added. Please add a description');
@@ -118,9 +117,9 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
+    $dal = new TodoRepo($app['db']);
     $user_id = $user['id'];
-    $sql = "DELETE FROM todos WHERE id = '$id' AND user_id = '$user_id'";
-    $app['db']->executeUpdate($sql);
+    $dal->delete($user_id, $id);
     $app['session']->getFlashBag()->add('message', 'Your todo as been correctly removed');
     return $app->redirect('/todo');
 });
@@ -130,11 +129,9 @@ $app->match('/todo/complete/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
+    $dal = new TodoRepo($app['db']);
     $user_id = $user['id'];
-    $datetime = new DateTime();
-    $datetimeStr =$datetime->format('Y\-m\-d\ h:i:s');
-    $sql = "UPDATE todos SET status = b'1', statusDate = '$datetimeStr' WHERE id = '$id' AND user_id = '$user_id'";
-    $app['db']->executeUpdate($sql);
+    $dal->updateStatus($user_id, $id, 1);
 
     return $app->redirect('/todo');
 });

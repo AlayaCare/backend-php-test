@@ -81,8 +81,26 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
+    $user_id = $user['id'];
+    $sql = "DELETE FROM todos WHERE id = '$id' AND user_id = '$user_id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $user_id = $user['id'];
+    $datetime = new DateTime();
+    $datetimeStr =$datetime->format('Y\-m\-d\ h:i:s');
+    $sql = "UPDATE todos SET status = b'1', statusDate = '$datetimeStr' WHERE id = '$id' AND user_id = '$user_id'";
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');

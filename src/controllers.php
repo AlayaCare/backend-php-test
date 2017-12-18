@@ -22,8 +22,12 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $db = new DB($app);
+        $user = $db->table('users')
+                    ->select()
+                    ->where(['username', '=', "'{$username}'"])
+                    ->where(['password', '=', "'{$password}'"])
+                    ->find();
 
         if ($user){
             $app['session']->set('user', $user);
@@ -41,24 +45,39 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
+    $db = new DB($app);
+
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $db->table('todos')->findById($id);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+        $params = $request->query->all();
+        $page = (isset($params['page']) && $params['page'] > 1) ? $params['page'] : 1;
+        //$max = (isset($params['max']) && $params['max'] > 1) ? $params['max'] : 1; // default
+        $max = 1;
+
+        $todos = $db->table('todos')
+                    ->select()
+                    ->where(['user_id', '=', $user['id']]);
+
+        $pages_total = ceil(count($todos->findAll()) / $max);
+        $offset = ($page - 1) * $max;
+
+        $todos = $todos->paginate($offset, $max)->findAll();
+
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'pages' => $pages_total,
+            'page'  => $page
         ]);
     }
 })
@@ -79,8 +98,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
      *
      **************************/
     if (isset($description) && !empty($description)) {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $db = new DB($app);
+        $db->table('todos')
+            ->insert(['user_id' => $user_id, 'description' => "'{$description}'"])
+            ->execute();
+
     } else {
         /**************************
          *
@@ -99,8 +121,11 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $db = new DB($app);
+    $db->table('todos')
+        ->delete()
+        ->where(['id', '=', $id])
+        ->execute();
 
 
     /**************************
@@ -112,6 +137,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
 
 /**************************
  *
@@ -125,11 +151,18 @@ $app->match('/todo/update/{id}', function ($id, Request $request) use ($app) {
 
     $completed = ($request->get('completed') != null) ?: 0;
 
+    $db = new DB($app);
+    $db->table('todos')
+        ->update(['completed', $completed])
+        ->where(['id', '=', $id])
+        ->execute();
+
     $sql = "UPDATE todos SET completed = '$completed' WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');
 });
+
 
 /**************************
  *
@@ -141,8 +174,12 @@ $app->match('/todo/{id}/json', function ($id, Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '${user['id']}'";
-    $todo = $app['db']->fetchAssoc($sql);
+    $db = new DB($app);
+    $todo = $db->table('todos')
+                ->select()
+                ->where(['id', '=', $id])
+                ->where(['user_id', '=', $user['id']])
+                ->find();
 
     return $app->json($todo, Response::HTTP_OK)->setEncodingOptions(JSON_NUMERIC_CHECK);
 });

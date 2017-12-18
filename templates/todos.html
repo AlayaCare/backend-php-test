@@ -44,5 +44,20 @@
             </form>
         </tr>
     </table>
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="{{ app.request.baseurl }}/todo?page={{ page - 1 }}">&laquo;</a>
+        {% endif %}
+        {% for p in 1..pages %}
+            {% if p == page %}
+                <a href="{{ app.request.baseurl }}/todo?page={{ p }}" class="selected">{{ p }}</a>
+            {% else %}
+                <a href="{{ app.request.baseurl }}/todo?page={{ p }}">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page < pages %}
+            <a href="{{ app.request.baseurl }}/todo?page={{ page + 1 }}">&raquo;</a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

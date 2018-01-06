@@ -44,7 +44,7 @@ class App extends Silex\Application
         $this->register(new ConfigServiceProvider() , array(
             'config.dir' => __DIR__ . '/../config/',
             // 'config.env' => 'prod',
-        ]);
+        ));
     }
 
     /**

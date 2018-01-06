@@ -1,5 +1,7 @@
 <?php
 
+// $finally_we_can_delete_this_file === $so_much_satisfaction!
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

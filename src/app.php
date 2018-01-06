@@ -9,7 +9,8 @@ use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use Silex\Provider\AssetServiceProvider;
 use Lokhman\Silex\Provider\ConfigServiceProvider;
-
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\EntityManager;
 
 class App extends Silex\Application
 
@@ -26,7 +27,9 @@ class App extends Silex\Application
 
         $this->registerConfigServiceProvider();
         $this->registerDoctrineServiceProvider();
+        $this->registerDoctrineORMServiceProvider();
         $this->registerAssetServiceProvider();
+        $this->registerTwigServiceProvider();
         $this->registerOtherServiceProviders();
     }
 
@@ -59,6 +62,23 @@ class App extends Silex\Application
     }
 
     /**
+     * Register Doctrine ORM service provider
+     *
+     */
+    private function registerDoctrineORMServiceProvider()
+    {
+
+        $this['entity_manager'] = function () {
+        $ORMdbParams = $this['config']['database'];
+        $ORMconfig = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . 'Entity/'), true, null, null, false);
+
+        return EntityManager::create($ORMdbParams, $ORMconfig);
+
+        };
+
+    }
+
+    /**
      * Register asset service provider
      *
      */
@@ -73,6 +93,21 @@ class App extends Silex\Application
     }
 
     /**
+     * Register twig service provider
+     *
+     */
+    private function registerTwigServiceProvider()
+    {
+
+        $this->register(new TwigServiceProvider());
+        $this['twig'] = $this->extend('twig', function($twig, $app) {
+            $twig->addGlobal('user', $this['session']->get('user'));
+
+            return $twig;
+        });
+    }
+
+    /**
      * Register other service providers
      *
      * Well since we're not passing any parameters with these, let's just register them in one go for now
@@ -83,7 +118,6 @@ class App extends Silex\Application
         $this->register(new ServiceControllerServiceProvider());
         $this->register(new SessionServiceProvider());
         $this->register(new ValidatorServiceProvider());
-        $this->register(new TwigServiceProvider());
         $this->register(new HttpFragmentServiceProvider());
 
     }

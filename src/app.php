@@ -3,22 +3,20 @@
 use Silex\Application;
 use Silex\Provider\SessionServiceProvider;
 use Silex\Provider\TwigServiceProvider;
-use Silex\Provider\UrlGeneratorServiceProvider;
 use Silex\Provider\ValidatorServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
-use DerAlex\Silex\YamlConfigServiceProvider;
+use Lokhman\Silex\Provider\ConfigServiceProvider;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
-$app->register(new UrlGeneratorServiceProvider());
 $app->register(new ValidatorServiceProvider());
 $app->register(new ServiceControllerServiceProvider());
 $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
-$app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
+$app->register(new ConfigServiceProvider(),array('config.dir' => __DIR__ . '/../config/'));
 $app->register(new DoctrineServiceProvider, array(
     'db.options' => array(
         'driver'    => 'pdo_mysql',

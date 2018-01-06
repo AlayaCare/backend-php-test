@@ -22,7 +22,7 @@ Credentials:
 ![Todos](/web/img/todos.png?raw=true "Todos")
 
 ### Requirements
-* php 5.3+
+* php 5.5.9+
 * mysql
 * A github account
 
@@ -30,12 +30,12 @@ Credentials:
 **/!\ You need to fork this repository. See [How to submit your work?](#how-to-submit-your-work)**
 ```sh
 php composer.phar install
-cp config/config.yml.dist config/config.yml
+cp config/local.json.dist config/local.json
 mysql -u root <database> < resources/database.sql
 mysql -u root <database> < resources/fixtures.sql
 php -S localhost:1337 -t web/ web/index.php
 ```
-You can change the database connection from the file `config/config.yml`.
+You can change the database connection from the file `config/local.json`.
 
 ### Instructions
 

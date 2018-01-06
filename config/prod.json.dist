@@ -1,0 +1,15 @@
+{
+    "env": "%__ENV__%",
+    "debug": false,
+    "database": {
+		"driver": "pdo_mysql",
+		"host": "localhost",
+		"dbname": "ac_todos",
+		"user": "myuser",
+		"password": "",
+		"charset": "utf8"
+    },
+    "any": {
+        "other": "constant"
+    }
+}

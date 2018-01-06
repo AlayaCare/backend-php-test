@@ -12,7 +12,7 @@ $app['twig'] = $app->extend('twig', function($twig, $app) {
 
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
-        'readme' => file_get_contents('README.md'),
+        'readme' => file_get_contents('../README.md'),
     ]);
 });
 
@@ -47,6 +47,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
+        //Bug: No check for todo user ownership
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
 
@@ -54,6 +55,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
+
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
         $todos = $app['db']->fetchAll($sql);
 
@@ -72,7 +74,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
+        //Bug: User input not sanitized
     $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
     $app['db']->executeUpdate($sql);
 
@@ -81,7 +83,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-
+        //Bug: a-) Anon user can delete via url b-)No check for todo user ownership
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 

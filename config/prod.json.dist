@@ -9,7 +9,18 @@
 		"password": "",
 		"charset": "utf8"
     },
-    "any": {
-        "other": "constant"
+    "assets":{
+        "version":"constant",
+        "version_format":"%s?version=%s",
+        "named_packages":{
+            "css":{
+                "version":"2.0",
+                "base_path":"/css"
+            },
+            "js":{
+                "version":"1.0",
+                "base_path":"/js"
+            }
+        }
     }
 }

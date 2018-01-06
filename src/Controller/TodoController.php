@@ -54,14 +54,14 @@ class TodoController
             }
             else {
 
-                // $this->app['session']->getFlashBag()->add('message', 'You are not autorized to view this todo!');
+                $this->app['session']->getFlashBag()->add('message', 'You are not autorized to view this todo!');
 
                 return $this->app->redirect('/todo');
             }
         }
         else {
 
-            // $this->app['session']->getFlashBag()->add('message', 'The specified todo does not exist!');
+            $this->app['session']->getFlashBag()->add('message', 'The specified todo does not exist!');
 
             return $this->app->redirect('/todo');
         }
@@ -80,7 +80,7 @@ class TodoController
         $errors = $this->app['validator']->validate($description, new Assert\NotBlank());
         if (count($errors) > 0) {
 
-            // $this->app['session']->getFlashBag()->add('message', 'The description cannot be blank.');
+            $this->app['session']->getFlashBag()->add('message', 'The description cannot be blank.');
 
         }
         else {
@@ -90,7 +90,7 @@ class TodoController
             $this->orm_em->persist($todo);
             $this->orm_em->flush();
 
-            // $this->app['session']->getFlashBag()->add('message', 'The todo has been added!');
+            $this->app['session']->getFlashBag()->add('message', 'The todo has been added!');
 
         }
 
@@ -130,18 +130,18 @@ class TodoController
                 $this->orm_em->remove($todo);
                 $this->orm_em->flush();
 
-                // $this->app['session']->getFlashBag()->add('message', 'The todo has been removed!');
+                $this->app['session']->getFlashBag()->add('message', 'The todo has been removed!');
 
             }
             else {
 
-                // $this->app['session']->getFlashBag()->add('message', 'You are not authorised to perform this action');
+                $this->app['session']->getFlashBag()->add('message', 'You are not authorised to perform this action');
 
             }
         }
         else {
 
-            // $this->app['session']->getFlashBag()->add('message', 'The specified todo does not exist!');
+            $this->app['session']->getFlashBag()->add('message', 'The specified todo does not exist!');
 
         }
 

@@ -2,6 +2,14 @@
 
 {% block content %}
 
+{% for alert in app.session.flashbag.get('message') %}
+<div class="error-message">
+    <div class="well text-center">
+    	<h4 class="text-warning">{{ alert }}</h4>
+    </div>
+</div>
+{% endfor %}
+
 <div class="col-md-4 col-md-offset-4">
 
     <h1>Todo List:</h1>

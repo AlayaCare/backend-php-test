@@ -3,6 +3,8 @@
 namespace Controller;
 
 use Silex\Application;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraints as Assert;
 use Entity\Todo;
@@ -47,14 +49,15 @@ class TodoController
         // removed login check redirect - to be implemented via firewall
 
         $id = $this->request->get('id');
-        if ($id) {
-            $todo = $this->orm_em->find('Entity\Todo', $id);
+        // bug squash: check if todo id exists and not if request id
+        $todo = $this->orm_em->find('Entity\Todo', $id);    
+        if ($todo) {
             if ($this->userid == $todo->getuser_id()) {
                 return $this->app['twig']->render('todo.html', ['todo' => $todo, ]);
             }
             else {
 
-                $this->app['session']->getFlashBag()->add('message', 'You are not autorized to view this todo!');
+                $this->app['session']->getFlashBag()->add('message', 'You are not authorized to view this todo!');
 
                 return $this->app->redirect('/todo');
             }
@@ -119,11 +122,10 @@ class TodoController
 
         $id = $this->request->get('id');
 
-        // add todo check - if todo id does not exist notify user
-
-        if ($id) {
-            $todo = $this->orm_em->find('Entity\Todo', $id);
-
+        // bug squash: check if todo id exists and not if request id
+        $todo = $this->orm_em->find('Entity\Todo', $id);    
+        if ($todo) {
+            
             // add a check - if todo belongs to this user
 
             if ($this->userid == $todo->getuser_id()) {
@@ -134,14 +136,15 @@ class TodoController
 
             }
             else {
-
-                $this->app['session']->getFlashBag()->add('message', 'You are not authorised to perform this action');
+			 
+                // Todo: NotFoundHttpException thrown when accessed via direct url
+                $this->app['session']->getFlashBag()->add('message', 'You are not authorized to perform this action');
 
             }
         }
         else {
-
-            $this->app['session']->getFlashBag()->add('message', 'The specified todo does not exist!');
+			// Todo: NotFoundHttpException thrown in this case - must rethink this 
+            //$this->app['session']->getFlashBag()->add('message', 'The specified todo does not exist!');
 
         }
 

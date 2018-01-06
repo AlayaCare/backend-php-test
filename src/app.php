@@ -41,8 +41,9 @@ class App extends Silex\Application
      */
     private function registerConfigServiceProvider()
     {
-        $this->register(new ConfigServiceProvider() , ['config.dir' => __DIR__ . '/../config/',
-        // 'config.env' => 'prod',
+        $this->register(new ConfigServiceProvider() , array(
+            'config.dir' => __DIR__ . '/../config/',
+            // 'config.env' => 'prod',
         ]);
     }
 
@@ -63,11 +64,11 @@ class App extends Silex\Application
      */
     private function registerAssetServiceProvider()
     {
-        $app = $this;
-        $app->register(new AssetServiceProvider() , array(
-            'assets.version' => $app['config']['assets']['version'],
-            'assets.version_format' => $app['config']['assets']['version_format'],
-            'assets.named_packages' => $app['config']['assets']['named_packages'],
+
+        $this->register(new AssetServiceProvider() , array(
+            'assets.version' => $this['config']['assets']['version'],
+            'assets.version_format' => $this['config']['assets']['version_format'],
+            'assets.named_packages' => $this['config']['assets']['named_packages'],
         ));
     }
 
@@ -78,12 +79,12 @@ class App extends Silex\Application
      */
     private function registerOtherServiceProviders()
     {
-        $app = $this;
-        $app->register(new ServiceControllerServiceProvider());
-        $app->register(new SessionServiceProvider());
-        $app->register(new ValidatorServiceProvider());
-        $app->register(new TwigServiceProvider());
-        $app->register(new HttpFragmentServiceProvider());
+
+        $this->register(new ServiceControllerServiceProvider());
+        $this->register(new SessionServiceProvider());
+        $this->register(new ValidatorServiceProvider());
+        $this->register(new TwigServiceProvider());
+        $this->register(new HttpFragmentServiceProvider());
 
     }
 }

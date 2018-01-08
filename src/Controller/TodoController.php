@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraints as Assert;
 use Entity\Todo;
 
+
 class TodoController
 
 {
@@ -20,8 +21,8 @@ class TodoController
     public function __construct(Application $app, RequestStack $requestStack)
     {
         $this->orm_em = $app['entity_manager'];
-        $user = $app['session']->get('user');
-        $this->userid = $user['id'];
+        $userid = $app['user.provider']->getCurrentUserId();
+        $this->userid = $userid;
         $this->app = $app;
         $this->request = $requestStack->getCurrentRequest();
     }
@@ -32,8 +33,7 @@ class TodoController
      */
     public function indexAction()
     {
-
-        // removed login check redirect - to be implemented via firewall
+        // The redirect to login for unregistered users accessing restricted content is now implemented via firewall
 
         $todos = $this->orm_em->getRepository('Entity\Todo')->getUserTodos($this->userid);
         return $this->app['twig']->render('todos.html', ['todos' => $todos, ]);
@@ -45,8 +45,6 @@ class TodoController
      */
     public function viewAction()
     {
-
-        // removed login check redirect - to be implemented via firewall
 
         $id = $this->request->get('id');
         // bug squash: check if todo id exists and not if request id
@@ -76,8 +74,6 @@ class TodoController
      */
     public function addAction()
     {
-
-        // removed login check redirect - to be implemented via firewall
 
         $description = $this->request->get('description');
         $errors = $this->app['validator']->validate($description, new Assert\NotBlank());
@@ -117,8 +113,6 @@ class TodoController
      */
     public function deleteAction()
     {
-
-        // removed login check redirect - to be implemented via firewall
 
         $id = $this->request->get('id');
 

@@ -21,10 +21,8 @@
         "symfony/translation": "~2.3",
         "symfony/twig-bridge": "~2.3",
         "symfony/validator": "~2.3",
-        "doctrine/dbal": "~2.2",
-        "lokhman/silex-config": "~2.0",
-		"symfony/asset": "~2.8|^3.0",
-		"doctrine/orm": "~2.4 <=2.5.14"
+        "symfony/asset": "~2.8|^3.0",
+        "doctrine/orm": "~2.4 <=2.5.14"	
     },
     "autoload": {
         "psr-0": { "": "src/" }

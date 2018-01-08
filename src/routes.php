@@ -8,7 +8,7 @@ $app->post('/todo/delete/{id}', 'Controller.TodoController:deleteAction');
 $app->get('/todo', 'Controller.TodoController:indexAction');
 
 $app->get('/todo/{id}', 'Controller.TodoController:viewAction');
-$app->get('/todo/{id}/json', 'Controller.TodoController:viewActionJSON');
+//$app->get('/todo/{id}/json', 'Controller.TodoController:viewActionJSON');
 
 // Register user routes
 $app->match('/login', 'Controller.UserController:loginAction');
@@ -16,7 +16,7 @@ $app->match('/logout', 'Controller.UserController:logoutAction');
 
 
 $app['Controller.UserController'] = function ($app) {
-    return new Controller\UserController($app, $app['request_stack']);
+    return new Controller\UserController($app);
 };
 $app['Controller.TodoController'] = function ($app) {
     return new Controller\TodoController($app, $app['request_stack']);

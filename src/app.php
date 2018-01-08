@@ -1,16 +1,26 @@
 <?php
 
 use Silex\Application;
+use Entity\UserEntity;
 use Silex\Provider\SessionServiceProvider;
-use Silex\Provider\TwigServiceProvider;
-use Silex\Provider\ValidatorServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
-use Silex\Provider\HttpFragmentServiceProvider;
+
 use Silex\Provider\DoctrineServiceProvider;
-use Silex\Provider\AssetServiceProvider;
-use Lokhman\Silex\Provider\ConfigServiceProvider;
 use Doctrine\ORM\Tools\Setup;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManager; 
+
+use Silex\Provider\SecurityServiceProvider;
+use Silex\Provider\CsrfServiceProvider;
+//use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+
+use Silex\Provider\ValidatorServiceProvider;
+use Silex\Provider\FormServiceProvider;
+use Silex\Provider\TranslationServiceProvider;
+use Silex\Provider\HttpFragmentServiceProvider;
+use Silex\Provider\AssetServiceProvider;
+use Silex\Provider\TwigServiceProvider;
+use Lokhman\Silex\Provider\ConfigServiceProvider;
+
 
 class App extends Silex\Application
 
@@ -25,102 +35,83 @@ class App extends Silex\Application
     {
         parent::__construct();
 
-        $this->registerConfigServiceProvider();
-        $this->registerDoctrineServiceProvider();
-        $this->registerDoctrineORMServiceProvider();
-        $this->registerAssetServiceProvider();
-        $this->registerTwigServiceProvider();
-        $this->registerOtherServiceProviders();
+        $this->registerDoctrineServiceProviders();
+        $this->registerSecurityProviders();
+        $this->registerViewRelatedServiceProviders();
+        $this->registerControllerServiceProviders();
     }
 
     /**
-     * Register Config service provider
+     * Register Doctrine and Doctrine ORM service providers
      *
-     *  If a web server deployment environment 'SILEX_ENV' is not setup, it will default to local:
-     *  $app['config.env.default'] = 'local';
-     *  $app['config.varname.default'] = 'SILEX_ENV';
-     *  You can override both server and default values by uncommenting/setting the 'config.env' below
-     *  See https://github.com/lokhman/silex-config under Global environment variable and public function register(Container $app))
      */
-    private function registerConfigServiceProvider()
+    private function registerDoctrineServiceProviders()
     {
-        $this->register(new ConfigServiceProvider() , array(
-            'config.dir' => __DIR__ . '/../config/',
-            // 'config.env' => 'prod',
-        ));
-    }
 
-    /**
-     * Register Doctrine service provider
-     *
-     */
-    private function registerDoctrineServiceProvider()
-    {
-        $this->register(new DoctrineServiceProvider, array(
-            'db.options' => $this['config']['database'],
-        ));
-    }
-
-    /**
-     * Register Doctrine ORM service provider
-     *
-     */
-    private function registerDoctrineORMServiceProvider()
-    {
+        $this->register(new DoctrineServiceProvider);
 
         $this['entity_manager'] = function () {
-        $ORMdbParams = $this['config']['database'];
-        $ORMconfig = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . 'Entity/'), true, null, null, false);
+           $ORMdbParams = $this['db'];
+           $ORMconfig = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . 'Entity/'), true, null, null, false);
 
-        return EntityManager::create($ORMdbParams, $ORMconfig);
+           return EntityManager::create($ORMdbParams, $ORMconfig);
 
         };
 
     }
 
     /**
-     * Register asset service provider
+     * Register User and Firewall providers
      *
      */
-    private function registerAssetServiceProvider()
+    private function registerSecurityProviders()
     {
 
-        $this->register(new AssetServiceProvider() , array(
-            'assets.version' => $this['config']['assets']['version'],
-            'assets.version_format' => $this['config']['assets']['version_format'],
-            'assets.named_packages' => $this['config']['assets']['named_packages'],
-        ));
+        $this['user.provider'] = function ($app)
+        {
+            return new Repository\UserProvider($this['entity_manager']->getConnection() , $app);
+        };
+
+        $this->register(new SecurityServiceProvider());
+        $this->register(new CsrfServiceProvider());
+
     }
 
     /**
-     * Register twig service provider
+     * Register view related service providers
      *
      */
-    private function registerTwigServiceProvider()
+    private function registerViewRelatedServiceProviders()
     {
 
+        $this->register(new ValidatorServiceProvider());
+        $this->register(new FormServiceProvider());
+        $this->register(new TranslationServiceProvider());
+
+        $this->register(new HttpFragmentServiceProvider());
+        $this->register(new AssetServiceProvider());
         $this->register(new TwigServiceProvider());
         $this['twig'] = $this->extend('twig', function($twig, $app) {
-            $twig->addGlobal('user', $this['session']->get('user'));
+            $twig->addGlobal('user', $this['user']);
 
             return $twig;
         });
+
     }
 
     /**
-     * Register other service providers
+     * Register remaining service providers
      *
-     * Well since we're not passing any parameters with these, let's just register them in one go for now
      */
-    private function registerOtherServiceProviders()
+    private function registerControllerServiceProviders()
     {
 
         $this->register(new ServiceControllerServiceProvider());
         $this->register(new SessionServiceProvider());
-        $this->register(new ValidatorServiceProvider());
-        $this->register(new HttpFragmentServiceProvider());
+
 
     }
+
 }
 
 

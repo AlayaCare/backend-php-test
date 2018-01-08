@@ -5,12 +5,28 @@ namespace Entity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\ORM\Mapping as ORM;
 
+
 /**
  * @ORM\Entity
  * @ORM\Table(name="users")
  */
-class User implements UserProviderInterface
+class UserEntity implements UserInterface
 {
+
+
+    protected $db;
+
+
+    /**
+     * Class constructor
+     * 
+     * 
+     */
+	function __construct( $db )
+	{
+		$this->db = $db;
+	}
+
     /**
      * @ORM\Id @ORM\GeneratedValue @ORM\Column(type="integer")
      * 
@@ -37,9 +53,29 @@ class User implements UserProviderInterface
     {
         return $this->username;
     }
+    public function getUsername()
+    {
+        return $this->username;
+    }
 
     public function getPassword()
     {
         return $this->password;
     }
+
+    public function getRoles()
+    {
+        return array('ROLE_USER');
+    }
+
+    public function getSalt()
+    {
+
+    }
+
+    public function eraseCredentials()
+    {
+
+    }
+
 }

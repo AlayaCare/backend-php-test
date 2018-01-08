@@ -26,7 +26,7 @@ class Todo
      * @ORM\Column(type="integer")
      * 
      * Many Todos per One User
-     * @ORM\ManyToOne(targetEntity="Entity\User")
+     * @ORM\ManyToOne(targetEntity="Entity\UserEntity")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      * 
      */

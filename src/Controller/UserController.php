@@ -2,39 +2,97 @@
 
 namespace Controller;
 
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\ButtonType;
+use Symfony\Component\Validator\Constraints as Assert;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+
 
 class UserController
 {
 
-    public function loginAction(Request $request, Application $app)
+
+    /** @var \Silex\Application */
+    protected $app;
+
+
+    /**
+     * Class constructor
+     * @param Application $app
+     * 
+     */
+    public function __construct(Application $app)
+
     {
-
-		// Moved legacy controller code temporarily
-    	$username = $request->get('username');
-    	$password = $request->get('password');
-
-    	if ($username) {
-        	$sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        	$user = $app['db']->fetchAssoc($sql);
-
-        	if ($user){
-            	$app['session']->set('user', $user);
-            	return $app->redirect('/todo');
-        	}
-    	}
-    	return $app['twig']->render('login.html', array());
-
+        $this->app = $app;
     }
 
-    public function logoutAction(Request $request, Application $app)
+    /**
+     * Login action.
+     *
+     * @param \Silex\Application $app
+     * @return mixed
+     */
+    function loginAction(Request $request)
     {
 
-		// Moved legacy controller code temporarily
-    	$app['session']->set('user', null);
-    	return $app->redirect('/');
+        $form = $this->app['form.factory']->createNamedBuilder(null, FormType::class , array(
+
+            /*'_username' => '',
+            '_password' => '',
+            '_target_path' => '',
+            '_submit' => ''*/
+        ))->add('_username', TextType::class , array(
+
+            'label' => 'Username',
+            'attr' => array(
+                'name' => '_username',
+                'class' => 'form-control',
+                'placeholder' => 'myusername'
+            ) ,
+            'constraints' => array(
+                new Assert\NotBlank()
+            )
+        ))->add('_password', PasswordType::class , array(
+
+            'label' => 'Password',
+            'attr' => array(
+                'name' => '_password',
+                'class' => 'form-control',
+                'placeholder' => 'mysecret'
+            ) ,
+            'constraints' => array(
+                new Assert\NotBlank()
+            )
+        ))->add('_target_path', HiddenType::class , array(
+
+            'attr' => array(
+                'name' => '_target_path',
+                'value' => '/todo'
+            )
+        ))->add('_csrf_token', HiddenType::class , array(
+
+            'attr' => array(
+                'name' => '_csrf_token'
+            )
+            /*
+        ))->add('_submit', ButtonType::class , array(
+            'attr' => array(
+                'name' => '_submit',
+                'class' => 'btn btn-primary pull-right'
+            )*/
+        ))->getForm();
+        return $this->app['twig']->render('login.html', array(
+            'form' => $form->createView() ,
+            'error' => $this->app['security.last_error']($request) ,
+            'last_username' => $this->app['session']->get('_security.last_username') ,
+            'allowRememberMe' => isset($this->app['security.remember_me.response_listener']),
+        ));
     }
 
 }

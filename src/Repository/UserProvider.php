@@ -8,7 +8,7 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Doctrine\DBAL\Connection;
 use Silex\Application;
-use Entity\UserEntity;
+use Entity\User;
 
 /**
  * UserProvider Interface
@@ -43,7 +43,7 @@ class UserProvider implements UserProviderInterface
      */
     public function loadUserByUsername($username)
     {
-        $user = $this->app['entity_manager']->getRepository('Entity\UserEntity')
+        $user = $this->app['entity_manager']->getRepository('Entity\User')
             ->findOneBy(array('username' => $username));
         if (!$user) {
             throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $username));
@@ -64,7 +64,7 @@ class UserProvider implements UserProviderInterface
      */
     public function refreshUser(UserInterface $user)
     {
-        if (!$user instanceof UserEntity) {
+        if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
         return $this->loadUserByUsername($user->getUsername());
@@ -77,7 +77,7 @@ class UserProvider implements UserProviderInterface
      */
     public function supportsClass($class)
     {
-        return $class === 'Entity\UserEntity';
+        return $class === 'Entity\User';
     }
     // ----- End UserProviderInterface -----
 
@@ -99,7 +99,7 @@ class UserProvider implements UserProviderInterface
     /**
      * Get the User id for the currently logged in User, if any.
      *
-     * @return User id|null
+     * @return int|null
      */
     public function getCurrentUserId()
     {
@@ -116,5 +116,3 @@ class UserProvider implements UserProviderInterface
         return null;
     }
 }
-?>
-

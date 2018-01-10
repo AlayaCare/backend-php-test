@@ -7,6 +7,13 @@ use Symfony\Component\HttpFoundation\Request;
 
 class HomepageController
 {
+
+    /**
+     * Homepage view
+     * @param RequestStack $requestStack
+     * @param Application $app
+     * @return string Twig template
+     */
     public function indexAction(Request $request, Application $app)
     {
         $data = array(

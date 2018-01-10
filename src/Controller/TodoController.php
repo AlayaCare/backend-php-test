@@ -30,10 +30,10 @@ class TodoController
     /**
      * User todos index view
      *
+     * Not adding doc to the TodoController methods yet as some may soon change
      */
     public function indexAction()
     {
-        // The redirect to login for unregistered users accessing restricted content is now implemented via firewall
 
         $todos = $this->orm_em->getRepository('Entity\Todo')->getUserTodos($this->userid);
         return $this->app['twig']->render('todos.html', ['todos' => $todos, ]);

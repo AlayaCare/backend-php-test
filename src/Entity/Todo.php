@@ -37,26 +37,51 @@ class Todo
         $this->user_id = new ArrayCollection();
     }
 
+    /**
+     * Returns the todo id.
+     *
+     * @return int
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * Returns the todo description.
+     *
+     * @return string
+     */
     public function getDescription()
     {
         return $this->description;
     }
 
+    /**
+     * Sets the todo description.
+     *
+     * @param string
+     */
     public function setDescription($description)
     {
         $this->description = $description;
     }
 
+    /**
+     * Returns the todo user id.
+     *
+     * @return int
+     */
     public function getuser_id()
     {
         return $this->user_id;
     }
 
+    /**
+     * Sets the todo user id.
+     *
+     * @param int
+     */
     public function setuser_id($user_id)
     {
         $this->user_id = $user_id;

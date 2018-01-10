@@ -7,6 +7,12 @@ use Doctrine\ORM\EntityRepository;
 class TodoRepository extends EntityRepository
 {
 
+    /**
+     * Get the Todos of a user
+     *
+     * @param int $user_id 	Todo user id
+     * @return Todo[] 	collection of Todo
+     */
     public function getUserTodos($user_id)
     {
 

@@ -35,8 +35,8 @@ class UserController
     /**
      * Login action.
      *
-     * @param \Silex\Application $app
-     * @return mixed
+     * @param Request $request
+     * @return string Twig template
      */
     function loginAction(Request $request)
     {

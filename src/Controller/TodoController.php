@@ -8,23 +8,41 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraints as Assert;
 use Entity\Todo;
+use Entity\User;
+use Doctrine\ORM\EntityManager;
 
 
 class TodoController
 
 {
+
+    /** @var \Silex\Application */
+    private $app;
+
+    /** @var RequestStack */
+    private $requestStack;
+
+    /** @var \Doctrine\ORM\EntityManager */
+    private $orm_em;
+
+    /** @var \Entity\User */
+    private $user;
+
+
     /**
      * Class constructor
      * @param Application $app
      * @param RequestStack $requestStack
+     * @param EntityManager $orm_em
+     * @param User $user
      */
-    public function __construct(Application $app, RequestStack $requestStack)
+    public function __construct(Application $app, RequestStack $requestStack, EntityManager $orm_em, User $user)
     {
-        $this->orm_em = $app['entity_manager'];
-        $userid = $app['user.provider']->getCurrentUserId();
-        $this->userid = $userid;
         $this->app = $app;
         $this->request = $requestStack->getCurrentRequest();
+        $this->orm_em = $orm_em;
+        $this->userid = $user->getId();
+
     }
 
     /**

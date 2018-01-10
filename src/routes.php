@@ -19,5 +19,5 @@ $app['Controller.UserController'] = function ($app) {
     return new Controller\UserController($app);
 };
 $app['Controller.TodoController'] = function ($app) {
-    return new Controller\TodoController($app, $app['request_stack']);
+    return new Controller\TodoController($app, $app['request_stack'], $app['entity_manager'], $app['user']);
 };

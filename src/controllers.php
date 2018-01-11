@@ -42,6 +42,17 @@ $app->get('/logout', function () use ($app) {
 
 
 // Task 3
+/*
+Test cases:
+/todos --> displays all todos
+/todos/ --> displays all todos
+/todos/id (id exists) --> displays task with given id
+/todos/id (id NOT exists) --> displays 404
+/todos/id/json (id exists) --> displays json of task with given id
+/todos/id/json (id NOT exists) --> displays 404
+/todos/id/gibberish (whether id exists or NOT exists) --> displays all todos
+/todos/gibberish --> displays 404
+*/
 $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
@@ -96,13 +107,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     // Task 1
     if (trim($description) == "") {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'error' => 'Please provide a task description!',
-            'todos' => $todos,
-        ]);
+        $app['session']->getFlashBag()->add('error', 'Todo not added. Description cannot be empty.');
+        return $app->redirect('/todo');
     }
 
     // Extra task
@@ -113,14 +119,21 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         'description' => $description
     ));
 
+    // Task 4
+    $app['session']->getFlashBag()->add('success', 'Todo added!');
     return $app->redirect('/todo');
 });
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    // Extra task
+    /*$sql = "DELETE FROM todos WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);*/
+    $app['db']->delete('todos', array(
+        'id' => $id
+    ));
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-
+    // Task 4
+    $app['session']->getFlashBag()->add('success', 'Todo deleted!');
     return $app->redirect('/todo');
 });

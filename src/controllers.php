@@ -41,18 +41,34 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+// Task 3
+$app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    if ($id){
+    if ($id && empty($format)) {
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
 
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
+        if ($todo) {
+            return $app['twig']->render('todo.html', [
+                'todo' => $todo,
+            ]);
+        } else {
+            $app->abort(404, "Post $id does not exist.");
+        }
+
+    } elseif ($id && $format=="json") {
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        if ($todo) {
+            return $app->json($todo);
+        } else {
+            $app->abort(404, "Post: $id does not exist.");
+        }
+
     } else {
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
         $todos = $app['db']->fetchAll($sql);
@@ -62,7 +78,12 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         ]);
     }
 })
-->value('id', null);
+    ->value('id', null)->value('format', null);
+
+
+$app->get('/todo/', function () use ($app) {
+    return $app->redirect('/todo');
+});
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {

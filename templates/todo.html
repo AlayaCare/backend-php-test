@@ -18,13 +18,25 @@
             	<td>{{ todo.user_id }}</td>
             	<td>{{ todo.description }}</td>
             	<td>
-                    <form method="post" action="/todo/delete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request_stack.currentrequest.basepath }}/todo/delete/{{ todo.id }}">
                     	<button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
             	</td>
             </tr>
     	</tbody>
     </table>
+    <!-- Option 1 -> open raw json in new tab-->
+	<form method="get" class="text-center col-sm-6" action="/todo/{{ todo.id }}/json/raw" target="_blank">
+		<button type="submit" class="btn btn-xs btn-success">Todo in raw JSON
+			<span class="glyphicon glyphicon-search glyphicon-white"></span>
+		</button>
+	</form>
+    <!-- Option 2b -> open raw json in current tab - inline -->
+	<form method="get" class="text-center col-sm-6" action="/todo/{{ todo.id }}/json/inline">
+		<button type="submit" class="btn btn-xs btn-success">Todo in JSON inline
+			<span class="glyphicon glyphicon-search glyphicon-white"></span>
+		</button>
+	</form>
 </div>
 
 {% endblock %}

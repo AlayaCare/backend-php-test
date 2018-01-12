@@ -5,7 +5,3 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
-
-.error {
-    color: #f00;
-}

@@ -1,7 +1,7 @@
 <?php
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Kilte\Pagination\Pagination;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -10,7 +10,7 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 }));
 
 
-$app->get('/', function () use ($app) {
+$app->match('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
     ]);
@@ -35,10 +35,39 @@ $app->match('/login', function (Request $request) use ($app) {
 });
 
 
-$app->get('/logout', function () use ($app) {
+$app->match('/logout', function () use ($app) {
     $app['session']->set('user', null);
     return $app->redirect('/');
 });
+
+
+$app->get('/todo/page/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+    $todos = $app['db']->fetchAll($sql);
+    $totalItems = count($todos);
+    $pagination = new Pagination($totalItems, $page, 10);
+    $offset = $pagination->offset();
+    $limit = $pagination->limit();
+    $listing = array_slice($todos, $offset, $limit);
+    $pages = $pagination->build();
+
+    return $app['twig']->render('todos.html', [
+        'todos' => $listing,
+        'pages' => $pages,
+        'current' => $pagination->currentPage()
+    ]);
+})
+    ->value('page', 1)
+    ->convert(
+        'page',
+        function ($page) {
+            return (int) $page;
+        }
+    );
 
 
 // Task 3
@@ -67,7 +96,7 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
                 'todo' => $todo,
             ]);
         } else {
-            $app->abort(404, "Post $id does not exist.");
+            $app->abort(404, "Todo: $id does not exist.");
         }
 
     } elseif ($id && $format=="json") {
@@ -77,22 +106,18 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
         if ($todo) {
             return $app->json($todo);
         } else {
-            $app->abort(404, "Post: $id does not exist.");
+            $app->abort(404, "Todo: $id does not exist.");
         }
 
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
+        return $app->redirect('/todo/page/1');
     }
 })
-    ->value('id', null)->value('format', null);
+    ->value('id', null)
+    ->value('format', null);
 
 
-$app->get('/todo/', function () use ($app) {
+$app->match('/todo/', function () use ($app) {
     return $app->redirect('/todo');
 });
 
@@ -111,29 +136,50 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/todo');
     }
 
-    // Extra task
-    //$sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    //$app['db']->executeUpdate($sql);
-    $app['db']->insert('todos', array(
-        'user_id' => $user_id,
-        'description' => $description
-    ));
+    $sql = "INSERT INTO todos (user_id, description) VALUES ($user_id, ?)";
+    $result = $app['db']->executeUpdate($sql, array($description));
 
     // Task 4
-    $app['session']->getFlashBag()->add('success', 'Todo added!');
+    if ($result) {
+        $app['session']->getFlashBag()->add('success', 'Todo added!');
+    } else {
+        $app->abort(404, "Unable to add Task: $description.");
+    }
+
     return $app->redirect('/todo');
 });
 
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
-    // Extra task
-    /*$sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);*/
-    $app['db']->delete('todos', array(
-        'id' => $id
-    ));
+// Task 2
+$app->post('/todo/update/{id}/{status}', function ($id, $status) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id && ($status == 0 || $status == 1)) {
+        $sql = "UPDATE todos SET status = ? WHERE id = ?";
+        $result = $app['db']->executeUpdate($sql, array((bool) $status, (int) $id));
+
+        if ($result) {
+            $app['session']->getFlashBag()->add('success', 'Todo status updated!');
+        } else {
+            $app->abort(404, "Unable to update Task: $id with Status: $status.");
+        }
+    }
+
+    return $app->redirect('/todo');
+});
+
+
+$app->post('/todo/delete/{id}', function ($id) use ($app) {
+    $sql = "DELETE FROM todos WHERE id = ?";
+    $result = $app['db']->executeUpdate($sql, array((int) $id));
 
     // Task 4
-    $app['session']->getFlashBag()->add('success', 'Todo deleted!');
-    return $app->redirect('/todo');
+    if ($result) {
+        $app['session']->getFlashBag()->add('success', 'Todo deleted!');
+        return $app->redirect('/todo');
+    } else {
+        $app->abort(404, "Unable to delete Task: $id.");
+    }
 });

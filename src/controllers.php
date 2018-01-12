@@ -48,6 +48,8 @@ $app->get('/todo/page/{page}', function ($page) use ($app) {
 
     $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
     $todos = $app['db']->fetchAll($sql);
+
+    // Task 5
     $totalItems = count($todos);
     $pagination = new Pagination($totalItems, $page, 10);
     $offset = $pagination->offset();

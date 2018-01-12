@@ -10,6 +10,7 @@ $app->get('/todo', 'Controller.TodoController:indexAction');
 $app->get('/todo/{id}', 'Controller.TodoController:viewAction');
 $app->get('/todo/{id}/json/{method}', 'Controller.TodoController:viewActionJSON');
 
+$app->get('/todo/api/index', 'Controller.TodoController:indexActionJSON');
 // Register user routes
 $app->match('/login', 'Controller.UserController:loginAction');
 $app->match('/logout', 'Controller.UserController:logoutAction');

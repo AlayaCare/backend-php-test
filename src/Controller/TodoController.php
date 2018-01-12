@@ -50,13 +50,38 @@ class TodoController
     /**
      * User todos index view
      *
-     * Not adding doc to the TodoController methods yet as some may soon change
+     * @return string twig template
      */
     public function indexAction()
     {
 
+        $todos = $this->indexActionJSON()->getContent();
+
+        return $this->app['twig']->render('todos.html', ['todos' => $todos ]);
+    }
+    /**
+     * User todos index as JSON response
+     *
+     * @return string JSON response
+     */
+    public function indexActionJSON()
+    {
+
         $todos = $this->orm_em->getRepository($this->entity_class)->getUserTodos($this->userid);
-        return $this->app['twig']->render('todos.html', ['todos' => $todos, ]);
+        foreach($todos as $todo) {
+            // 'title' and 'status' are not yet implemented so we will use some temporary data
+            $api[] = array(
+                'id' => $todo->getId() ,
+                'title' => $todo->getDescription() ,
+                'status' => 'in progress' ,
+                'description' => $todo->getDescription() ,
+                'url' => $this->main_index_url . '/' . $todo->getId(),
+                'delete' => $this->main_index_url . '/delete/' . $todo->getId(),
+            );
+
+        }
+
+        return $this->app->json($api);
     }
 
     /**
@@ -107,7 +132,7 @@ class TodoController
                 );
                 $method = $this->request->get('method');
                 if ($method == 'inline') {
-                    $todo = $this->app->json($todo);
+                    $todo = $this->app->json($todo)->getContent();
                     return $this->app['twig']->render('todo-json.html', ['todo' => $todo, ]);
 
                 }
@@ -200,8 +225,6 @@ class TodoController
      */
     public function deleteAction()
     {
-
-        $id = $this->request->get('id');
 
         // bug squash: check if todo id exists and not if request id
         $todo = $this->getRequestedEntity();

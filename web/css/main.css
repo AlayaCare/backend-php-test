@@ -1,7 +1,74 @@
 body {
-  padding-top: 50px;
+    padding-top: 50px;
 }
 
-.login-form > div {
+.login-form > div,
+.error-message {
     margin-top: 10px;
 }
+
+#app {
+    width: 95%;
+    margin: 0 auto;
+}
+
+.VuePagination,
+#app {
+    text-align: center;
+}
+
+.vue-title {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+th {
+    text-align: center;
+}
+
+.VueTables__table th:nth-child(1)::before {
+    content: "\e105";
+}
+
+.VueTables__table th:nth-child(1) {
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity .5s;
+}
+
+.fade-enter,
+.fade-leave-to
+/* .fade-leave-active below version 2.1.8 */
+
+{
+    opacity: 0;
+}
+
+.VueTables__child-row-toggler {
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    display: block;
+    margin: auto;
+    text-align: center;
+}
+
+.VueTables__child-row-toggler--closed::before {
+    content: "+";
+}
+
+.VueTables__child-row-toggler--open::before {
+    content: "-";
+}
+
+.add-todo {
+    margin: 20px 0 50px;
+}
+
+

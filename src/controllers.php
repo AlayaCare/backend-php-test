@@ -2,6 +2,9 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Kilte\Pagination\Pagination;
+// TODO when an action is taken, the redirection should take you back to the right page instead of the homepage
+// TODO delete funtion should behave like update, but it's not
+// TODO change mode to Production from Development
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -22,8 +25,7 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = User::getOne($username, $password);
 
         if ($user){
             $app['session']->set('user', $user);
@@ -46,8 +48,8 @@ $app->get('/todo/page/{page}', function ($page) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-    $todos = $app['db']->fetchAll($sql);
+    // Task 6
+    $todos = Todo::getAll($user['id']);
 
     // Task 5
     $totalItems = count($todos);
@@ -90,8 +92,8 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
     }
 
     if ($id && empty($format)) {
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        // Task 6
+        $todo = Todo::getOne($id, $user['id']);
 
         if ($todo) {
             return $app['twig']->render('todo.html', [
@@ -102,8 +104,8 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
         }
 
     } elseif ($id && $format=="json") {
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        // Task 6
+        $todo = Todo::getOne($id, $user['id']);
 
         if ($todo) {
             return $app->json($todo);
@@ -138,8 +140,9 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/todo');
     }
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ($user_id, ?)";
-    $result = $app['db']->executeUpdate($sql, array($description));
+    // Task 6
+    $todo = new Todo($user_id, $description);
+    $result = $todo->save();
 
     // Task 4
     if ($result) {
@@ -159,8 +162,8 @@ $app->post('/todo/update/{id}/{status}', function ($id, $status) use ($app) {
     }
 
     if ($id && ($status == 0 || $status == 1)) {
-        $sql = "UPDATE todos SET status = ? WHERE id = ?";
-        $result = $app['db']->executeUpdate($sql, array((bool) $status, (int) $id));
+        // Task 6
+        $result = Todo::update($id, $user['id'], $status);
 
         if ($result) {
             $app['session']->getFlashBag()->add('success', 'Todo status updated!');
@@ -174,14 +177,21 @@ $app->post('/todo/update/{id}/{status}', function ($id, $status) use ($app) {
 
 
 $app->post('/todo/delete/{id}', function ($id) use ($app) {
-    $sql = "DELETE FROM todos WHERE id = ?";
-    $result = $app['db']->executeUpdate($sql, array((int) $id));
-
-    // Task 4
-    if ($result) {
-        $app['session']->getFlashBag()->add('success', 'Todo deleted!');
-        return $app->redirect('/todo');
-    } else {
-        $app->abort(404, "Unable to delete Task: $id.");
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
     }
+
+    if ($id) {
+        // Task 6
+        $result = Todo::delete($id, $user['id']);
+
+        // Task 4
+        if ($result) {
+            $app['session']->getFlashBag()->add('success', 'Todo deleted!');
+        } else {
+            $app->abort(404, "Unable to delete Task: $id.");
+        }
+    }
+
+    return $app->redirect('/todo');
 });

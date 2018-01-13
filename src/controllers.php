@@ -2,7 +2,6 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Kilte\Pagination\Pagination;
-// TODO change mode to Production from Development
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -27,7 +26,7 @@ $app->match('/login', function (Request $request) use ($app) {
 
         if ($user){
             $app['session']->set('user', $user);
-            return $app->redirect('/todo');
+            return $app->redirect('/todo/page/1');
         }
     }
 
@@ -120,6 +119,8 @@ $app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
             $app->abort(404, "Unable to delete Task: $id.");
         }
     }
+
+    return $app->redirect('/todo/page/1');
 });
 
 
@@ -127,7 +128,6 @@ $app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
 /*
 Test cases:
 /todos --> displays all todos
-/todos/ --> displays all todos
 /todos/id (id exists) --> displays task with given id
 /todos/id (id NOT exists) --> displays 404
 /todos/id/json (id exists) --> displays json of task with given id
@@ -153,7 +153,9 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
             $app->abort(404, "Todo: $id does not exist.");
         }
 
-    } elseif ($id && $format=="json") {
+    }
+
+    if ($id && $format=="json") {
         // Task 6
         $todo = Todo::getOne($id, $user['id']);
 
@@ -164,17 +166,13 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
             $app->abort(404, "Todo: $id does not exist.");
         }
 
-    } else {
-        return $app->redirect('/todo/page/1');
     }
+
+    return $app->redirect('/todo/page/1');
 })
     ->value('id', null)
     ->value('format', null);
 
-
-$app->match('/todo/', function () use ($app) {
-    return $app->redirect('/todo');
-});
 
 //Test cases
 /*

@@ -8,7 +8,8 @@
 
 class User
 {
-    static function getOne($username, $password) {
+    static function getOne($username, $password)
+    {
         $sql = "SELECT * FROM users WHERE username = ? and password = ?";
         $result = $GLOBALS['app']['db']->fetchAssoc($sql, array((string) $username, (string) $password));
         return $result;

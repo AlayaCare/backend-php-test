@@ -2,8 +2,6 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Kilte\Pagination\Pagination;
-// TODO when an action is taken, the redirection should take you back to the right page instead of the homepage
-// TODO delete funtion should behave like update, but it's not
 // TODO change mode to Production from Development
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
@@ -58,6 +56,21 @@ $app->get('/todo/page/{page}', function ($page) use ($app) {
     $limit = $pagination->limit();
     $listing = array_slice($todos, $offset, $limit);
     $pages = $pagination->build();
+    $currPage = $pagination->currentPage();
+    $prevPage = $currPage-1;
+    $lastPage = $pagination->totalPages();
+
+    if ($currPage==0||$prevPage==0||$lastPage==0) {
+        $currPage=1;
+        $prevPage=1;
+        $lastPage=1;
+    }
+
+    $app['session']->set('currentPage', $currPage);
+    $app['session']->set('previousPage', $prevPage);
+    $app['session']->set('lastPage', $lastPage);
+    $app['session']->set('totalItems', $totalItems);
+    $app['session']->set('itemsPerPage', $limit);
 
     return $app['twig']->render('todos.html', [
         'todos' => $listing,
@@ -72,6 +85,42 @@ $app->get('/todo/page/{page}', function ($page) use ($app) {
             return (int) $page;
         }
     );
+
+
+$app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
+    if($request->getMethod() == 'GET') {
+        $app->abort(404, "Unable to delete Task: $id.");
+    }
+
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id) {
+        // Task 6
+        $result = Todo::delete($id, $user['id']);
+
+        // Task 4
+        if ($result) {
+            $app['session']->getFlashBag()->add('success', 'Todo deleted!');
+            $app['session']->set('totalItems', $app['session']->get('totalItems') - 1);
+
+            if (strpos($app['session']->get('currentPage'), "todo") !== false) {
+                return $app->redirect('/todo/page/1');
+            }
+
+            if ($app['session']->get('totalItems') % $app['session']->get('itemsPerPage') > 0) {
+                return $app->redirect('/todo/page/' . $app['session']->get('currentPage'));
+            }
+
+            if ($app['session']->get('totalItems') % $app['session']->get('itemsPerPage') == 0) {
+                return $app->redirect('/todo/page/' . $app['session']->get('previousPage'));
+            }
+        } else {
+            $app->abort(404, "Unable to delete Task: $id.");
+        }
+    }
+});
 
 
 // Task 3
@@ -96,6 +145,7 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
         $todo = Todo::getOne($id, $user['id']);
 
         if ($todo) {
+            $app['session']->set('currentPage', "/todo/$id");
             return $app['twig']->render('todo.html', [
                 'todo' => $todo,
             ]);
@@ -108,6 +158,7 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
         $todo = Todo::getOne($id, $user['id']);
 
         if ($todo) {
+            $app['session']->set('currentPage', "/todo/$id/json");
             return $app->json($todo);
         } else {
             $app->abort(404, "Todo: $id does not exist.");
@@ -125,7 +176,13 @@ $app->match('/todo/', function () use ($app) {
     return $app->redirect('/todo');
 });
 
-
+//Test cases
+/*
+Add blank description on page 1
+Add on page 1 where there are no items
+Add on page 1 when # of items <= 10-1
+Add on page 1 when # of items = 10
+*/
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
@@ -137,7 +194,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     // Task 1
     if (trim($description) == "") {
         $app['session']->getFlashBag()->add('error', 'Todo not added. Description cannot be empty.');
-        return $app->redirect('/todo');
+
+        if ($app['session']->get('currentPage') == 1) {
+            return $app->redirect('/todo/page/1');
+        }
+
+        return $app->redirect($app['session']->get('currentPage'));
     }
 
     // Task 6
@@ -147,11 +209,16 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     // Task 4
     if ($result) {
         $app['session']->getFlashBag()->add('success', 'Todo added!');
+        $app['session']->set('totalItems', $app['session']->get('totalItems') + 1);
     } else {
         $app->abort(404, "Unable to add Task: $description.");
     }
 
-    return $app->redirect('/todo');
+    if ($app['session']->get('totalItems') % $app['session']->get('itemsPerPage') == 1) {
+        return $app->redirect('/todo/page/' . ($app['session']->get('lastPage')+1));
+    }
+
+    return $app->redirect('/todo/page/' . $app['session']->get('lastPage'));
 });
 
 
@@ -172,26 +239,9 @@ $app->post('/todo/update/{id}/{status}', function ($id, $status) use ($app) {
         }
     }
 
-    return $app->redirect('/todo');
-});
-
-
-$app->post('/todo/delete/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
+    if (strpos($app['session']->get('currentPage'), "todo") !== false) {
+        return $app->redirect($app['session']->get('currentPage'));
     }
 
-    if ($id) {
-        // Task 6
-        $result = Todo::delete($id, $user['id']);
-
-        // Task 4
-        if ($result) {
-            $app['session']->getFlashBag()->add('success', 'Todo deleted!');
-        } else {
-            $app->abort(404, "Unable to delete Task: $id.");
-        }
-    }
-
-    return $app->redirect('/todo');
+    return $app->redirect('/todo/page/' . $app['session']->get('currentPage'));
 });

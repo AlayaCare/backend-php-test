@@ -212,6 +212,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $app->abort(404, "Unable to add Task: $description.");
     }
 
+    if ($app['session']->get('totalItems') == 1) {
+        return $app->redirect('/todo/page/1');
+    }
+
     if ($app['session']->get('totalItems') % $app['session']->get('itemsPerPage') == 1) {
         return $app->redirect('/todo/page/' . ($app['session']->get('lastPage')+1));
     }

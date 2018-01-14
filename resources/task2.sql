@@ -1,0 +1,2 @@
+ALTER TABLE todos
+ADD status BIT(1) DEFAULT 0;

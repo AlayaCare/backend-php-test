@@ -3,11 +3,12 @@
 $app->get('/', 'Controller\HomepageController::indexAction');
 
 // Register todo routes
-$app->post('/todo/add', 'Controller.TodoController:addAction');
 $app->post('/todo/delete/{id}', 'Controller.TodoController:deleteAction');
 $app->get('/todo', 'Controller.TodoController:indexAction');
+$app->post('/todo', 'Controller.TodoController:indexAction');
 
-$app->get('/todo/{id}', 'Controller.TodoController:viewAction');
+$app->get('/todo/{id}', 'Controller.TodoController:singleAction');
+$app->post('/todo/{id}', 'Controller.TodoController:singleAction');
 $app->get('/todo/{id}/json/{method}', 'Controller.TodoController:viewActionJSON');
 
 $app->get('/todo/api/index', 'Controller.TodoController:indexActionJSON');

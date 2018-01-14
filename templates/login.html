@@ -6,7 +6,7 @@
         {% if error %}
         <div class="alert alert-error bg-warning text-center">{{ error|nl2br }}</div>
         {% endif %}
-        <form class="form-horizontal login-form" method="POST" action="{{ path('check_login') }}">
+        {{ form_start(form, {'action': path('check_login'), attr: {'class': 'form-horizontal login-form' } }) }}
             <div class="input-group">
                 <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
                 {{ form_widget(form._username) }}
@@ -14,7 +14,7 @@
 
             <div class="input-group">
                 <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-               {{ form_widget(form._password) }}
+                {{ form_widget(form._password) }}
             </div>
 
             <div class="form-group">
@@ -27,14 +27,11 @@
                         </label>
                     </div>
                     {% endif %}
-                    <button type="submit" class="btn btn-primary pull-right"><i class="glyphicon glyphicon-log-in"></i>
-                        <span>&nbsp;&nbsp; {{ 'Submit'|trans }}</span>
-                    </button>
+                    {{ form_widget(form.submit) }}
                 </div>
             </div>
-            {{ form_widget(form._target_path) }}
-            {{ form_widget(form._csrf_token, {attr: {'value': csrf_token('login-form') }}) }}            
-        </form>
+            {{ form_widget(form._target_path) }}     
+        {{ form_end(form) }}
 
     </div>
 {% endblock %}

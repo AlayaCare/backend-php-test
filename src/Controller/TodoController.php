@@ -3,14 +3,12 @@
 namespace Controller;
 
 use Silex\Application;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Validator\Constraints as Assert;
 use Entity\Todo;
 use Entity\User;
 use Doctrine\ORM\EntityManager;
-
+use Form\TodoType;
+use Symfony\Component\Form\Form;
 
 class TodoController
 
@@ -43,22 +41,29 @@ class TodoController
         $this->orm_em = $orm_em;
         $this->userid = $user->getId();
         $this->entity_class = 'Entity\Todo';
-        $this->main_index_url = '/todo';
+        $this->entity_name = 'todo';
+        $this->main_index_url = '/' . $this->entity_name;
 
     }
 
     /**
-     * User todos index view
+     * User todos index view. Also returns and handles the form for adding todos
      *
      * @return string twig template
      */
     public function indexAction()
     {
 
+        $todo = new Todo();
+
+        $form = $this->app['form.factory']->create(TodoType::class, $todo);
+        $this->handleForm($form, $todo, 'added');
+
         $todos = $this->indexActionJSON()->getContent();
 
-        return $this->app['twig']->render('todos.html', ['todos' => $todos ]);
+        return $this->app['twig']->render('todos.html', ['todos' => $todos, 'form' => $form->createView() ]);
     }
+
     /**
      * User todos index as JSON response
      *
@@ -85,27 +90,30 @@ class TodoController
     }
 
     /**
-     * Todo single view
+     * Todo single view and edit
      *
      */
-    public function viewAction()
+    public function singleAction()
     {
 
         // bug squash: check if todo id exists and not if request id
         $todo = $this->getRequestedEntity();
         if ($todo) {
             if ($this->isEntityOwner($todo)) {
-                return $this->app['twig']->render('todo.html', ['todo' => $todo, ]);
+                $form = $this->app['form.factory']->create(TodoType::class, $todo);
+                $this->handleForm($form, $todo, 'edited');
+                return $this->app['twig']->render('todo.html', [$this->entity_name => $todo, 'form' => $form->createView() ]);              
+
             }
             else {
 
-                $message = 'You are not authorized to view this todo!';
+                $message = "You are not authorized to view this $this->entity_name!";
 
             }
         }
         else {
 
-            $message = 'The specified todo does not exist!';
+            $message = "The specified $this->entity_name does not exist!";
 
         }
 
@@ -133,7 +141,7 @@ class TodoController
                 $method = $this->request->get('method');
                 if ($method == 'inline') {
                     $todo = $this->app->json($todo)->getContent();
-                    return $this->app['twig']->render('todo-json.html', ['todo' => $todo, ]);
+                    return $this->app['twig']->render('todo-json.html', [$this->entity_name => $todo, ]);
 
                 }
                 else if ($method == 'raw') {
@@ -144,79 +152,15 @@ class TodoController
                 }
             }
             else {
-                $message = 'You are not authorized to view this todo!';
+                $message = "You are not authorized to view this $this->entity_name!";
             }
         }
         else {
-            $message = 'The specified todo does not exist!';
+            $message = "The specified $this->entity_name does not exist!";
         }
 
         $this->hasMessage($message);
         return $this->mainIndexRedirect();
-    }
-
-    /**
-     * Add a todo
-     *
-     */
-    public function addAction()
-    {
-
-        $description = $this->request->get('description');
-        $errors = $this->app['validator']->validate($description, new Assert\NotBlank());
-        if (count($errors) > 0) {
-
-            $message = 'The description cannot be blank.';
-
-        }
-        else {
-            $todo = new Todo();
-            $todo->setDescription($description);
-            $todo->setuser_id($this->userid);
-            $this->orm_em->persist($todo);
-            $this->orm_em->flush();
-
-            $message = 'The todo has been added!';
-
-        }
-
-        $this->hasMessage($message);
-        return $this->mainIndexRedirect();
-    }
-
-    /**
-     * Edit a todo
-     *
-     */
-    public function editAction()
-    {
-
-        // this will be for task 2
-        /**
-
-        $todo = $this->getRequestedEntity();
-        if ($todo) {
-            if ($this->isEntityOwner($todo)) {
-
-                // make changes
-
-            }
-            else {
-
-                $message = 'You are not authorized to view this todo!');
-
-            }
-        }
-        else {
-
-            $message = 'The specified todo does not exist!');
-
-        }
-
-        $this->hasMessage($message);
-        return $this->mainIndexRedirect();
-
-        */
     }
 
     /**
@@ -236,7 +180,7 @@ class TodoController
                 $this->orm_em->remove($todo);
                 $this->orm_em->flush();
 
-                $message = 'The todo has been removed!';
+                $message = "The $this->entity_name has been removed!";
 
             }
             else {
@@ -327,4 +271,61 @@ class TodoController
     }
 
 
+    /**
+     * Update database upon succesfull submission for both add new and edit entity requests.
+     *
+     * @param Symfony\Component\Form\Form $form
+     * @param Todo $todo
+     * @param string $msg
+     * @return null
+     */
+    public function handleForm(Form $form, Todo $todo, $msg)
+    {
+
+        $form->handleRequest($this->request);
+
+        if ($form->isSubmitted()) {
+
+            //$this->handleErrors($form);
+
+            if ($form->isValid()) {
+                $todo->setuser_id($this->userid);
+                $this->orm_em->persist($todo);
+                $this->orm_em->flush();
+                $this->hasMessage("The $this->entity_name has been $msg");
+            }
+
+        }
+
+        return;
+    }
+
+    /**
+     * Get form submission errors
+     *
+     * Not being used at the moment - using symfony forms' built in error messaging instead
+     *
+     * @param Symfony\Component\Form\Form $form
+     * @return null
+     */
+    public function handleErrors(Form $form)
+    {
+
+        $errors = $this->app['validator']->validate($form);
+
+        if (count($errors) > 0) {
+            $x = 1;
+            foreach ($errors as $error) {
+                $err[] = $x . ': ' . $error->getMessage();
+                $x++;
+            }
+
+            $msg = implode(" ",$err);
+            //do something with errors
+            //ex log them somewhere or show to user:
+            //$this->hasMessage($msg);
+        }
+
+        return;
+    }
 }

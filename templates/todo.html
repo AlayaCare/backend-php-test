@@ -18,7 +18,7 @@
             	<td>{{ todo.user_id }}</td>
             	<td>{{ todo.description }}</td>
             	<td>
-                    <form method="post" action="{{ app.request_stack.currentrequest.basepath }}/todo/delete/{{ todo.id }}">
+                    <form method="post" action="/todo/delete/{{ todo.id }}">
                     	<button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
             	</td>
@@ -38,5 +38,8 @@
 		</button>
 	</form>
 </div>
-
+<div class="col-md-4 col-md-offset-4">
+    <h2 class="text-center">Edit the Todo:</h2>
+    {{ include('todo-form.html') }}
+</div>
 {% endblock %}

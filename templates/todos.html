@@ -2,13 +2,13 @@
 
 {% block content %}
 
-{% for alert in app.session.flashbag.get('message') %}
-<div class="error-message">
-    <div class="well text-center">
-    	<h4 class="text-warning">{{ alert }}</h4>
-    </div>
+<div class="col-md-4 col-md-offset-4">
+    <h2 class="text-center">Add a Todo:</h2>
+
+    {{ include('todo-form.html') }}
+
 </div>
-{% endfor %}
+<div class="clearfix"></div>
 <h1 class="text-center">Todo List:</h1>
 
 <div id="app">
@@ -23,18 +23,7 @@
        </template>
     </v-todo-table>
 </div>
-<div class="col-md-4 col-md-offset-4">
-    <h2 class="text-center">Add a Todo:</h2>
 
-    <form method="post" action="/todo/add" class="form-horizontal add-todo">
-       <div class="input-group">
-            <button type="submit" class="btn btn-sm btn-primary pull-right">Add</button>
-            <input type="text" name="title" placeholder="My title">
-            <textarea rows="3" name="description" class="form-control" placeholder="Description..."></textarea>
-       </div>
-    </form>
-
-</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.8/vue.min.js"></script>
 <script src="/js/vue-tables.js"></script>

@@ -86,8 +86,9 @@ class App extends Silex\Application
 
         $this->register(new ValidatorServiceProvider());
         $this->register(new FormServiceProvider());
-        $this->register(new TranslationServiceProvider());
-
+        $this->register(new TranslationServiceProvider(), array(
+    'translator.domains' => array(),
+));
         $this->register(new HttpFragmentServiceProvider());
         $this->register(new AssetServiceProvider());
         $this->register(new TwigServiceProvider());

@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Repository\TodoRepository;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 /**
  * @ORM\Entity(repositoryClass="Repository\TodoRepository")
  * @ORM\Table(name="todos")
@@ -17,11 +19,12 @@ class Todo
      * 
      */
     private $id;
+
     /**
      * @ORM\Column(type="string", length=255)
-     * 
      */
     private $description;
+
     /**
      * @ORM\Column(type="integer")
      * 
@@ -38,7 +41,7 @@ class Todo
     }
 
     /**
-     * Returns the todo id.
+     * Returns the Todo id.
      *
      * @return int
      */
@@ -48,7 +51,7 @@ class Todo
     }
 
     /**
-     * Returns the todo description.
+     * Returns the Todo description.
      *
      * @return string
      */
@@ -58,7 +61,7 @@ class Todo
     }
 
     /**
-     * Sets the todo description.
+     * Sets the Todo description.
      *
      * @param string
      */
@@ -68,7 +71,7 @@ class Todo
     }
 
     /**
-     * Returns the todo user id.
+     * Returns the Todo user id.
      *
      * @return int
      */
@@ -78,7 +81,7 @@ class Todo
     }
 
     /**
-     * Sets the todo user id.
+     * Sets the Todo user id.
      *
      * @param int
      */

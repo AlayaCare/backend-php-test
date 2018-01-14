@@ -30,4 +30,7 @@ $app->register(new DoctrineServiceProvider, array(
     ),
 ));
 
+$app->register(new \Kilte\Silex\Pagination\PaginationServiceProvider);
+$pages = $app['pagination'](100, 500);
+
 return $app;

@@ -18,15 +18,22 @@ $app->match('/', function () use ($app) {
 
 
 $app->match('/login', function (Request $request) use ($app) {
-    $username = $request->get('username');
-    $password = $request->get('password');
 
-    if ($username) {
-        $user = User::getOne($username, $password);
+    if ($request->getMethod() == "POST") {
+        $username = filter_var($request->get('username'), FILTER_SANITIZE_STRING);
+        $password = filter_var($request->get('password'), FILTER_SANITIZE_STRING);
 
-        if ($user){
-            $app['session']->set('user', $user);
-            return $app->redirect('/todo/page/1');
+        if(trim($username)!="" && trim($password!="")) {
+            $user = User::getOne($username, $password);
+
+            if ($user){
+                $app['session']->set('user', $user);
+                return $app->redirect('/todo/page/1');
+            } else {
+                $app['session']->getFlashBag()->add('error', 'Invalid username or password.');
+            }
+        } else {
+            $app['session']->getFlashBag()->add('error', 'Username and password cannot be empty.');
         }
     }
 
@@ -188,6 +195,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
+    $description = filter_var($description, FILTER_SANITIZE_STRING);
 
     // Task 1
     if (trim($description) == "") {
@@ -232,7 +240,7 @@ $app->post('/todo/update/{id}/{status}', function ($id, $status) use ($app) {
 
     if ($id && ($status == 0 || $status == 1)) {
         // Task 6
-        $result = Todo::update($id, $user['id'], $status);
+        $result = Todo::updateStatus($id, $user['id'], $status);
 
         if ($result) {
             $app['session']->getFlashBag()->add('success', 'Todo status updated!');

@@ -3,6 +3,22 @@
 {% block content %}
 <div class="col-md-6 col-md-offset-3">
     <h1>Todo:</h1>
+    {% if app.session.flashBag.has('success') %}
+    <div class="alert alert-success alert-dismissable">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        {% for message in app.session.getFlashBag.get('success') %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if app.session.flashBag.has('error') %}
+    <div class="alert alert-danger alert-dismissable">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        {% for message in app.session.getFlashBag.get('error') %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th>Status</th><th></th><th></th>
         <tr>

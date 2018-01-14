@@ -37,7 +37,7 @@ class Todo
         return $result;
     }
 
-    static function update($id, $user_id, $new_status)
+    static function updateStatus($id, $user_id, $new_status)
     {
         $sql = "UPDATE todos SET status = ? WHERE id = ? AND user_id = ?";
         $result = $GLOBALS['app']['db']->executeUpdate($sql, array((bool) $new_status, (int) $id, (int) $user_id));

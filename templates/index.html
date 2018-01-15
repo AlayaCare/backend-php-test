@@ -2,5 +2,12 @@
 
 {% block content %}
     <h1>README</h1>
+    <!--Flash Login messages-->
+    {% for message in app.session.getFlashBag.get('login_message') %}
+    <div class="alert alert-info">
+        {{ message }}
+    </div>
+    {% endfor %}
+    <!--End of Flash messages-->
     <pre class="well">{{ readme }}</pre>
 {% endblock %}

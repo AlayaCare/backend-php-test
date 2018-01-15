@@ -22,10 +22,12 @@
         "symfony/twig-bridge": "~2.3",
         "symfony/validator": "~2.3",
         "doctrine/dbal": "~2.2",
-        "deralex/yaml-config-service-provider": "1.0.x-dev"
+        "deralex/yaml-config-service-provider": "1.0.x-dev",
+        "gabordemooij/redbean": "dev-master"
     },
     "autoload": {
-        "psr-0": { "": "src/" }
+        "psr-0": { "": "src/" },
+        "psr-4": {"Omar\\": "src/"}
     },
     "extra": {
         "branch-alias": {

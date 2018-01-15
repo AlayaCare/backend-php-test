@@ -29,10 +29,18 @@ Credentials:
 ### Installation
 **/!\ You need to fork this repository. See [How to submit your work?](#how-to-submit-your-work)**
 ```sh
+from the project root file:
+
 php composer.phar install
 cp config/local.json.dist config/local.json
-mysql -u root <database> < resources/database.sql
+
+1-) To create the db schema:
+vendor/bin/doctrine orm:schema-tool:update --dump-sql
+2-) To populate the db
+vendor/bin/doctrine dbal:import resources/fixtures.sql
+or
 mysql -u root <database> < resources/fixtures.sql
+
 php -S localhost:1337 -t web/ web/index.php
 ```
 You can change the database connection from the file `config/local.json`.

@@ -73,17 +73,13 @@ class TodoController
     {
 
         $todos = $this->orm_em->getRepository($this->entity_class)->getUserTodos($this->userid);
-        foreach($todos as $todo) {
-            // 'title' and 'status' are not yet implemented so we will use some temporary data
-            $api[] = array(
-                'id' => $todo->getId() ,
-                'title' => $todo->getDescription() ,
-                'status' => 'in progress' ,
-                'description' => $todo->getDescription() ,
-                'url' => $this->main_index_url . '/' . $todo->getId(),
-                'delete' => $this->main_index_url . '/delete/' . $todo->getId(),
-            );
+        if (!$todos) {
 
+            return $this->app->json([]);
+        }
+        foreach($todos as $todo) {
+
+            $api[] = $this->getAPIContent($todo);
         }
 
         return $this->app->json($api);
@@ -126,6 +122,7 @@ class TodoController
     /**
      * Todo single view in JSON
      *
+     * @return string|RedirectResponse JSON|\Symfony\Component\HttpFoundation\RedirectResponse
      */
     public function viewActionJSON()
 
@@ -133,11 +130,8 @@ class TodoController
         $todo = $this->getRequestedEntity();
         if ($todo) {
             if ($this->isEntityOwner($todo)) {
-                $todo = array(
-                    'id' => $todo->getId() ,
-                    'description' => $todo->getDescription() ,
-                    'user_id' => $todo->getuser_id() ,
-                );
+                $todo = $this->getAPIContent($todo);
+
                 $method = $this->request->get('method');
                 if ($method == 'inline') {
                     $todo = $this->app->json($todo)->getContent();
@@ -289,7 +283,10 @@ class TodoController
             //$this->handleErrors($form);
 
             if ($form->isValid()) {
-                $todo->setuser_id($this->userid);
+
+                if ($todo->getuser_id() === null) {
+                    $todo->setuser_id($this->userid);
+                }
                 $this->orm_em->persist($todo);
                 $this->orm_em->flush();
                 $this->hasMessage("The $this->entity_name has been $msg");
@@ -327,5 +324,28 @@ class TodoController
         }
 
         return;
+    }
+
+    /**
+     * Get API content
+     *
+     * @param Todo $todo
+     * @return array
+     */
+    public function getAPIContent(Todo $todo)
+    {
+
+        $api = array(
+            'id' => $todo->getId(),
+            'title' => $todo->getTitle(),
+            'status' => $todo->getStatus(),
+            'description' => $todo->getDescription(),
+            'url' => $this->main_index_url . '/' . $todo->getId(),
+            'delete' => $this->main_index_url . '/delete/' . $todo->getId(),
+            'created' => $todo->getCreatedDateTime(),
+            'updated' => $todo->getUpdatedDateTime(),
+        );
+
+        return $api;
     }
 }

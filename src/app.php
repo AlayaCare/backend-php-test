@@ -52,7 +52,7 @@ class App extends Silex\Application
 
         $this['entity_manager'] = function () {
            $ORMdbParams = $this['db'];
-           $ORMconfig = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . 'Entity/'), true, null, null, false);
+           $ORMconfig = Setup::createAnnotationMetadataConfiguration(array(__DIR__ . '/Entity/'), true, null, null, false);
 
            return EntityManager::create($ORMdbParams, $ORMconfig);
 

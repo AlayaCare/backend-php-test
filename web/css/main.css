@@ -70,5 +70,31 @@ th {
 .add-todo {
     margin: 20px 0 50px;
 }
+.todo-actions * {
+    margin: 4px 0 5px;
+}
 
+.vue-child {
+	padding-bottom: 40px;
+}
+
+.top-padding {
+    padding-top: 30px;
+}
+
+
+.text-left {
+    text-align: left;
+}
+
+@media (min-width:768px){
+    .text-left-center {
+        text-align: left;
+    }
+}
+@media (max-width:767px){
+    .text-left-center {
+        text-align: center;
+    }
+}
 

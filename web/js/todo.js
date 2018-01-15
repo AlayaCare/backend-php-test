@@ -4,7 +4,7 @@ new Vue({
   el: "#app",
   delimiters: ['${', '}'],
   data: {
-    columns: ['id', 'title', 'status', 'url', 'delete'],
+    columns: ['id', 'title', 'status', 'updated', 'url', 'delete'],
     data: todo,
     options: {
       headings: {
@@ -12,8 +12,8 @@ new Vue({
         title: 'Title',
         description: 'Description'
       },
-      sortable: ['id', 'title', 'status'],
-      filterable: ['id', 'title', 'status']
+      sortable: ['id', 'title', 'status', 'updated'],
+      filterable: ['title', 'status', 'description']
     }
 
   }

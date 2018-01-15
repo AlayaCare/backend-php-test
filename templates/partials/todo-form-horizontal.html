@@ -1,0 +1,25 @@
+{% form_theme form 'bootstrap_3_layout.html.twig' %}
+{{ form_start(form) }}
+
+    <div class="col-md-3 col-sm-3">
+       {{ form_widget(form.title, {'attr': {'placeholder': 'The Todo title'}}) }}
+       {{ form_errors(form.title) }}
+    </div>
+
+    <div class="col-md-7" col-sm-7>
+       {{ form_widget(form.description, {'attr': {'placeholder': 'The Todo description', 'rows' : '1'}}) }}
+       {{ form_errors(form.description) }}
+    </div>
+
+    <div class="col-md-2 col-sm-2">
+       {{ form_widget(form.submit) }}
+    </div>
+{{ form_widget(form.status, {'attr': {'style': 'display: none;'}}) }}
+
+{{ form_errors(form) }}
+
+{{ form_end(form) }}
+
+
+
+

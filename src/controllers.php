@@ -76,9 +76,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     }
 
     $description = $request->get('description');
-
-    //Filtering user entries
-    Todo::add(addslashes($description));
+    
+    if($description != "") {
+        //Filtering user entries
+        Todo::add(addslashes($description));
+    }
 
     return $app->redirect('/todo');
 });

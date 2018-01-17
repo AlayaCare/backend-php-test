@@ -7,6 +7,7 @@ use Silex\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints as Assert;
+use Models\TodoModel;
 
 class TodoController implements ControllerProviderInterface
 {
@@ -14,28 +15,29 @@ class TodoController implements ControllerProviderInterface
   {
     $controllers = $app['controllers_factory'];
 
-    $controllers->get('/{id}', function ($id) use ($app) {
+    $controllers->get('/single/{id}', function ($id) use ($app) {
         if (null === $user = $app['session']->get('user')) {
             return $app->redirect('/login');
         }
 
-        if ($id){
-            $sql = "SELECT * FROM todos WHERE id = '$id'";
-            $todo = $app['db']->fetchAssoc($sql);
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+        return $app['twig']->render('todo.html', [
+            'todo' => $todo,
+        ]);
+    });
 
-            return $app['twig']->render('todo.html', [
-                'todo' => $todo,
-            ]);
-        } else {
-            $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-            $todos = $app['db']->fetchAll($sql);
+    $controllers->get('/list/{page}', function($page) use ($app){
+      if (null === $user = $app['session']->get('user')) {
+          return $app->redirect('/login');
+      }
 
-            return $app['twig']->render('todos.html', [
-                'todos' => $todos,
-            ]);
-        }
+      $todos = $app["fpagination"]->paginate(new TodoModel($app), ['col' => '*', 'filterCol' => 'user_id', 'filterVal' => $user['id'], "page" => $page, "limit" => 5]);
+
+      return $app['twig']->render('todos.html', ['todos' => $todos["currentPage"], 'count' => $todos["PageNumbers"]]);
+
     })
-    ->value('id', null);
+    ->value('page', 1);
 
 
     $controllers->post('/add', function (Request $request) use ($app) {
@@ -57,7 +59,7 @@ class TodoController implements ControllerProviderInterface
           $app['session']->getFlashBag()->add('danger', 'A task must have a description!');
         }
 
-        return $app->redirect('/todo');
+        return $app->redirect('/todo/list');
     });
 
 
@@ -71,7 +73,7 @@ class TodoController implements ControllerProviderInterface
 
         $app['session']->getFlashBag()->add('danger', 'Task deleted!');
 
-        return $app->redirect('/todo');
+        return $app->redirect('/todo/list');
     });
 
     $controllers->post('/complete/{id}', function ($id) use ($app){
@@ -84,13 +86,13 @@ class TodoController implements ControllerProviderInterface
 
       $app['session']->getFlashBag()->add('success', 'Congratulations, you completed a task!');
 
-      return $app->redirect('/todo');
+      return $app->redirect('/todo/list');
 
     });
 
-    $controllers->get('{id}/json', function ($id) use ($app){
+    $controllers->get('/single/{id}/json', function ($id) use ($app){
       if (null === $user = $app['session']->get('user')) {
-          return $app->redirect('/login');
+          return $app->redirect('/login/list');
       }
 
       $sql = "SELECT * FROM todos WHERE id='$id'";

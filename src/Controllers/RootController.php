@@ -30,7 +30,7 @@ class RootController implements ControllerProviderInterface
 
             if ($user){
                 $app['session']->set('user', $user);
-                return $app->redirect('/todo');
+                return $app->redirect('/todo/list');
             }
         }
 

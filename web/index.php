@@ -13,5 +13,5 @@ if (php_sapi_name() === 'cli-server' && is_file($filename)) {
 
 $app = require __DIR__.'/../src/app.php';
 require __DIR__.'/../config/dev.php';
-require __DIR__.'/../src/controllers.php';
+require __DIR__.'/../src/controllersBootstrapper.php';
 $app->run();

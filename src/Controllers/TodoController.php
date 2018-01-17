@@ -6,6 +6,7 @@ use Silex\Application;
 use Silex\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class TodoController implements ControllerProviderInterface
 {
@@ -45,8 +46,13 @@ class TodoController implements ControllerProviderInterface
         $user_id = $user['id'];
         $description = $request->get('description');
 
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $errors = $app['validator']->validate($description, new Assert\NotBlank());
+
+        if(count($errors) === 0){
+          $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+          $app['db']->executeUpdate($sql);
+
+        }
 
         return $app->redirect('/todo');
     });

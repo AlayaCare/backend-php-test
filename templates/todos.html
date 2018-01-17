@@ -5,6 +5,17 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+
+    {% for flashMessage in app.session.flashbag.get('success') %}
+      <div class="alert alert-success" role="alert">
+        {{ flashMessage }}
+      </div>
+    {% endfor %}
+    {% for flashMessage in app.session.flashbag.get('danger') %}
+      <div class="alert alert-danger" role="alert">
+        {{ flashMessage }}
+      </div>
+    {% endfor %}
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         {% for todo in todos %}

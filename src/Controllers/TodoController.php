@@ -52,6 +52,9 @@ class TodoController implements ControllerProviderInterface
           $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
           $app['db']->executeUpdate($sql);
 
+          $app['session']->getFlashBag()->add('success', "Task $description added with success!");
+        } else {
+          $app['session']->getFlashBag()->add('danger', 'A task must have a description!');
         }
 
         return $app->redirect('/todo');
@@ -66,6 +69,8 @@ class TodoController implements ControllerProviderInterface
         $sql = "DELETE FROM todos WHERE id = '$id'";
         $app['db']->executeUpdate($sql);
 
+        $app['session']->getFlashBag()->add('danger', 'Task deleted!');
+
         return $app->redirect('/todo');
     });
 
@@ -76,6 +81,8 @@ class TodoController implements ControllerProviderInterface
 
       $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
       $app['db']->executeUpdate($sql);
+
+      $app['session']->getFlashBag()->add('success', 'Congratulations, you completed a task!');
 
       return $app->redirect('/todo');
 

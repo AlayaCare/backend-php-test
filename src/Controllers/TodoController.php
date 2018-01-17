@@ -59,6 +59,9 @@ class TodoController implements ControllerProviderInterface
 
 
     $controllers->match('/delete/{id}', function ($id) use ($app) {
+      if (null === $user = $app['session']->get('user')) {
+          return $app->redirect('/login');
+      }
 
         $sql = "DELETE FROM todos WHERE id = '$id'";
         $app['db']->executeUpdate($sql);
@@ -67,11 +70,28 @@ class TodoController implements ControllerProviderInterface
     });
 
     $controllers->post('/complete/{id}', function ($id) use ($app){
+      if (null === $user = $app['session']->get('user')) {
+          return $app->redirect('/login');
+      }
 
       $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
       $app['db']->executeUpdate($sql);
 
       return $app->redirect('/todo');
+
+    });
+
+    $controllers->get('{id}/json', function ($id) use ($app){
+      if (null === $user = $app['session']->get('user')) {
+          return $app->redirect('/login');
+      }
+
+      $sql = "SELECT * FROM todos WHERE id='$id'";
+      $todo = $app['db']->fetchAssoc($sql);
+
+      return $app['twig']->render('todoJson.html', [
+          'todo' => $todo,
+      ]);
 
     });
 

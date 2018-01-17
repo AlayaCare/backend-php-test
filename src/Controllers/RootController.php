@@ -14,13 +14,13 @@ class RootController implements ControllerProviderInterface
   {
     $controllers = $app['controllers_factory'];
 
-    $app->get('/', function () use ($app) {
+    $controllers->get('/', function () use ($app) {
         return $app['twig']->render('index.html', [
             'readme' => file_get_contents('../README.md'),
         ]);
     });
 
-    $app->match('/login', function (Request $request) use ($app) {
+    $controllers->match('/login', function (Request $request) use ($app) {
         $username = $request->get('username');
         $password = $request->get('password');
 
@@ -37,7 +37,7 @@ class RootController implements ControllerProviderInterface
         return $app['twig']->render('login.html', array());
     });
 
-    $app->get('/logout', function () use ($app) {
+    $controllers->get('/logout', function () use ($app) {
         $app['session']->set('user', null);
         return $app->redirect('/');
     });

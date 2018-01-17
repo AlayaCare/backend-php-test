@@ -3,6 +3,9 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use Models\User;
+use Models\Todo;
+
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
 
@@ -18,12 +21,13 @@ $app->get('/', function () use ($app) {
 
 
 $app->match('/login', function (Request $request) use ($app) {
-    $username = $request->get('username');
-    $password = $request->get('password');
+    //Filtering user entries
+    $username = filter_var($request->get('username'), FILTER_SANITIZE_STRIPPED);
+    $password = filter_var($request->get('password'), FILTER_SANITIZE_STRIPPED);
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        //md5 for increase security
+        $user = User::login($username, md5($password));
 
         if ($user){
             $app['session']->set('user', $user);
@@ -46,19 +50,20 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+    $getTodo = Todo::getTodo($id);
 
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
+    //Filtering user entries
+    if ($id and is_numeric($id)){
+        if($getTodo) {
+            return $app['twig']->render('todo.html', [
+                'todo' => $getTodo,
+            ]);
+        } else {
+            return $app->redirect('/todo');
+        }
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'todos' => $getTodo,
         ]);
     }
 })
@@ -70,11 +75,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    //Filtering user entries
+    Todo::add(addslashes($description));
 
     return $app->redirect('/todo');
 });
@@ -82,8 +86,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    //Filtering user entries
+    if(is_numeric($id)) {
+        Todo::delete($id);
+    }
 
     return $app->redirect('/todo');
 });

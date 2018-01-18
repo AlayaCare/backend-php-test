@@ -17,6 +17,7 @@ class FPaginationService
 
     $offset = ($args['page'] - 1) * $args["limit"];
 
+
     $currentPage = $model->select(['col' => $args["col"], 'filterCol' => $args['filterCol'], 'filterVal' => $args['filterVal'], "offset" => $offset, "limit" => $args["limit"]]);
 
     return ["currentPage" => $currentPage, "PageNumbers" => $count];

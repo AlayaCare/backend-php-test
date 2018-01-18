@@ -27,12 +27,12 @@ class TodoModel
 
   public function select(array $args)
   {
-    $offset = isset($args["first"]) ? $args["first"] : "0";
+    $offset = isset($args["offset"]) ? $args["offset"] : "0";
     $this->sql
             ->select($args['col'])
             ->from("todos")
             ->where($args['filterCol'] ." = ". $args['filterVal'])
-            ->setFirstResult($args['offset']);
+            ->setFirstResult($offset);
 
     if(isset($args["limit"]))
       $this->sql->setMaxResults($args['limit']);
@@ -41,9 +41,46 @@ class TodoModel
 
   }
 
+  public function insert(int $user_id, String $description)
+  {
+    $this->sql
+            ->insert("todos")
+            ->setValue("user_id", "'$user_id'")
+            ->setValue("description", "'?'")
+            ->setParameter(1, "'$description'");
+
+    return $insert = $this->app['db']->executeUpdate($this->sql);
+  }
+
+  public function update(int $id,array $args)
+  {
+    $this->sql
+            ->update("todos");
+
+    foreach($args as $update)
+      $this->sql->set($update['col'], $update['val']);
+
+    $this->sql->where("id = $id");
+
+    return $update = $this->app['db']->executeUpdate($this->sql);
+  }
+
+  public function deleteById(int $id)
+  {
+    $this->sql
+            ->delete("todos")
+            ->where("id = $id");
+    return $delete = $this->app['db']->executeUpdate($this->sql);
+  }
+
   public function selectAllByUser(array $args)
   {
     return $this->select(["col" => $args["col"], "filterCol" => "user_id", "filter_val" => $args["user_id"]]);
+  }
+
+  public function selectById(int $id)
+  {
+    return $this->select(["col" => "*", "filterCol" => "id", "filterVal" => $id])[0];
   }
 
 }

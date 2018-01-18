@@ -20,11 +20,13 @@ class TodoController implements ControllerProviderInterface
             return $app->redirect('/login');
         }
 
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todoModel = new TodoModel($app);
+        $todo = $todoModel->selectById($id);
+
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
+
     });
 
     $controllers->get('/list/{page}', function($page) use ($app){
@@ -51,8 +53,10 @@ class TodoController implements ControllerProviderInterface
         $errors = $app['validator']->validate($description, new Assert\NotBlank());
 
         if(count($errors) === 0){
-          $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-          $app['db']->executeUpdate($sql);
+
+          $todoModel = new TodoModel($app);
+          $add = $todoModel->insert($user_id, $description);
+
 
           $app['session']->getFlashBag()->add('success', "Task $description added with success!");
         } else {
@@ -68,8 +72,8 @@ class TodoController implements ControllerProviderInterface
           return $app->redirect('/login');
       }
 
-        $sql = "DELETE FROM todos WHERE id = '$id'";
-        $app['db']->executeUpdate($sql);
+        $todoModel = new todoModel($app);
+        $todoModel->deleteById($id);
 
         $app['session']->getFlashBag()->add('danger', 'Task deleted!');
 
@@ -81,8 +85,8 @@ class TodoController implements ControllerProviderInterface
           return $app->redirect('/login');
       }
 
-      $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
-      $app['db']->executeUpdate($sql);
+      $todoModel = new TodoModel($app);
+      $update = $todoModel->update($id, [['col' => 'completed', 'val' => 1]]);
 
       $app['session']->getFlashBag()->add('success', 'Congratulations, you completed a task!');
 
@@ -95,8 +99,9 @@ class TodoController implements ControllerProviderInterface
           return $app->redirect('/login/list');
       }
 
-      $sql = "SELECT * FROM todos WHERE id='$id'";
-      $todo = $app['db']->fetchAssoc($sql);
+      $todoModel = new TodoModel($app);
+
+      $todo = $todoModel->selectById($id);
 
       return $app['twig']->render('todoJson.html', [
           'todo' => $todo,

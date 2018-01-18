@@ -6,6 +6,7 @@ use Silex\Application;
 use Silex\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Models\LoginModel;
 
 class RootController implements ControllerProviderInterface
 {
@@ -25,8 +26,8 @@ class RootController implements ControllerProviderInterface
         $password = $request->get('password');
 
         if ($username) {
-            $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-            $user = $app['db']->fetchAssoc($sql);
+            $LoginModel = new LoginModel($app);
+            $user = $LoginModel->tryLogin($username, $password);
 
             if ($user){
                 $app['session']->set('user', $user);

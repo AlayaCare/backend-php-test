@@ -20,7 +20,11 @@ $app->register(new ServiceControllerServiceProvider());
 $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
+/**
+ * Custom Service Provider for Pagination
+ */
 $app->register(new FPaginationServiceProvider);
+
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
 $app->register(new DoctrineServiceProvider, array(

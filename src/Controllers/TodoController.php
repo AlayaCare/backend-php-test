@@ -16,9 +16,7 @@ class TodoController implements ControllerProviderInterface
     $controllers = $app['controllers_factory'];
 
     $controllers->get('/single/{id}', function ($id) use ($app) {
-        if (null === $user = $app['session']->get('user')) {
-            return $app->redirect('/login');
-        }
+        $user = $app['session']->get('user');
 
         $todoModel = new TodoModel($app);
         $todo = $todoModel->selectById($id);
@@ -27,30 +25,34 @@ class TodoController implements ControllerProviderInterface
             'todo' => $todo,
         ]);
 
+    })
+    ->before(function(Request $request, Application $app){
+      if (null === $user = $app['session']->get('user'))
+          return $app->redirect('/login');
     });
 
     $controllers->get('/list/{page}', function($page) use ($app){
-      if (null === $user = $app['session']->get('user')) {
-          return $app->redirect('/login');
-      }
+      $user = $app['session']->get('user');
 
       $todos = $app["fpagination"]->paginate(new TodoModel($app), ['col' => '*', 'filterCol' => 'user_id', 'filterVal' => $user['id'], "page" => $page, "limit" => 5]);
 
       return $app['twig']->render('todos.html', ['todos' => $todos["currentPage"], 'count' => $todos["PageNumbers"]]);
 
     })
-    ->value('page', 1);
+    ->value('page', 1)
+    ->before(function(Request $request, Application $app){
+      if (null === $user = $app['session']->get('user'))
+          return $app->redirect('/login');
+    });
 
 
     $controllers->post('/add', function (Request $request) use ($app) {
-        if (null === $user = $app['session']->get('user')) {
-            return $app->redirect('/login');
-        }
+        $user = $app['session']->get('user');
 
         $user_id = $user['id'];
         $description = $request->get('description');
 
-        $errors = $app['validator']->validate($description, new Assert\NotBlank());
+        $errors = $app['validator']->validate($description, [new Assert\NotBlank(), new Assert\Type("string")]);
 
         if(count($errors) === 0){
 
@@ -64,13 +66,15 @@ class TodoController implements ControllerProviderInterface
         }
 
         return $app->redirect('/todo/list');
+    })
+    ->before(function(Request $request, Application $app){
+      if (null === $user = $app['session']->get('user'))
+          return $app->redirect('/login');
     });
 
 
-    $controllers->match('/delete/{id}', function ($id) use ($app) {
-      if (null === $user = $app['session']->get('user')) {
-          return $app->redirect('/login');
-      }
+    $controllers->post('/delete/{id}', function ($id) use ($app) {
+        $user = $app['session']->get('user');
 
         $todoModel = new todoModel($app);
         $todoModel->deleteById($id);
@@ -78,12 +82,15 @@ class TodoController implements ControllerProviderInterface
         $app['session']->getFlashBag()->add('danger', 'Task deleted!');
 
         return $app->redirect('/todo/list');
+    })
+    ->before(function(Request $request, Application $app){
+      if (null === $user = $app['session']->get('user'))
+          return $app->redirect('/login');
     });
 
+
     $controllers->post('/complete/{id}', function ($id) use ($app){
-      if (null === $user = $app['session']->get('user')) {
-          return $app->redirect('/login');
-      }
+      $user = $app['session']->get('user');
 
       $todoModel = new TodoModel($app);
       $update = $todoModel->update($id, [['col' => 'completed', 'val' => 1]]);
@@ -92,12 +99,15 @@ class TodoController implements ControllerProviderInterface
 
       return $app->redirect('/todo/list');
 
+    })
+    ->before(function(Request $request, Application $app){
+      if (null === $user = $app['session']->get('user'))
+          return $app->redirect('/login');
     });
 
+
     $controllers->get('/single/{id}/json', function ($id) use ($app){
-      if (null === $user = $app['session']->get('user')) {
-          return $app->redirect('/login/list');
-      }
+      $user = $app['session']->get('user');
 
       $todoModel = new TodoModel($app);
 
@@ -107,7 +117,12 @@ class TodoController implements ControllerProviderInterface
           'todo' => $todo,
       ]);
 
+    })
+    ->before(function(Request $request, Application $app){
+      if (null === $user = $app['session']->get('user'))
+          return $app->redirect('/login');
     });
+
 
     return $controllers;
   }

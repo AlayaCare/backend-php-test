@@ -46,8 +46,7 @@ class TodoModel
     $this->sql
             ->insert("todos")
             ->setValue("user_id", "'$user_id'")
-            ->setValue("description", "'?'")
-            ->setParameter(1, "'$description'");
+            ->setValue("description", "'$description'");
 
     return $insert = $this->app['db']->executeUpdate($this->sql);
   }

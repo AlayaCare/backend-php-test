@@ -5,6 +5,13 @@
 {% block content %}
     <div class="col-md-4 col-md-offset-4">
         <h1>Login</h1>
+
+        {% for flashMessage in app.session.flashbag.get('danger') %}
+          <div class="alert alert-danger" role="alert">
+            {{ flashMessage }}
+          </div>
+        {% endfor %}
+        
         <form class="form-horizontal login-form" method="POST" action="/login">
             <div class="input-group">
                 <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>

@@ -18,13 +18,22 @@ class Todo
 
     public function add($description) {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('{$GLOBALS['app']['session']->get('user')['id']}', '$description')";
-        $GLOBALS['app']['db']->executeUpdate($sql);
+        if($GLOBALS['app']['db']->executeUpdate($sql)) {
+            $GLOBALS['app']['session']->getFlashBag()->add('success', 'Todo added.');
+        } else {
+            $GLOBALS['app']['session']->getFlashBag()->add('error', 'Fail to add.');
+        }
+
     }
 
     public function delete($id) {
         //Added owner verification
         $sql = "DELETE FROM todos WHERE user_id = '{$GLOBALS['app']['session']->get('user')['id']}' AND id = '$id'";
-        $GLOBALS['app']['db']->executeUpdate($sql);
+        if($GLOBALS['app']['db']->executeUpdate($sql)) {
+            $GLOBALS['app']['session']->getFlashBag()->add('success', 'Todo deleted.');
+        } else {
+            $GLOBALS['app']['session']->getFlashBag()->add('error', 'Fail to del.');
+        }
     }
 
     public function complete($id) {

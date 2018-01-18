@@ -34,13 +34,26 @@
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required>
                 </td>
-                <td colspan="2" align="center">
+                <td colspan="3" align="center">
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>
         </tr>
     </table>
+
+    {% for success in app.session.flashbag.get('success') %}
+        <div class="alert alert-success">
+            <strong>Success!</strong> {{ success }}
+        </div>
+    {% endfor %}
+
+
+    {% for error in app.session.flashbag.get('error') %}
+        <div class="alert alert-danger">
+            <strong>Error!</strong> {{ error }}
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}

@@ -25,14 +25,18 @@ $app->match('/login', function (Request $request) use ($app) {
     $username = filter_var($request->get('username'), FILTER_SANITIZE_STRIPPED);
     $password = filter_var($request->get('password'), FILTER_SANITIZE_STRIPPED);
 
-    if ($username) {
+    if ($username and $password) {
         //md5 for increase security
         $user = User::login($username, md5($password));
 
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
+        } else {
+            $app['session']->getFlashBag()->add('error', 'Inválid login and/or password.');
         }
+    } else {
+        $app['session']->getFlashBag()->add('error', 'Login and password required.');
     }
 
     return $app['twig']->render('login.html', array());
@@ -95,6 +99,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if($description != "") {
         //Filtering user entries
         Todo::add(addslashes($description));
+    } else {
+        $app['session']->getFlashBag()->add('error', 'Description required.');
     }
 
     return $app->redirect('/todo');
@@ -106,6 +112,8 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     //Filtering user entries
     if(is_numeric($id)) {
         Todo::delete($id);
+    } else {
+        $app['session']->getFlashBag()->add('error', 'Inválid Todo.');
     }
 
     return $app->redirect('/todo');

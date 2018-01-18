@@ -8,23 +8,22 @@ use Entity\Todo;
 use Entity\User;
 use Doctrine\ORM\EntityManager;
 use Form\TodoType;
-use Symfony\Component\Form\Form;
 
-class TodoController
+class TodoController extends EntityController
 
 {
 
     /** @var \Silex\Application */
-    private $app;
+    protected $app;
 
     /** @var RequestStack */
-    private $requestStack;
+    protected $requestStack;
 
     /** @var \Doctrine\ORM\EntityManager */
-    private $orm_em;
+    protected $orm_em;
 
     /** @var \Entity\User */
-    private $user;
+    protected $user;
 
 
     /**
@@ -34,16 +33,16 @@ class TodoController
      * @param EntityManager $orm_em
      * @param User $user
      */
-    public function __construct(Application $app, RequestStack $requestStack, EntityManager $orm_em, User $user)
+    public function __construct(Application $app, RequestStack $requestStack, EntityManager $orm_em)
     {
         $this->app = $app;
         $this->request = $requestStack->getCurrentRequest();
         $this->orm_em = $orm_em;
-        $this->userid = $user->getId();
+        $this->userid = $this->app['user']->getID();
         $this->entity_class = 'Entity\Todo';
         $this->entity_name = 'todo';
         $this->main_index_url = '/' . $this->entity_name;
-
+        $this->main_index_bind = $this->entity_name;
     }
 
     /**
@@ -194,30 +193,6 @@ class TodoController
         return $this->mainIndexRedirect();
     }
 
-
-    // In another next step / commit we may wish to move the following methods to a new (parent or abstract) class. They could be reused for
-    // adding other entities such as categories or projects. We start moving away from the 'todo' language into a more generic 'entity' one
-
-    /**
-     * Get requested entity object if it exists
-     *
-     * @return Todo|null
-     */
-    public function getRequestedEntity()
-
-    {
-
-        $entity_id = $this->request->get('id');
-        $entity = $this->orm_em->find($this->entity_class, $entity_id);  
-        if ($entity) {
-
-            return $entity;
-        }
-
-        return;
-    }
-
-
     /**
      * Check if user is entity owner
      *
@@ -228,102 +203,8 @@ class TodoController
 
     {
 
-        return $this->userid === $owned_entity->getuser_id();
+        return $this->userid == $owned_entity->getuser_id();
 
-    }
-
-    /**
-     * Add flashbag message to session
-     *
-     * @param string $message The message
-     * Don't use scalar type hints like as in 'hasMessage(string $message)' to preserve compatibility with PHP 5 
-     * @return string|null
-     */
-    public function hasMessage($message)
-
-    {
-
-        if ($message) {
-
-            return $this->app['session']->getFlashBag()->add('message', $message);
-        }
-
-        return;
-
-    }
-
-    /**
-     * Redirect to the Entity main index page
-     *
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse
-     */
-    public function mainIndexRedirect()
-
-    {
-
-        return $this->app->redirect($this->main_index_url);
-    }
-
-
-    /**
-     * Update database upon succesfull submission for both add new and edit entity requests.
-     *
-     * @param Symfony\Component\Form\Form $form
-     * @param Todo $todo
-     * @param string $msg
-     * @return null
-     */
-    public function handleForm(Form $form, Todo $todo, $msg)
-    {
-
-        $form->handleRequest($this->request);
-
-        if ($form->isSubmitted()) {
-
-            //$this->handleErrors($form);
-
-            if ($form->isValid()) {
-
-                if ($todo->getuser_id() === null) {
-                    $todo->setuser_id($this->userid);
-                }
-                $this->orm_em->persist($todo);
-                $this->orm_em->flush();
-                $this->hasMessage("The $this->entity_name has been $msg");
-            }
-
-        }
-
-        return;
-    }
-
-    /**
-     * Get form submission errors
-     *
-     * Not being used at the moment - using symfony forms' built in error messaging instead
-     *
-     * @param Symfony\Component\Form\Form $form
-     * @return null
-     */
-    public function handleErrors(Form $form)
-    {
-
-        $errors = $this->app['validator']->validate($form);
-
-        if (count($errors) > 0) {
-            $x = 1;
-            foreach ($errors as $error) {
-                $err[] = $x . ': ' . $error->getMessage();
-                $x++;
-            }
-
-            $msg = implode(" ",$err);
-            //do something with errors
-            //ex log them somewhere or show to user:
-            //$this->hasMessage($msg);
-        }
-
-        return;
     }
 
     /**
@@ -347,5 +228,21 @@ class TodoController
         );
 
         return $api;
+    }
+
+    /**
+     * handleForm() hook for Entity specific requests to be executed before saving to db
+     *
+     * @param Entity $entity
+     * @return null
+     */
+    public function on_save_hook($entity)
+    {
+
+        if ($entity->getuser_id() === null) {
+            $entity->setuser_id($this->userid);
+        }
+
+        return;
     }
 }

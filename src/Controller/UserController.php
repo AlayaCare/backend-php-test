@@ -6,24 +6,8 @@ use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Form\LoginType;
 
-class UserController
+class UserController extends BaseController
 {
-
-
-    /** @var \Silex\Application */
-    protected $app;
-
-
-    /**
-     * Class constructor
-     * @param Application $app
-     * 
-     */
-    public function __construct(Application $app)
-
-    {
-        $this->app = $app;
-    }
 
     /**
      * Login action.
@@ -31,16 +15,27 @@ class UserController
      * @param Request $request
      * @return string Twig template
      */
-    function loginAction(Request $request)
+    function loginAction()
     {
         $form = $this->app['form.factory']->create(LoginType::class);
 
         return $this->app['twig']->render('login.html', array(
             'form' => $form->createView() ,
-            'error' => $this->app['security.last_error']($request) ,
+            'error' => $this->app['security.last_error']($this->request) ,
             'last_username' => $this->app['session']->get('_security.last_username') ,
             'allowRememberMe' => isset($this->app['security.remember_me.response_listener']),
         ));
     }
 
+    /**
+     * Logout action.
+     *
+     * @return null
+     */
+    function logoutAction()
+    {
+
+        $this->app['session']->set('user', null);
+
+    }
 }

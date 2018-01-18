@@ -3,16 +3,12 @@
 namespace Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Repository\TodoRepository;
-use Symfony\Component\Validator\Constraints\DateTime;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="Repository\TodoRepository")
  * @ORM\Table(name="todos")
  */
-class Todo
+class Todo extends Entity
 {
     /**
      * @ORM\Id @ORM\Column(type="integer") @ORM\GeneratedValue
@@ -153,64 +149,6 @@ class Todo
     public function setStatus($status)
     {
         $this->status = $status;
-    }
-
-    /**
-     * Sets the Todo creation DateTime.
-     *
-     * @param DateTime
-     */
-    public function setCreated(\DateTime $created)
-    {
-        $this->created = $created;
-    }
-
-    /**
-     * Gets the Todo creation DateTime.
-     *
-     * @return DateTime
-     */
-    public function getCreated()
-    {
-        return $this->created;
-    }
-
-    /**
-     * Gets the Todo updated at DateTime.
-     *
-     * @return DateTime
-     */
-    public function getUpdated()
-    {
-        return $this->updated;
-    }
-
-    /**
-     * Gets the Todo created at formatted DateTime timestamp.
-     *
-     * @param string DateTime format
-     * @return DateTime timestamp
-     */
-    public function getCreatedDateTime($format = 'Y-m-d H:i')
-    {
-        return $this->getCreated()->format($format);
-    }
-
-    /**
-     * Gets the Todo updated at formatted DateTime timestamp.
-     *
-     * @param string DateTime format
-     * @return DateTime timestamp
-     */
-    public function getUpdatedDateTime($format = 'Y-m-d H:i')
-    {
-
-        if($this->getUpdated()) {
-
-            return $this->getUpdated()->format($format);
-        }
-
-        return $this->getCreatedDateTime();
     }
 
 }

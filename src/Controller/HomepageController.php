@@ -5,7 +5,7 @@ namespace Controller;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 
-class HomepageController
+class HomepageController extends BaseController
 {
 
     /**
@@ -14,11 +14,12 @@ class HomepageController
      * @param Application $app
      * @return string Twig template
      */
-    public function indexAction(Request $request, Application $app)
+    public function indexAction()
     {
+
         $data = array(
             'readme' => file_get_contents('../README.md'),
         );
-        return $app['twig']->render('index.html', $data);
+        return $this->app['twig']->render('index.html', $data);
     }
 }

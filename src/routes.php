@@ -1,25 +1,29 @@
 <?php
+
 // Register homepage route
-$app->get('/', 'Controller\HomepageController::indexAction');
+$app->get('/', 'Controller.HomepageController:indexAction')->bind('home');
 
 // Register todo routes
 $app->post('/todo/delete/{id}', 'Controller.TodoController:deleteAction');
-$app->get('/todo', 'Controller.TodoController:indexAction');
-$app->post('/todo', 'Controller.TodoController:indexAction');
+$app->match('/todo', 'Controller.TodoController:indexAction')->bind('todo');
 
 $app->get('/todo/{id}', 'Controller.TodoController:singleAction');
 $app->post('/todo/{id}', 'Controller.TodoController:singleAction');
 $app->get('/todo/{id}/json/{method}', 'Controller.TodoController:viewActionJSON');
 
 $app->get('/todo/api/index', 'Controller.TodoController:indexActionJSON');
+
 // Register user routes
-$app->match('/login', 'Controller.UserController:loginAction');
-$app->match('/logout', 'Controller.UserController:logoutAction');
+$app->get('/login', 'Controller.UserController:loginAction')->bind('login');
+$app->get('/logout', 'Controller.UserController:logoutAction');
 
-
+// Controllers
+$app['Controller.HomepageController'] = function ($app) {
+    return new Controller\HomepageController($app, $app['request_stack']);
+};
 $app['Controller.UserController'] = function ($app) {
-    return new Controller\UserController($app);
+    return new Controller\UserController($app, $app['request_stack']);
 };
 $app['Controller.TodoController'] = function ($app) {
-    return new Controller\TodoController($app, $app['request_stack'], $app['entity_manager'], $app['user']);
+    return new Controller\TodoController($app, $app['request_stack'], $app['entity_manager']);
 };

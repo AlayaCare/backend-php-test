@@ -67,6 +67,9 @@ class UserProvider implements UserProviderInterface
         if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
+
+        $this->app['session']->set('user', $this->getUserSessionData($user));
+
         return $this->loadUserByUsername($user->getUsername());
     }
     /**
@@ -96,23 +99,21 @@ class UserProvider implements UserProviderInterface
         }
         return null;
     }
+
     /**
-     * Get the User id for the currently logged in User, if any.
+     * Get User Data for Session
      *
-     * @return int|null
+     * @param User $user
+     * @return array
      */
-    public function getCurrentUserId()
+    public function getUserSessionData(User $user)
     {
 
-        $user = $this->getCurrentUser();
+        $session_user = array(
+            'id' => $user->getId(),
+            'username' => $user->getUsername(),
+        );
 
-        if ($user) {
-
-            $user = $this->loadUserByUsername($user->getUsername());
-            return $user->getId();
-
-        }
-
-        return null;
+        return $session_user;
     }
 }

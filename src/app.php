@@ -11,7 +11,6 @@ use Doctrine\ORM\EntityManager;
 
 use Silex\Provider\SecurityServiceProvider;
 use Silex\Provider\CsrfServiceProvider;
-//use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 use Silex\Provider\ValidatorServiceProvider;
 use Silex\Provider\FormServiceProvider;
@@ -19,10 +18,9 @@ use Silex\Provider\TranslationServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\AssetServiceProvider;
 use Silex\Provider\TwigServiceProvider;
-use Lokhman\Silex\Provider\ConfigServiceProvider;
 
 
-class App extends Silex\Application
+class App extends \Silex\Application
 
 {
     /**
@@ -74,7 +72,6 @@ class App extends Silex\Application
 
         $this->register(new SecurityServiceProvider());
         $this->register(new CsrfServiceProvider());
-
     }
 
     /**
@@ -93,7 +90,7 @@ class App extends Silex\Application
         $this->register(new AssetServiceProvider());
         $this->register(new TwigServiceProvider());
         $this['twig'] = $this->extend('twig', function($twig, $app) {
-            $twig->addGlobal('user', $this['user']);
+            $twig->addGlobal('user', $app['session']->get('user'));
 
             return $twig;
         });
@@ -109,8 +106,6 @@ class App extends Silex\Application
 
         $this->register(new ServiceControllerServiceProvider());
         $this->register(new SessionServiceProvider());
-
-
     }
 
 }

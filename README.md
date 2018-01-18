@@ -32,7 +32,7 @@ Credentials:
 from the project root file:
 
 php composer.phar install
-cp config/local.json.dist config/local.json
+cp config/db.php.dist config/db.php
 
 1-) To create the db schema:
 vendor/bin/doctrine orm:schema-tool:update --dump-sql
@@ -43,7 +43,7 @@ mysql -u root <database> < resources/fixtures.sql
 
 php -S localhost:1337 -t web/ web/index.php
 ```
-You can change the database connection from the file `config/local.json`.
+You can change the database connection from the file `config/db.php`.
 
 ### Instructions
 

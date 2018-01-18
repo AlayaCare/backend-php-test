@@ -32,8 +32,7 @@ $app['security.firewalls'] = array(
 		'pattern' => '^/.*$',
 		'form' => array(
 			'login_path' => '/login',
-			'check_path' => '/check_login',
-			'csrf_provider' => 'form.csrf_provider'
+			'check_path' => '/check_login'
 		) ,
 		'anonymous' => false,
 		'logout' => array(

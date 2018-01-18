@@ -1,6 +1,4 @@
 /vendor/
 composer.lock
-config/local.json
-config/dev.json
-config/prod.json
+config/db.php
 web/.htaccess

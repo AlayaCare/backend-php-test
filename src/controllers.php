@@ -110,3 +110,18 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $user_id = $user['id'];
+
+    if(is_numeric($id)){
+        Todo::complete($id);
+
+        $url = $_SERVER['HTTP_REFERER'];
+        return $app->redirect($url);
+    }
+});

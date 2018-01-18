@@ -17,9 +17,6 @@ class HomepageController extends BaseController
     public function indexAction()
     {
 
-        $data = array(
-            'readme' => file_get_contents('../README.md'),
-        );
-        return $this->app['twig']->render('index.html', $data);
+        return $this->app['twig']->render('index.html');
     }
 }

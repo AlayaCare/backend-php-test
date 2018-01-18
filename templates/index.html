@@ -1,6 +1,19 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <h1>README</h1>
-    <pre class="well">{{ readme }}</pre>
+    <div class="col-md-12"></div>
+		<h1>README</h1>
+		<div id="readme"></div>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="/js/jquery-markdown.js"></script>
+		<script>
+			$(function () {
+				var options = {
+					owner: 'djleven',
+					repo: 'backend-php-test'
+				};
+				$('#readme').readme(options);
+			});
+		</script>
+    </div>
 {% endblock %}

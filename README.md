@@ -1,41 +1,48 @@
 Alayacare PHP backend skill test
 ==========================
 
-
 ### Application
 The TODO App allows a user to add reminders of thing he needs to do. Here are the requirement for the app.
 * Users can add, delete and see their todos.
 * All the todos are private, users can't see other user's todos.
 * Users must be logged in order to add/delete/see their todos.
 
-Credentials:
-* username: **user1**
-* password: **user1**
-
-#### Homepage:
-![Homepage](/web/img/homepage.png?raw=true "Homepage")
-
-#### Login page:
-![Login page](/web/img/login-page.png?raw=true "Login page")
+### Screenshots
 
 #### Todos:
 ![Todos](/web/img/todos.png?raw=true "Todos")
 
+#### Nested View:
+![NestedView](/web/img/1.png?raw=true "NestedView")
+
+#### Paginate Per 5:
+![PaginatePer5)](/web/img/2.png?raw=true "PaginatePer5")
+
+#### Filter Search:
+![FilterSearch](/web/img/SearchFilter.png?raw=true "FilterSearch")
+
+#### Edit Todo:
+![EditTodo)](/web/img/3.png?raw=true "EditTodo")
+
 ### Requirements
-* php 5.5.9+
+* php 5.5.9+ (5.6 for PHPUnit)
 * mysql
 * A github account
 
 ### Installation
-**/!\ You need to fork this repository. See [How to submit your work?](#how-to-submit-your-work)**
+
 ```sh
 from the project root file:
 
 php composer.phar install
+
 cp config/db.php.dist config/db.php
+
+Enter your database connection credentials in the file config/db.php.
 
 1-) To create the db schema:
 vendor/bin/doctrine orm:schema-tool:update --dump-sql
+
 2-) To populate the db
 vendor/bin/doctrine dbal:import resources/fixtures.sql
 or
@@ -43,7 +50,9 @@ mysql -u root <database> < resources/fixtures.sql
 
 php -S localhost:1337 -t web/ web/index.php
 ```
-You can change the database connection from the file `config/db.php`.
+Credentials:
+* username: **user1**
+* password: **user1**
 
 ### Instructions
 
@@ -71,30 +80,4 @@ Extra tasks:
 ### Documentation
 This app use [Silex](http://silex.sensiolabs.org/), a  micro-framework based on the Symfony2 Components.
 Documentation can be found here: http://silex.sensiolabs.org/documentation
-
-
-### How to submit your work?
-
-1. ##### First you need to fork this repository.
-![Forking a repo](/web/img/fork.png?raw=true "Forking a repo")
-
-2. ##### Then clone your fork locally.
-![Cloning a repo](/web/img/clone.png?raw=true "Cloning a repo")
-
-3. ##### Install the app locally. See the [Installation Guide] (#Installation).
-
-4. ##### Once you've completed your work, you can submit a pull-request to the remote repository.
-![ a Pull Request](/web/img/pull-request.png?raw=true "Creating a Pull Request")
-
-5. ##### Review your changes and validate.
-![Validating a Pull Request](/web/img/pull-request-review.png?raw=true "Validating a Pull Request")
-
-
-
-And you're done!
-
-
-More documentation on Github:
-* https://help.github.com/articles/fork-a-repo/
-* https://help.github.com/articles/using-pull-requests/
 

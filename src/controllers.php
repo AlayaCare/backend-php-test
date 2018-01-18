@@ -3,6 +3,9 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use Models\User;
+use Models\Todo;
+
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
 
@@ -18,17 +21,22 @@ $app->get('/', function () use ($app) {
 
 
 $app->match('/login', function (Request $request) use ($app) {
-    $username = $request->get('username');
-    $password = $request->get('password');
+    //Filtering user entries
+    $username = filter_var($request->get('username'), FILTER_SANITIZE_STRIPPED);
+    $password = filter_var($request->get('password'), FILTER_SANITIZE_STRIPPED);
 
-    if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+    if ($username and $password) {
+        //md5 for increase security
+        $user = User::login($username, md5($password));
 
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
+        } else {
+            $app['session']->getFlashBag()->add('error', 'Inválid login and/or password.');
         }
+    } else if( !empty($_POST) ) {
+        $app['session']->getFlashBag()->add('error', 'Login and password required.');
     }
 
     return $app['twig']->render('login.html', array());
@@ -46,44 +54,102 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+    $getTodo = Todo::getTodo($id);
 
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
+    //Filtering user entries
+    if ($id and is_numeric($id)){
+        if($getTodo) {
+            return $app['twig']->render('todo.html', [
+                'todo' => $getTodo,
+            ]);
+        } else {
+            return $app->redirect('/todo');
+        }
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+        /*** pagination ***/
+        $perPage = 3;
+        $count = count($getTodo);
+        $totalPage = ceil(($count / $perPage));
+        if(isset($_GET['page']) and is_numeric($_GET['page']) and $_GET['page'] <= $totalPage) {
+            $currentPage = $_GET['page'];
+        } else {
+            if(isset($_GET['page']) and (is_numeric($_GET['page']) or $_GET['page'] == 'last')) {
+                return $app->redirect("/todo?page={$totalPage}");
+            } else {
+                return $app->redirect('/todo?page=1');
+            }
+        };
+
+        $pagination['totalPage'] = $totalPage;
+        $pagination['currentPage'] = $currentPage;
+
+        $getTodo = array_slice($getTodo, ( ($currentPage * $perPage) - $perPage ), $perPage);
+        /*** end pagination ***/
 
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'todos' => $getTodo,
+            'pagination' => $pagination
         ]);
     }
 })
 ->value('id', null);
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if(is_numeric($id)) {
+        $todo = Todo::getTodo($id);
+    }
+
+    if($todo) {
+        return json_encode($todo);
+    } else {
+        return $app->redirect('/todo');
+    }
+});
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if($description != "") {
+        //Filtering user entries
+        Todo::add(addslashes($description));
+    } else {
+        $app['session']->getFlashBag()->add('error', 'Description required.');
+    }
 
-    return $app->redirect('/todo');
+    return $app->redirect("/todo?page=last");
 });
 
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
+$app->match('/todo/delete', function () use ($app) {
+    //Filtering user entries
+    if(is_numeric($_POST['id'])) {
+        Todo::delete($_POST['id']);
+    } else {
+        $app['session']->getFlashBag()->add('error', 'Inválid Todo.');
+    }
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    return $app->redirect('/todo?page='.$_POST['currentPage']);
+});
 
-    return $app->redirect('/todo');
+$app->match('/todo/complete', function () use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $user_id = $user['id'];
+
+    if(is_numeric($_POST['id'])){
+        Todo::complete($_POST['id']);
+
+        $url = $_SERVER['HTTP_REFERER'];
+        return $app->redirect($url);
+    }
 });

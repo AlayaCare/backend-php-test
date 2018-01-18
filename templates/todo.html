@@ -4,13 +4,26 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Comp.</th><th>Json</th><th>Del.</th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
-            <td>
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+            <td align="center">
+                <form method="post" action="{{ app.request.baseurl }}/todo/complete">
+                    <input type="hidden" name="id" value="{{ todo.id }}">
+                    <button type="submit" class="btn btn-xs btn-{% if(todo.completed) %}success{% else %}secondary{% endif %}"><span class="glyphicon glyphicon-ok"></span></button>
+                </form>
+            </td>
+            <td align="center">
+                <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
+                    <button class="btn btn-xs btn-info"><span class="glyphicon glyphicon glyphicon-console"></span></button>
+                </a>
+            </td>
+            <td align="center">
+                <form method="post" action="{{ app.request.baseurl }}/todo/delete">
+                    <input type="hidden" name="id" value="{{ todo.id }}">
+                    <input type="hidden" name="currentPage" value="1">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
             </td>

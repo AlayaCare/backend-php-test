@@ -6,19 +6,24 @@
         <form class="form-horizontal login-form" method="POST" action="/login">
             <div class="input-group">
                 <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
-                <input type="text" class="form-control" name="username" placeholder="Username">
+                <input type="text" class="form-control" name="username" placeholder="Username" required>
             </div>
 
             <div class="input-group">
                 <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
-                <input type="password" class="form-control" name="password" placeholder="Password">
+                <input type="password" class="form-control" name="password" placeholder="Password" required>
             </div>
             <div class="form-group">
                 <div class="col-sm-12 controls">
                     <button type="submit" class="btn btn-primary pull-right"><i class="glyphicon glyphicon-log-in"></i> login</button>
                 </div>
             </div>
-
         </form>
+
+        {% for error in app.session.flashbag.get('error') %}
+        <div class="alert alert-danger">
+            <strong>Error!</strong> {{ error }}
+        </div>
+        {% endfor %}
     </div>
 {% endblock %}

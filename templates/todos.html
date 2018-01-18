@@ -4,7 +4,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Comp.</th><th>Json</th><th>Del.</th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -14,8 +14,22 @@
                        {{ todo.description }}
                     </a>
                 </td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                <td align="center">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete">
+                        <input type="hidden" name="id" value="{{ todo.id }}">
+                        <input type="hidden" name="currentPage" value="{{ pagination.currentPage }}">
+                        <button type="submit" class="btn btn-xs btn-{% if(todo.completed) %}success{% else %}secondary{% endif %}"><span class="glyphicon glyphicon-ok"></span></button>
+                    </form>
+                </td>
+                <td align="center">
+                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
+                        <button class="btn btn-xs btn-info"><span class="glyphicon glyphicon glyphicon-console"></span></button>
+                    </a>
+                </td>
+                <td align="center">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete">
+                        <input type="hidden" name="id" value="{{ todo.id }}">
+                        <input type="hidden" name="currentPage" value="{{ pagination.currentPage }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
@@ -24,13 +38,42 @@
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required>
                 </td>
-                <td>
+                <td colspan="3" align="center">
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>
         </tr>
     </table>
+
+    {% if( pagination.totalPage > 1 ) %}
+        <ul class="pagination">
+            {% if( pagination.currentPage > 3 ) %}
+                <li><a href="?page=1">First</a></li>
+            {% endif %}
+
+            {% for i in (pagination.currentPage - 2)..(pagination.currentPage + 2) if i > 0 and i <= pagination.totalPage %}
+                <li {% if( i == pagination.currentPage) %}class="active"{% endif %}><a href="?page={{ i }}">{{ i }}</a></li>
+            {% endfor %}
+
+            {% if( (pagination.currentPage + 2) < pagination.totalPage ) %}
+                <li><a href="?page={{ pagination['totalPage'] }}">Last</a></li>
+            {% endif %}
+        </ul>
+    {% endif %}
+
+    {% for success in app.session.flashbag.get('success') %}
+        <div class="alert alert-success">
+            <strong>Success!</strong> {{ success }}
+        </div>
+    {% endfor %}
+
+
+    {% for error in app.session.flashbag.get('error') %}
+        <div class="alert alert-danger">
+            <strong>Error!</strong> {{ error }}
+        </div>
+    {% endfor %}
 </div>
 {% endblock %}

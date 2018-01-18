@@ -69,6 +69,21 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if(is_numeric($id)) {
+        $todo = Todo::getTodo($id);
+    }
+
+    if($todo) {
+        return json_encode($todo);
+    } else {
+        return $app->redirect('/todo');
+    }
+});
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
@@ -76,7 +91,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     }
 
     $description = $request->get('description');
-    
+
     if($description != "") {
         //Filtering user entries
         Todo::add(addslashes($description));

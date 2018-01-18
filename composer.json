@@ -28,7 +28,7 @@
         "psr-0": { "": "src/" }
     },
     "require-dev": {
-        "phpunit/phpunit": "^6"
+        "phpunit/phpunit": "^5"
     },
     "extra": {
         "branch-alias": {

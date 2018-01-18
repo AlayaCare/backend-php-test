@@ -24,6 +24,12 @@ The TODO App allows a user to add reminders of thing he needs to do. Here are th
 #### Edit Todo:
 ![EditTodo)](/web/img/3.png?raw=true "EditTodo")
 
+#### Homepage:
+![Homepage)](/web/img/homepage.png?raw=true "Homepage")
+
+
+**See [Live demo](https://todo.e-leven.net/)**
+
 ### Requirements
 * php 5.5.9+ (5.6 for PHPUnit)
 * mysql
@@ -41,7 +47,7 @@ cp config/db.php.dist config/db.php
 Enter your database connection credentials in the file config/db.php.
 
 1-) To create the db schema:
-vendor/bin/doctrine orm:schema-tool:update --dump-sql
+vendor/bin/doctrine orm:schema-tool:update --force
 
 2-) To populate the db
 vendor/bin/doctrine dbal:import resources/fixtures.sql

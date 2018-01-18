@@ -15,7 +15,9 @@
                     </a>
                 </td>
                 <td align="center">
-                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete">
+                        <input type="hidden" name="id" value="{{ todo.id }}">
+                        <input type="hidden" name="currentPage" value="{{ pagination.currentPage }}">
                         <button type="submit" class="btn btn-xs btn-{% if(todo.completed) %}success{% else %}secondary{% endif %}"><span class="glyphicon glyphicon-ok"></span></button>
                     </form>
                 </td>
@@ -25,7 +27,9 @@
                     </a>
                 </td>
                 <td align="center">
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete">
+                        <input type="hidden" name="id" value="{{ todo.id }}">
+                        <input type="hidden" name="currentPage" value="{{ pagination.currentPage }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
@@ -42,6 +46,22 @@
             </form>
         </tr>
     </table>
+
+    {% if( pagination.totalPage > 1 ) %}
+        <ul class="pagination">
+            {% if( pagination.currentPage > 3 ) %}
+                <li><a href="?page=1">First</a></li>
+            {% endif %}
+
+            {% for i in (pagination.currentPage - 2)..(pagination.currentPage + 2) if i > 0 and i <= pagination.totalPage %}
+                <li {% if( i == pagination.currentPage) %}class="active"{% endif %}><a href="?page={{ i }}">{{ i }}</a></li>
+            {% endfor %}
+
+            {% if( (pagination.currentPage + 2) < pagination.totalPage ) %}
+                <li><a href="?page={{ pagination['totalPage'] }}">Last</a></li>
+            {% endif %}
+        </ul>
+    {% endif %}
 
     {% for success in app.session.flashbag.get('success') %}
         <div class="alert alert-success">

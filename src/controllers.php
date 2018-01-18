@@ -35,7 +35,7 @@ $app->match('/login', function (Request $request) use ($app) {
         } else {
             $app['session']->getFlashBag()->add('error', 'Inválid login and/or password.');
         }
-    } else {
+    } else if( !empty($_POST) ) {
         $app['session']->getFlashBag()->add('error', 'Login and password required.');
     }
 
@@ -66,8 +66,29 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             return $app->redirect('/todo');
         }
     } else {
+        /*** pagination ***/
+        $perPage = 3;
+        $count = count($getTodo);
+        $totalPage = ceil(($count / $perPage));
+        if(isset($_GET['page']) and is_numeric($_GET['page']) and $_GET['page'] <= $totalPage) {
+            $currentPage = $_GET['page'];
+        } else {
+            if(isset($_GET['page']) and (is_numeric($_GET['page']) or $_GET['page'] == 'last')) {
+                return $app->redirect("/todo?page={$totalPage}");
+            } else {
+                return $app->redirect('/todo?page=1');
+            }
+        };
+
+        $pagination['totalPage'] = $totalPage;
+        $pagination['currentPage'] = $currentPage;
+
+        $getTodo = array_slice($getTodo, ( ($currentPage * $perPage) - $perPage ), $perPage);
+        /*** end pagination ***/
+
         return $app['twig']->render('todos.html', [
             'todos' => $getTodo,
+            'pagination' => $pagination
         ]);
     }
 })
@@ -103,31 +124,30 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $app['session']->getFlashBag()->add('error', 'Description required.');
     }
 
-    return $app->redirect('/todo');
+    return $app->redirect("/todo?page=last");
 });
 
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
-
+$app->match('/todo/delete', function () use ($app) {
     //Filtering user entries
-    if(is_numeric($id)) {
-        Todo::delete($id);
+    if(is_numeric($_POST['id'])) {
+        Todo::delete($_POST['id']);
     } else {
         $app['session']->getFlashBag()->add('error', 'Inválid Todo.');
     }
 
-    return $app->redirect('/todo');
+    return $app->redirect('/todo?page='.$_POST['currentPage']);
 });
 
-$app->match('/todo/complete/{id}', function ($id) use ($app) {
+$app->match('/todo/complete', function () use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
     $user_id = $user['id'];
 
-    if(is_numeric($id)){
-        Todo::complete($id);
+    if(is_numeric($_POST['id'])){
+        Todo::complete($_POST['id']);
 
         $url = $_SERVER['HTTP_REFERER'];
         return $app->redirect($url);

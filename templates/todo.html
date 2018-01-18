@@ -10,7 +10,8 @@
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
             <td align="center">
-                <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
+                <form method="post" action="{{ app.request.baseurl }}/todo/complete">
+                    <input type="hidden" name="id" value="{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-{% if(todo.completed) %}success{% else %}secondary{% endif %}"><span class="glyphicon glyphicon-ok"></span></button>
                 </form>
             </td>
@@ -20,7 +21,9 @@
                 </a>
             </td>
             <td align="center">
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                <form method="post" action="{{ app.request.baseurl }}/todo/delete">
+                    <input type="hidden" name="id" value="{{ todo.id }}">
+                    <input type="hidden" name="currentPage" value="1">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
             </td>

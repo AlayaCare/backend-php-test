@@ -50,7 +50,7 @@ class Todo extends Entity
      * @ORM\Column(type="integer")
      * 
      * Many Todos per One User
-     * @ORM\ManyToOne(targetEntity="Entity\UserEntity")
+     * @ORM\ManyToOne(targetEntity="Entity\User")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      * 
      */

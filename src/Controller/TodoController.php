@@ -203,7 +203,7 @@ class TodoController extends EntityController
 
     {
 
-        return $this->userid == $owned_entity->getuser_id();
+        return $this->userid === $owned_entity->getuser_id();
 
     }
 

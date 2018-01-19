@@ -1,5 +1,0 @@
-database:
-    host    : localhost
-    dbname  : ac_todos
-    user    : root
-    password:

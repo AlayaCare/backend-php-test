@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="col-md-12">
+    <h1>Todo:</h1>
+    <pre class="well">{{ todo }}</pre>
+
+	<a href="/todo" class="text-center">
+		<div class="btn btn-xs btn-success">Back to my list
+			<span class="glyphicon glyphicons-hand-left glyphicon-white"></span>
+		</div>
+	</a>
+</div>
+
+{% endblock %}

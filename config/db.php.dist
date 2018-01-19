@@ -1,0 +1,10 @@
+<?php
+// Database
+$app['db.options'] = array(
+	'driver' => 'pdo_mysql',
+	'host' => 'localhost',
+	'dbname' => 'my_db',
+	'user' => 'my_user',
+	'password' => 'my_secret',
+	'charset' => 'utf8'
+);

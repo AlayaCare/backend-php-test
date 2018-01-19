@@ -1,3 +1,4 @@
 /vendor/
 composer.lock
-config/config.yml
+config/db.php
+web/.htaccess

@@ -1,36 +1,39 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
-    <h1>Todo List:</h1>
-    <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
-        {% for todo in todos %}
-            <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
-                <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
-                </td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
-        <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
-                </td>
-            </form>
-        </tr>
-    </table>
+
+<div class="col-md-12">
+    <h2 class="text-center">Add a Todo:</h2>
+
+    {{ include('/partials/todo-form-horizontal.html') }}
+
 </div>
+<div class="clearfix"></div>
+<h1 class="text-center">Todo List:</h1>
+
+<div id="app">
+    <v-todo-table :columns="columns" :data="data" :options="options">
+       <a slot="title" slot-scope="props" :href="props.row.url">${ props.row.title }</a>
+       <a slot="url" slot-scope="props" :href="props.row.url" class="glyphicon glyphicon-pencil"></a>
+       <form slot="delete" slot-scope="props" method="post" :action="props.row.delete">
+            <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+       </form>
+       <template slot="child_row" scope="props" class="text-left">
+            <h2>${ props.row.title }</h2>
+            <div class="col-md-4 text-left vue-child">
+                <div><b>Status:</b>${ props.row.status }</div>
+                <div><b>Created at:</b> ${ props.row.created }</div>
+                <div><b>Updated at:</b> ${ props.row.updated }</div>
+            </div>
+            <div class="col-md-8 vue-child">
+                <div><b>Description:</b><br> ${ props.row.description }</div>
+            </div>
+       </template>
+    </v-todo-table>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.8/vue.min.js"></script>
+<script src="/js/vue-tables.js"></script>
+<script> var todo = {{ todos|raw }};</script>
+<script src="/js/todo.js"></script>
+
 {% endblock %}

@@ -1,0 +1,21 @@
+<div class="todo-actions text-center"> 
+	<!-- Option 1 -> open raw json in new tab-->
+	<form method="get" class="col-sm-4" action="/todo/{{ todo.id }}/json/raw" target="_blank">
+		<button type="submit" class="btn btn-xs btn-success">Todo in raw JSON
+			<span class="glyphicon glyphicon-search glyphicon-white"></span>
+		</button>
+	</form>
+    <!-- Option 2b -> open raw json in current tab - inline -->
+	<form method="get" class="col-sm-4" action="/todo/{{ todo.id }}/json/inline">
+		<button type="submit" class="btn btn-xs btn-success">Todo in JSON inline
+			<span class="glyphicon glyphicon-search glyphicon-white"></span>
+		</button>
+	</form>
+
+    <!-- Delete todo -->
+	<form method="post" class="col-sm-4" action="/todo/delete/{{ todo.id }}">
+		<button type="submit" class="btn btn-xs btn-danger">Delete
+			<span class="glyphicon glyphicon-remove glyphicon-white"></span>
+		</button>
+	</form>
+</div>

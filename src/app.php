@@ -9,8 +9,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
-
-use Providers\FPaginationServiceProvider;
+use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -21,9 +20,19 @@ $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
 /**
- * Custom Service Provider for Pagination
+ * Orm Implementation, see https://github.com/dflydev/dflydev-doctrine-orm-service-provider
  */
-$app->register(new FPaginationServiceProvider);
+$app->register(new DoctrineOrmServiceProvider() , array(
+  'orm.em.options'  =>  array(
+    'mappings'  =>  array(
+      array(
+        'type'      =>  'annotation',
+        'namespace' =>  'Entities',
+        'path'      =>  __DIR__ . '/Entities'
+      )
+    )
+  )
+));
 
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));

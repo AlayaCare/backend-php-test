@@ -19,19 +19,25 @@
     {% endfor %}
 
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th></th><th></th><th></th>
         {% for todo in todos %}
             <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
+                <td>{{ todo.getId }}</td>
+                <td>{{ todo.getUser.getId }}</td>
                 <td>
-                    <a href="{{ app.request.baseurl }}/todo/single/{{ todo.id }}">
-                       {{ todo.description }}
+                    <a href="{{ app.request.baseurl }}/todo/single/{{ todo.getId }}">
+                       {{ todo.getDescription }}
                     </a>
                 </td>
                 <td>
-                  <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}">
-                    {% if todo.completed == 0 %}
+                  <a href="{{app.request.baseurl}}/todo/single/json/{{todo.getId}}">
+                    <button class="glyphicon glyphicon-flash btn btn-xs"></button>
+                  </a>
+                </td>
+                <td>
+                  <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.getId }}">
+                    {% if todo.getCompleted == 0 %}
+
                     <button type="submit" class="btn btn-xs btn-default">
                       <span class="glyphicon glyphicon-ok glyphicon-green"></span>
                     </button>
@@ -44,7 +50,7 @@
                   </form>
                 </td>
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.getId }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
@@ -61,14 +67,29 @@
             </form>
         </tr>
     </table>
-    {% if count is defined %}
+    {% if type == 'small' %}
       <ul class="pagination">
-          {% for i in 1..count %}
+          {% for p in 1..pages %}
 
-            <li><a href="{{ app.request.baseurl }}/todo/list/{{i}}">{{i}}</a></li>
+            <li {% if p == page %} class="active" {% endif %} ><a href="{{ app.request.baseurl }}/todo/{{p}}">{{p}}</a></li>
 
           {% endfor %}
         </ul>
+    {% elseif type == 'big' %}
+        <ul class="pagination">
+          <li><a href="{{ app.request.baseurl }}/todo/1"> First </a></li>
+          {% if page == 1 %}
+            <li class="active"><a href="{{ app.request.baseurl }}/todo/{{page}}"> {{page}} </a></li>
+            <li><a href="{{ app.request.baseurl }}/todo/{{page + 1}}"> {{page +1}} </a></li>
+          {% elseif page == pages %}
+            <li><a href="{{ app.request.baseurl }}/todo/{{page -1}}"> {{page-1}} </a></li>
+            <li class="active"><a href="{{ app.request.baseurl }}/todo/{{page}}"> {{page}} </a></li>
+          {% else %}
+            <li><a href="{{ app.request.baseurl }}/todo/{{page -1}}"> {{page -1}} </a></li>
+            <li class="active"><a href="{{ app.request.baseurl }}/todo/{{page}}"> {{page}} </a></li>
+            <li><a href="{{ app.request.baseurl }}/todo/{{page +1}}"> {{page +1}} </a></li>
+          {% endif %}
+          <li><a href="{{ app.request.baseurl }}/todo/{{pages}}"> Last </a></li>
     {% endif %}
 </div>
 {% endblock %}

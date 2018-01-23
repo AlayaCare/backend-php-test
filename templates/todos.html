@@ -31,6 +31,13 @@
                 </td>
             </form>
         </tr>
+
     </table>
+    {% for error in app.session.flashbag.get('errors') %}
+        <div class="alert alert-danger">
+            <strong>{{ error }}</strong>
+        </div>
+    {% endfor %}
 </div>
+
 {% endblock %}

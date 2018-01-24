@@ -101,3 +101,31 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->post('/todo/completed/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add('success', 'The todo was marked as completed!');
+
+    return $app->redirect('/todo');
+});
+
+
+$app->post('/todo/notcompleted/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "UPDATE todos SET completed = 0 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->add('success', 'The todo was marked as NOT completed!');
+
+    return $app->redirect('/todo');
+});

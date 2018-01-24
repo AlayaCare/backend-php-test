@@ -4,7 +4,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Completed</th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -15,15 +15,34 @@
                     </a>
                 </td>
                 <td>
+                    {% if todo.completed == 1%}
+                        <form method="post" action="{{ app.request.baseurl }}/todo/notcompleted/{{ todo.id }}">
+                            <button type="submit" class="btn btn-xs btn-primary" title="Mark as NOT Completed">
+                                <span class="glyphicon glyphicon-check glyphicon-white"></span>
+                            </button>
+                            Yes
+                        </form>
+                    {% else %}
+                        <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}">
+                            <button type="submit" class="btn btn-xs btn-primary" title="Mark as Completed">
+                                <span class="glyphicon glyphicon-unchecked glyphicon-white"></span>
+                            </button>
+                            No
+                        </form>
+                    {% endif %}
+                </td>
+                <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        <button type="submit" class="btn btn-xs btn-danger">
+                            <span class="glyphicon glyphicon-remove glyphicon-white"></span>
+                        </button>
                     </form>
                 </td>
             </tr>
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
+                <td colspan="4">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
                 <td>
@@ -36,6 +55,12 @@
     {% for error in app.session.flashbag.get('errors') %}
         <div class="alert alert-danger">
             <strong>{{ error }}</strong>
+        </div>
+    {% endfor %}
+
+    {% for success in app.session.flashbag.get('success') %}
+        <div class="alert alert-success">
+            <strong>{{ success }}</strong>
         </div>
     {% endfor %}
 </div>

@@ -39,7 +39,9 @@ $app['home.controller'] = $app->share(function() use ($app){
 $app['todo.controller'] = $app->share(function() use ($app){
   return new TodoController($app);
 });
-/*** REDIRECT ALL THE 404 ***/
+
+/**** HOME ROUTES ****/
+
 /* Home Page */
 $app->get('/', 'home.controller:index');
 
@@ -48,6 +50,8 @@ $app->match('/login', 'home.controller:login');
 
 /* Logout Page */
 $app->get('/logout', 'home.controller:logout');
+
+/**** TODO ROUTES ****/
 
 /* Todo Home Page */
 $app->get('/todo/{page}', 'todo.controller:index')->value('page', 1)->before($guestMiddleware);

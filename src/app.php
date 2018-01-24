@@ -9,6 +9,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -17,6 +18,22 @@ $app->register(new ValidatorServiceProvider());
 $app->register(new ServiceControllerServiceProvider());
 $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
+
+/**
+ * Orm Implementation, see https://github.com/dflydev/dflydev-doctrine-orm-service-provider
+ */
+$app->register(new DoctrineOrmServiceProvider() , array(
+  'orm.em.options'  =>  array(
+    'mappings'  =>  array(
+      array(
+        'type'      =>  'annotation',
+        'namespace' =>  'Entities',
+        'path'      =>  __DIR__ . '/Entities'
+      )
+    )
+  )
+));
+
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
 $app->register(new DoctrineServiceProvider, array(

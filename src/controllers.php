@@ -129,3 +129,21 @@ $app->post('/todo/notcompleted/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        return $app->json($todo);
+    } else {
+        $app['session']->getFlashBag()->add('errors', 'Error to generate the Json');
+        return $app->redirect('/todo');
+    }
+})
+->value('id', null);

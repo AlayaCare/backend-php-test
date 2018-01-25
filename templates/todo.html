@@ -4,7 +4,7 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th>Completed</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th>Completed</th><th></th><th>Json</th>
         <tr>
             <td>{{ todo.id }}</td>
             <td>{{ todo.user_id }}</td>
@@ -20,6 +20,13 @@
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                     <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                 </form>
+            </td>
+            <td>
+                <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" target="_blank">
+                    <button class="btn btn-xs btn-secondary">
+                        <span class="glyphicon glyphicon-new-window glyphicon-white"></span>
+                    </button>
+                </a>
             </td>
         </tr>
     </table>

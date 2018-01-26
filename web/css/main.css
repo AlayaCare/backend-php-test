@@ -5,3 +5,10 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+
+ul {
+    list-style: none;
+}
+li {
+    display: inline-block;
+}

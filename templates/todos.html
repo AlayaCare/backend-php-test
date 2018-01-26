@@ -50,7 +50,25 @@
                 </td>
             </form>
         </tr>
-
+        <tr>
+            <td colspan="5">
+                <ul>
+                    {% for number, position in pages %}
+                        {% if position == 'first' %}
+                            <li><a href="{{ app.request.baseurl }}/todo/{{ number }}/list">&laquo;</a></li>
+                        {% elseif position == 'less' or position == 'more' %}
+                            <li>...</li>
+                        {% elseif position == 'previous' or position == 'next' %}
+                            <li><a href="{{ app.request.baseurl }}/todo/{{ number }}/list">{{ number }}</a></li>
+                        {% elseif position == 'current' %}
+                            <li>{{ number }}</li>
+                        {% elseif position == 'last' %}
+                            <li><a href="{{ app.request.baseurl }}/todo/{{ number }}/list">&raquo;</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
     </table>
     {% for error in app.session.flashbag.get('errors') %}
         <div class="alert alert-danger">

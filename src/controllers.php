@@ -42,7 +42,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}', function ($id, $page) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -55,15 +55,28 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        $sql = "SELECT COUNT(id) AS count FROM todos WHERE user_id = '${user['id']}'";
+        $count = $app['db']->fetchAssoc($sql);
+        $pagination = $app['pagination']($count['count'], $page);
+
+        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT 5 ";
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'pages' => $pagination->build(),
+            'current' => $pagination->currentPage(),
         ]);
     }
 })
-->value('id', null);
+->value('id', null)
+->value('page', 1)
+->convert(
+    'page',
+    function ($page) {
+        return (int) $page;
+    }
+);
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
@@ -149,3 +162,31 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     }
 })
 ->value('id', null);
+
+
+$app->get('/todo/{page}/list', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "SELECT COUNT(id) AS count FROM todos WHERE user_id = '${user['id']}'";
+    $count = $app['db']->fetchAssoc($sql);
+    $pagination = $app['pagination']($count['count'], $page);
+
+    $offset = ($page - 1) * 5;
+    $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT 5 OFFSET $offset ";
+    $todos = $app['db']->fetchAll($sql);
+
+    return $app['twig']->render('todos.html', [
+        'todos' => $todos,
+        'pages' => $pagination->build(),
+        'current' => $pagination->currentPage(),
+    ]);
+})
+->value('page', 1)
+->convert(
+    'page',
+    function ($page) {
+        return (int) $page;
+    }
+);

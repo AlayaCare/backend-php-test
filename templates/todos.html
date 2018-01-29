@@ -52,18 +52,18 @@
         </tr>
         <tr>
             <td colspan="5">
-                <ul>
+                <ul class="pagination">
                     {% for number, position in pages %}
                         {% if position == 'first' %}
-                            <li><a href="{{ app.request.baseurl }}/todo/{{ number }}/list">&laquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ app.request.baseurl }}/todo/{{ number }}/list">&laquo;</a></li>
                         {% elseif position == 'less' or position == 'more' %}
-                            <li>...</li>
+                            <li class="page-item"><a class="page-link" href="#">...</a></li>
                         {% elseif position == 'previous' or position == 'next' %}
-                            <li><a href="{{ app.request.baseurl }}/todo/{{ number }}/list">{{ number }}</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ app.request.baseurl }}/todo/{{ number }}/list">{{ number }}</a></li>
                         {% elseif position == 'current' %}
-                            <li>{{ number }}</li>
+                            <li class="page-item"><a class="page-link" href="#">{{ number }}</a></li>
                         {% elseif position == 'last' %}
-                            <li><a href="{{ app.request.baseurl }}/todo/{{ number }}/list">&raquo;</a></li>
+                            <li class="page-item"><a class="page-link" href="{{ app.request.baseurl }}/todo/{{ number }}/list">&raquo;</a></li>
                         {% endif %}
                     {% endfor %}
                 </ul>

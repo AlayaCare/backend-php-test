@@ -1,7 +1,7 @@
 <?php
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use ControllerProviders\TodoControllerProvider;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -9,81 +9,70 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     return $twig;
 }));
 
-
+/**
+ * Home Route
+ */
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
     ]);
 });
 
-
+/**
+ * Login Route
+ */
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $sql = "SELECT id, username FROM users WHERE username = ? AND password = ?";
+        $user = $app['db']->fetchAssoc($sql, [
+            $username,
+            $password
+        ]);
 
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
+        } else {
+            $app['session']->getFlashBag()->add('errors', 'User not found');
         }
     }
 
     return $app['twig']->render('login.html', array());
 });
 
-
+/**
+ * Logout Route
+ */
 $app->get('/logout', function () use ($app) {
     $app['session']->set('user', null);
     return $app->redirect('/');
 });
 
+/**
+ * Controller: Todo
+ */
+$app->mount('/todo', new TodoControllerProvider());
 
-$app->get('/todo/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
+/**
+ * Error Handle
+ */
+$app->error(function (\Exception $e, $code) use ($app) {
+    switch ($code) {
+        case 404:
+            $app['session']->getFlashBag()->add('errors', 'Sorry, Page not found');
+            return $app->redirect('/todo');
+            break;
+        case 500:
+            $app['session']->getFlashBag()->add('errors', 'Ops... Something wrong happened');
+            return $app->redirect('/todo');
+            break;
+        default:
+            $app['session']->getFlashBag()->add('errors', 'Ops... Something wrong happened');
+            return $app->redirect('/todo');
+            break;
     }
-
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-
-        return $app['twig']->render('todo.html', [
-            'todo' => $todo,
-        ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
-        return $app['twig']->render('todos.html', [
-            'todos' => $todos,
-        ]);
-    }
-})
-->value('id', null);
-
-
-$app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
-
-    $user_id = $user['id'];
-    $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
-    return $app->redirect('/todo');
 });
 
-
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-
-    return $app->redirect('/todo');
-});

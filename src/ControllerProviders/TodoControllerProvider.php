@@ -22,19 +22,38 @@ class TodoControllerProvider implements ControllerProviderInterface
             }
 
             if ($id){
-                $sql = "SELECT * FROM todos WHERE id = '$id'";
-                $todo = $app['db']->fetchAssoc($sql);
-
-                return $app['twig']->render('todo.html', [
-                    'todo' => $todo,
+                $sql = "SELECT * FROM todos WHERE id = ?";
+                $todo = $app['db']->fetchAssoc($sql, [
+                    $id
                 ]);
+
+                if ($todo){
+                    return $app['twig']->render('todo.html', [
+                        'todo' => $todo,
+                    ]);
+                } else {
+                    $app['session']->getFlashBag()->add('errors', 'Todo not found');
+                    return $app->redirect('/todo');
+                }
             } else {
-                $sql = "SELECT COUNT(id) AS count FROM todos WHERE user_id = '${user['id']}'";
-                $count = $app['db']->fetchAssoc($sql);
+                $sql = "SELECT COUNT(id) AS count FROM todos WHERE user_id = ?";
+                $count = $app['db']->fetchAssoc($sql, [
+                    (int) $user['id']
+                ]);
+
                 $pagination = $app['pagination']($count['count'], $page);
 
-                $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT 5 ";
-                $todos = $app['db']->fetchAll($sql);
+                $sql = "SELECT * FROM todos WHERE user_id = ? LIMIT ? ";
+                $todos = $app['db']->fetchAll($sql,
+                    [
+                        (int) $user['id'],
+                        5
+                    ],
+                    [
+                        \PDO::PARAM_INT,
+                        \PDO::PARAM_INT
+                    ]
+                );
 
                 return $app['twig']->render('todos.html', [
                     'todos' => $todos,
@@ -43,8 +62,16 @@ class TodoControllerProvider implements ControllerProviderInterface
                 ]);
             }
         })
-        ->value('id', null)
+        ->value('id', 0)
+        ->assert('id', '\d+')
+        ->convert(
+            'id',
+            function ($id) {
+                return (int) $id;
+            }
+        )
         ->value('page', 1)
+        ->assert('page', '\d+')
         ->convert(
             'page',
             function ($page) {
@@ -61,14 +88,14 @@ class TodoControllerProvider implements ControllerProviderInterface
                 return $app->redirect('/login');
             }
 
-            $user_id = $user['id'];
+            $user_id = (int) $user['id'];
             $todo = array(
-                'description' => $request->get('description'),
+                'description' => $app->escape($request->get('description')),
             );
 
-            $constraint = new Assert\Collection(array(
+            $constraint = new Assert\Collection([
                 'description' => new Assert\NotBlank(),
-            ));
+            ]);
             $errors = $app['validator']->validate($todo, $constraint);
 
             if (count($errors) > 0) {
@@ -76,8 +103,11 @@ class TodoControllerProvider implements ControllerProviderInterface
                     $app['session']->getFlashBag()->add('errors', $error->getPropertyPath().' '.$error->getMessage());
                 }
             } else {
-                $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '{$todo['description']}')";
-                $app['db']->executeUpdate($sql);
+                $sql = "INSERT INTO todos (user_id, description) VALUES (?, ?)";
+                $app['db']->executeUpdate($sql, [
+                    $user_id,
+                    $todo['description']
+                ]);
                 $app['session']->getFlashBag()->add('success', 'The todo was successfully created');
             }
 
@@ -87,30 +117,68 @@ class TodoControllerProvider implements ControllerProviderInterface
         /**
          * Todo's Delete Route
          */
-        $todo->match('/delete/{id}', function ($id) use ($app) {
+        $todo->post('/delete/{id}', function ($id) use ($app) {
+            if (null === $user = $app['session']->get('user')) {
+                return $app->redirect('/login');
+            }
 
-            $sql = "DELETE FROM todos WHERE id = '$id'";
-            $app['db']->executeUpdate($sql);
-            $app['session']->getFlashBag()->add('success', 'The todo was successfully removed');
+            $user_id = (int) $user['id'];
+
+            if ($id) {
+                $sql = "DELETE FROM todos WHERE id = ? AND user_id = ?";
+                $app['db']->executeUpdate($sql, [
+                    $id,
+                    $user_id
+                ]);
+                $app['session']->getFlashBag()->add('success', 'The todo was successfully removed');
+            } else {
+                $app['session']->getFlashBag()->add('errors', 'Error to delete the Todo');
+            }
 
             return $app->redirect('/todo');
-        });
+        })
+        ->value('id', 0)
+        ->assert('id', '\d+')
+        ->convert(
+            'id',
+            function ($id) {
+                return (int) $id;
+            }
+        );
 
         /**
-         * Set Todo as Completed Route
+         * Mark a Todo as Completed Route
          */
         $todo->post('/completed/{id}', function ($id) use ($app) {
             if (null === $user = $app['session']->get('user')) {
                 return $app->redirect('/login');
             }
 
-            $sql = "UPDATE todos SET completed = 1 WHERE id = '$id'";
-            $app['db']->executeUpdate($sql);
+            $user_id = (int) $user['id'];
 
-            $app['session']->getFlashBag()->add('success', 'The todo was marked as completed!');
+            if ($id) {
+                $sql = "UPDATE todos SET completed = ? WHERE id = ? AND user_id = ?";
+                $app['db']->executeUpdate($sql, [
+                    1,
+                    $id,
+                    $user_id
+                ]);
+
+                $app['session']->getFlashBag()->add('success', 'The todo was marked as completed!');
+            } else {
+                $app['session']->getFlashBag()->add('errors', 'Error to mark the Todo as completed');
+            }
 
             return $app->redirect('/todo');
-        });
+        })
+        ->value('id', 0)
+        ->assert('id', '\d+')
+        ->convert(
+            'id',
+            function ($id) {
+                return (int) $id;
+            }
+        );
 
         /**
          * Set Todo as Not Completed Route
@@ -120,13 +188,31 @@ class TodoControllerProvider implements ControllerProviderInterface
                 return $app->redirect('/login');
             }
 
-            $sql = "UPDATE todos SET completed = 0 WHERE id = '$id'";
-            $app['db']->executeUpdate($sql);
+            $user_id = (int) $user['id'];
 
-            $app['session']->getFlashBag()->add('success', 'The todo was marked as NOT completed!');
+            if ($id) {
+                $sql = "UPDATE todos SET completed = ? WHERE id = ? AND user_id = ?";
+                $app['db']->executeUpdate($sql, [
+                    0,
+                    $id,
+                    $user_id
+                ]);
+
+                $app['session']->getFlashBag()->add('success', 'The todo was marked as NOT completed!');
+            } else {
+                $app['session']->getFlashBag()->add('errors', 'Error to mark the Todo as NOT completed');
+            }
 
             return $app->redirect('/todo');
-        });
+        })
+        ->value('id', 0)
+        ->assert('id', '\d+')
+        ->convert(
+            'id',
+            function ($id) {
+                return (int) $id;
+            }
+        );
 
         /**
          * Todo's JSON View Route
@@ -137,16 +223,30 @@ class TodoControllerProvider implements ControllerProviderInterface
             }
 
             if ($id){
-                $sql = "SELECT * FROM todos WHERE id = '$id'";
-                $todo = $app['db']->fetchAssoc($sql);
+                $user_id = (int) $user['id'];
 
-                return $app->json($todo);
+                $sql = "SELECT * FROM todos WHERE id = ? AND user_id = ?";
+                $todo = $app['db']->fetchAssoc($sql, [
+                    $id,
+                    $user_id
+                ]);
+                if ($todo){
+                    return $app->json($todo);
+                } else {
+                    return 'Error to generate the Json';
+                }
             } else {
-                $app['session']->getFlashBag()->add('errors', 'Error to generate the Json');
-                return $app->redirect('/todo');
+                return 'Error to generate the Json';
             }
         })
-        ->value('id', null);
+        ->value('id', 0)
+        ->assert('id', '\d+')
+        ->convert(
+            'id',
+            function ($id) {
+                return (int) $id;
+            }
+        );
 
         /**
          * Todo's Pagination Route
@@ -155,14 +255,29 @@ class TodoControllerProvider implements ControllerProviderInterface
             if (null === $user = $app['session']->get('user')) {
                 return $app->redirect('/login');
             }
+            $user_id = (int) $user['id'];
 
-            $sql = "SELECT COUNT(id) AS count FROM todos WHERE user_id = '${user['id']}'";
-            $count = $app['db']->fetchAssoc($sql);
+            $sql = "SELECT COUNT(id) AS count FROM todos WHERE user_id = ?";
+            $count = $app['db']->fetchAssoc($sql, [
+                $user_id
+            ]);
+
             $pagination = $app['pagination']($count['count'], $page);
 
             $offset = ($page - 1) * 5;
-            $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' LIMIT 5 OFFSET $offset ";
-            $todos = $app['db']->fetchAll($sql);
+            $sql = "SELECT * FROM todos WHERE user_id = ? LIMIT ? OFFSET ?";
+            $todos = $app['db']->fetchAll($sql,
+                [
+                    $user_id,
+                    5,
+                    $offset
+                ],
+                [
+                    \PDO::PARAM_INT,
+                    \PDO::PARAM_INT,
+                    \PDO::PARAM_INT
+                ]
+            );
 
             return $app['twig']->render('todos.html', [
                 'todos' => $todos,
@@ -171,6 +286,7 @@ class TodoControllerProvider implements ControllerProviderInterface
             ]);
         })
         ->value('page', 1)
+        ->assert('page', '\d+')
         ->convert(
             'page',
             function ($page) {

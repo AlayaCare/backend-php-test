@@ -1,0 +1,2 @@
+UPDATE users set password = '$2y$10$2Rz0j2wN86lDmViKutXOI.pOPLHLH8Q5OZSBXpMUGw.B6k5Qtdq3W' where id=1;
+UPDATE users set password = '$2y$10$HvKvCs5QpyqLBHxwHTL5j.QCugVyuYkhmxU8pNaJuoptlQ8w72VXC' where id=2;

@@ -73,8 +73,16 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if(($user_id !=null) and ($description !=null)){
+        try{
+            $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+            $app['db']->executeUpdate($sql);
+            $app['session']->getFlashBag()->add('message', 'success');
+        }
+        catch(Exception $e){
+            $app['session']->getFlashBag()->add('message', 'error');
+        }
+    }
 
     return $app->redirect('/todo');
 });

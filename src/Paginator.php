@@ -1,5 +1,5 @@
 <?php
- 
+
 class Paginator {
     
     //declare all internal (private) variables
@@ -10,11 +10,12 @@ class Paginator {
     private $_total;
     private $_row_start;
     
-    public function __construct($conn, $query) {
+    public function __construct(\Silex\Application $app) {
      
-        $this->_conn = $conn; 
-        $this->_query = $query; 
-        $this->_total = count($conn->fetchAll($query));
+        $this->_conn = $app['db']; 
+
+        $this->todos = new Models($app);
+        $this->_total = $this->todos->countTodos();
      
     }
     
@@ -23,16 +24,8 @@ class Paginator {
      
         $this->_limit = $limit;
         $this->_page = $page;
-
-        //create the query, limiting records from page, to limit
         $this->_row_start = ( ( $this->_page - 1 ) * $this->_limit );
-        $query = $this->_query .
-                //add to original query: ( minus one because of the way SQL works )
-                " LIMIT {$this->_row_start}, $this->_limit";
-
-        $results =  $this->_conn->fetchAll($query);
-        
-        //print_r($results);die;
+        $results = $this->todos->getTodos($this->_row_start, $this->_limit);
 
         //return data as object, new stdClass() creates new empty object
         $result         = new stdClass();
@@ -45,8 +38,7 @@ class Paginator {
     }
     
     //PRINT LINKS
-    public function createLinks( $links, $list_class ) 
-    {
+    public function createLinks( $links, $list_class ) {
         //get the last page number
         $last = ceil( $this->_total / $this->_limit );
         

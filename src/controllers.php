@@ -77,10 +77,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         try{
             $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
             $app['db']->executeUpdate($sql);
-            $app['session']->getFlashBag()->add('message', 'success');
+            $app['session']->getFlashBag()->add('success', 'Todo added successfully');
         }
         catch(Exception $e){
-            $app['session']->getFlashBag()->add('message', 'error');
+            $app['session']->getFlashBag()->add('error', 'There has been an error. Try again.');
         }
     }
 
@@ -90,17 +90,28 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    try{
+        $sql = "DELETE FROM todos WHERE id = '$id'";
+        $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add('success', 'Todo deleted');
+    }
+    catch(Exception $e){
+        $app['session']->getFlashBag()->add('error', 'There has been an error. Try again.');
+    }
 
     return $app->redirect('/todo');
 });
 
 $app->match('/todo/mark/{id}', function ($id) use ($app) {
-
-    $now = date_create('now')->format('Y-m-d H:i:s');
-    $sql = "UPDATE todos SET completed=1, date_completed='" . $now . "' WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    try{
+        $now = date_create('now')->format('Y-m-d H:i:s');
+        $sql = "UPDATE todos SET completed=1, date_completed='" . $now . "' WHERE id = '$id'";
+        $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add('success', 'Todo completed');
+     }
+    catch(Exception $e){
+        $app['session']->getFlashBag()->add('error', 'There has been an error. Try again.');
+    }
 
     return $app->redirect('/todo');
 });

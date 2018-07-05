@@ -3,6 +3,19 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+
+    {% if app.session.flashBag.has('success') %}
+    <div class="alert alert-success">
+        {% for msg in app.session.flashBag.get('success') %} {{ msg }} {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if app.session.flashBag.has('error') %}
+    <div class="alert alert-danger">
+        {% for msg in app.session.flashBag.get('error') %} {{ msg }} {% endfor %}
+    </div>
+    {% endif %}
+
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         {% for todo in todos %}
@@ -22,8 +35,10 @@
                     </form>
                 </td>
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white" data-toggle="tooltip" title="delete task"></span></button>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}" onsubmit="return confirm('Are you sure you want to delete this todo?');">
+                    <button type="submit" class="btn btn-xs btn-danger">
+                        <span class="glyphicon glyphicon-remove glyphicon-white" data-toggle="tooltip" title="delete task"></span>
+                    </button>
                     </form>
                 </td>
             </tr>

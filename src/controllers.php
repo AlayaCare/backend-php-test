@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+require ('models.php');
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -22,15 +23,18 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = new Models($app);
+        $user = $user->checkUserPwd($username, $password);
 
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
         }
+        else{
+            $app['session']->getFlashBag()->add('error', 'Wrong credentials. Try again.');
+        }
     }
-
+    
     return $app['twig']->render('login.html', array());
 });
 
@@ -47,18 +51,30 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = new Models($app);
+        $todo = $todo->getTodo($id);
+
+        if($todo == null){
+            $app['session']->getFlashBag()->add('error', 'Data does not exists.');
+        }
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
-    } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+    } 
+    else {    
+        //these variables are passed via URL
+        $limit = ( isset( $_GET['limit'] ) ) ? $_GET['limit'] : 5; 
+        $page = ( isset( $_GET['page'] ) ) ? $_GET['page'] : 1; //starting page
+        $links = 5;
+        $paginator = new Paginator($app);
+        $results = $paginator->getData( $limit, $page );
+        $pagination_links = $paginator->createLinks($links, 'pagination pagination-sm');
+
 
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'results' => $results, 
+            'pagination_links' => $pagination_links
         ]);
     }
 })
@@ -73,17 +89,51 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
+    if(($user_id !=null) and ($description !=null)){
+        $todo = new Models($app);
+        $todo = $todo->addTodo($user_id, $description);
+
+        if($todo != null){
+            $app['session']->getFlashBag()->add('success', $todo);
+        }
+        else{
+            $app['session']->getFlashBag()->add('error', 'There has been an error. Try again.');
+        }
+    }
 
     return $app->redirect('/todo');
 });
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $todo = new Models($app);
+    $todo = $todo->deleteTodo($id);
+    if($todo != null){
+        $app['session']->getFlashBag()->add('success', $todo);
+    }
+    else{
+        $app['session']->getFlashBag()->add('error', 'There has been an error. Try again.');
+    }
 
     return $app->redirect('/todo');
+});
+
+$app->match('/todo/mark/{id}', function ($id) use ($app) {
+    $todo = new Models($app);
+    $todo = $todo->markTodo($id);
+    if($todo != null){
+        $app['session']->getFlashBag()->add('success', $todo);
+    }
+    else{
+        $app['session']->getFlashBag()->add('error', 'There has been an error. Try again.');
+    }
+
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/{id}/json', function ($id) use ($app) {
+
+    $todo = new Models($app);
+    $todo = $todo->toJson($id);
+    return json_encode($todo);
 });

@@ -104,3 +104,10 @@ $app->match('/todo/mark/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+$app->match('/todo/{id}/json', function ($id) use ($app) {
+
+    $sql = "SELECT id, user_id, description FROM todos WHERE id = '$id'";
+    $todo = $app['db']->fetchAssoc($sql);
+    return json_encode($todo);
+});

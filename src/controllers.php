@@ -37,8 +37,10 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     if ($id){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
+		$jsonview = '';
         return $app['twig']->render('todo.html', [
-            'todo' => $todo,
+            'todo'     => $todo,
+			'jsonview' => $jsonview
         ]);
     } else {
 		$sth = $app['db']->prepare("SELECT id, description FROM todos WHERE user_id = ?");
@@ -70,7 +72,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     
 	$description = $request->get('description');
 	
-	//server side validation is necessary, client side is convenience. 
+    //server side validation is necessary, client side is convenience.
 	if (empty($description)) {
 	
 		$sth = $app['db']->prepare("SELECT id, description FROM todos WHERE user_id = ?");
@@ -110,3 +112,39 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $app['db']->executeUpdate($sql);
     return $app->redirect('/todo');
 });
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+		
+		//added user_id condition as all todos are private. User should not see todos of others.
+		$sth = $app['db']->prepare("SELECT * FROM todos WHERE id= ? and user_id = ?");
+		$sth->bindValue(1, $id,         PDO::PARAM_INT);
+		$sth->bindValue(2, $user['id'], PDO::PARAM_INT);
+		$sth->execute();
+		$todo = $sth->fetch();		
+        
+		$jsonview = '';
+		
+		if($todo) {
+			$jsonview = json_encode($todo);
+				return $app['twig']->render('todo.html', [
+				'todo'     => $todo,
+				'jsonview' => $jsonview
+			]);
+		} else {
+			$app['session']->getFlashBag()->set('error', 'Invalid Todo.');
+			return $app->redirect('/todo/'.$id);
+		}
+		
+		
+    } else {
+        $app['session']->getFlashBag()->set('error', 'Invalid Todo.');
+		return $app->redirect('/todo/'.$id);
+    }
+})
+->value('id', null);

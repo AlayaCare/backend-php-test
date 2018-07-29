@@ -73,7 +73,6 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 	//server side validation is necessary, client side is convenience. 
 	if (empty($description)) {
 	
-		//TASK 1: As a user I can't add a todo without a description.		
 		$sth = $app['db']->prepare("SELECT id, description FROM todos WHERE user_id = ?");
 		$sth->bindValue(1, $user['id'], PDO::PARAM_INT);
 		$sth->execute();

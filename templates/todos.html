@@ -6,7 +6,7 @@
     <table class="table table-hover">
         <thead>
         <tr>
-            <th>#</th><th>Description</th><th>Action</th>
+            <th>#</th><th>Description</th><th>Status</th><th>Date<th>Action</th>
         </tr>
         </thead>
         <tbody>
@@ -19,7 +19,7 @@
         {% endfor %}
 		<tr>
 		<form method="post" action="{{ app.request.baseurl }}/todo/add">
-			<td colspan="2">
+			<td colspan="4">
 				<input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required>
 			</td>
 			<td>
@@ -28,11 +28,11 @@
 		</form>
         </tr>
 		<tr>
-			<td colspan="4">
+			<td colspan="6">
 			{% include "usermessages.html" %}
 			</td>
 		</tr>
         </tbody>
     </table>
 </div>
-{% endblock %} 
+{% endblock %}

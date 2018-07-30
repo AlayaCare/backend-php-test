@@ -17,8 +17,10 @@
                 {% endfor %}
             </tr>
         {% endfor %}
+		{{ knp_pagination_render( pagination ) }}
 		<tr>
 		<form method="post" action="{{ app.request.baseurl }}/todo/add">
+			<input type="hidden" name="page" value="{{ page }}">
 			<td colspan="4">
 				<input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required>
 			</td>

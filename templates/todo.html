@@ -8,7 +8,7 @@
 		{% if todo.todo_status == "Completed" %}
 			<th>Date</th>
 		{% endif %}
-		<th>Action</th><th></th>
+		<th>Action</th><th></th>		
 		<th></th>
 		<tbody>
         <tr>
@@ -38,7 +38,7 @@
 				<td><input type=""text" value="{{ jsonview }}"></td>
 			{% endif %}
 	    </tr>
-		<tr><td colspan="6">{% include "usermessages.html" %}</td></tr>
+		<tr><td colspan="7">{% include "usermessages.html" %}</td></tr>
 		</tbody>
     </table>
 </div>

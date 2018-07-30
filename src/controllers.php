@@ -2,6 +2,8 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+const PER_PAGE = 5;
+
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
     return $twig;
@@ -43,6 +45,9 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
 			'jsonview' => $jsonview
         ]);
     } else {
+		
+		$page = $request->get('page', 1);
+		
 		$sth = $app['db']->prepare("SELECT id, description, todo_status, completed_date FROM todos WHERE user_id = ?");
 		$sth->bindValue(1, $user['id'], PDO::PARAM_INT);
 		$sth->execute();
@@ -62,11 +67,16 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
 				'completed_date' => $completed_date,
 				'action'      => "<form method='post' action='".$request->getBaseUrl()."/todo/delete/".$todosdb[$i]["id"]."' id='deleteentity".$todosdb[$i]["id"]."'>
 										<button type='submit' title='Delete' class='btn btn-xs btn-danger'><span class='glyphicon glyphicon-remove glyphicon-white'></span></button>
+										<input type='hidden' name='page' value='".$page."'>
 								  </form>"
 			);
 		}
+		
+		$pagination = $app['knp_paginator']->paginate($todos, $page, PER_PAGE);
+		
 		return $app['twig']->render('todos.html', [
-			'pagination' => $todos
+			'pagination' => $pagination,
+			'page' => $page
         ]);
     }
 })
@@ -77,37 +87,14 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     }
     
 	$description = $request->get('description');
+	$page = $request->get('page', 1);
 	
     //server side validation is necessary, client side is convenience.
 	if (empty($description)) {
 	
-		$sth = $app['db']->prepare("SELECT * FROM todos WHERE user_id = ?");
-		$sth->bindValue(1, $user['id'], PDO::PARAM_INT);
-		$sth->execute();
-		$todosdb = $sth->fetchAll();
-		
-		//this is preparation for pagination task.
-		$todos = array();
-		for ($i = 0; $i < count($todosdb); $i++) {
-			$completed_date = '-';
-			if($todosdb[$i]["todo_status"] == 'Completed') {
-				$completed_date = $todosdb[$i]["completed_date"]; 
-			}
-			$todos[] = array(				
-				'id' => $i+1,
-				'description' => "<a href='".$request->getBaseUrl()."/todo/".$todosdb[$i]["id"]."'>".$todosdb[$i]['description']."</a>",
-				'status'      => $todosdb[$i]["todo_status"],
-				'completed_date' => $completed_date,
-				'action'      => "<form method='post' action='".$request->getBaseUrl()."/todo/delete/".$todosdb[$i]["id"]."' id='deleteentity".$todosdb[$i]["id"]."'>
-										<button type='submit' title='Delete' class='btn btn-xs btn-danger'><span class='glyphicon glyphicon-remove glyphicon-white'></span></button>
-								  </form>"
-			);
-		}
 		// add flash messages
 		$app['session']->getFlashBag()->set('error', 'Description is required.');
-		return $app['twig']->render('todos.html', [
-			'pagination' => $todos
-        ]);
+		
 	} else {    
 		$sql = "INSERT INTO todos (user_id, description, todo_status) VALUES (?,?,?)";
 		$stmt = $app['db']->prepare($sql);
@@ -115,19 +102,20 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 		$app['session']->getFlashBag()->set('success', 'Todo added successfully.');
 	}
-		
-    return $app->redirect($request->getBaseUrl().'/todo');
+	
+	return $app->redirect($request->getBaseUrl().'/todo?page='.$page);
     
 });
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
+$app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
     
+	$page = $request->get('page',1);
 	$sth = $app['db']->prepare("DELETE FROM todos WHERE id = ?");
 	$sth->bindValue(1, $id, PDO::PARAM_INT);
 	$sth->execute();
 	
     $app['session']->getFlashBag()->set('success', 'Todo deleted successfully.');
 	
-    return $app->redirect('/todo');
+    return $app->redirect('/todo?page='.$page);
 });
 
 $app->get('/todo/{id}/json', function ($id) use ($app) {
@@ -175,7 +163,7 @@ $app->match('/todo/complete/{id}', function ($id) use ($app) {
 	$sql = "UPDATE todos SET todo_status=?, completed_date=? WHERE id = ?";
 	$stmt = $app['db']->prepare($sql);
 	$stmt->execute(array('Completed', $currenttime, $id));
-		
+	
 	$app['session']->getFlashBag()->set('success', 'Todo marked Completed successfully.');
 	
 	$sth = $app['db']->prepare("SELECT * FROM todos WHERE id = ?");

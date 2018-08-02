@@ -3,6 +3,19 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
+
+    {% if app.session.flashBag.has('success') %}
+    <div class="alert alert-success">
+        {% for msg in app.session.flashBag.get('success') %} {{ msg }} {% endfor %}
+    </div>
+    {% endif %} 
+    
+    {% if app.session.flashBag.has('error') %}
+    <div class="alert alert-danger">
+        {% for msg in app.session.flashBag.get('error') %} {{ msg }} {% endfor %}
+    </div>
+    {% endif %}
+
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         <tr>
@@ -10,23 +23,26 @@
             <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
             <td>
-                {% if todo.completed %}
-                    Completed
-                {% else %}
-                    <form method="post" action="{{ app.request.baseurl }}/todo/mark/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-success">
-                            <span class="glyphicon glyphicon-ok glyphicon-white" data-toggle="tooltip" title="mark as done"></span>
-                        </button>
-                    </form>
-                {% endif %}
+                <form method="post" action="{{ app.request.baseurl }}/todo/mark/{{ todo.id }}">
+                    <button type="submit" class="btn btn-xs btn-success">
+                        <span class="glyphicon glyphicon-ok glyphicon-white" data-toggle="tooltip" title="mark as done"></span>
+                    </button>
+                </form>
             </td>
             <td>
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                    <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}" onsubmit="return confirm('Are you sure you want to delete this todo?');">
+                    <button type="submit" class="btn btn-xs btn-danger">
+                        <span class="glyphicon glyphicon-remove glyphicon-white" data-toggle="tooltip" title="delete task"></span>
+                    </button>
                 </form>
             </td>
         </tr>
     </table>
+    <form method="post" action="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
+        <button type="submit" class="btn btn-xs btn-default">
+            View todo in JSON format
+        </button>
+    </form>
 </div>
 
 {% endblock %}

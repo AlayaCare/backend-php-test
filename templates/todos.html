@@ -34,7 +34,8 @@
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
+                <td colspan="3">        <tr>
+
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..."  required>
                 </td>
                 <td>

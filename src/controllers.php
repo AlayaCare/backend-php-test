@@ -72,10 +72,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
+    if (!empty($description) && !empty($user_id)) {
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add('message', 'Todo successfully added.');
+    } else {
+        $app['session']->getFlashBag()->add('message', 'Either description or user is emppty.');
+    }
     return $app->redirect('/todo');
 });
 

@@ -4,18 +4,9 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
 
-    {% if app.session.flashBag.has('success') %}
-    <div class="alert alert-success">
-        {% for msg in app.session.flashBag.get('success') %} {{ msg }} {% endfor %}
-    </div>
-    {% endif %} 
-    
-    {% if app.session.flashBag.has('error') %}
-    <div class="alert alert-danger">
-        {% for msg in app.session.flashBag.get('error') %} {{ msg }} {% endfor %}
-    </div>
-    {% endif %}
+    {% include "messages.html" %}
 
+    {% if todo %}
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         <tr>
@@ -43,6 +34,7 @@
             View todo in JSON format
         </button>
     </form>
+    {% endif %}
 </div>
 
 {% endblock %}

@@ -16,9 +16,11 @@
     </div>
     {% endif %}
 
+    <div class="text-center">{{pagination_links | raw}}</div>
+
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th><th></th>
-        {% for todo in todos %}
+        {% for todo in results.data %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>

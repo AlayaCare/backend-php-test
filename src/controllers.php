@@ -55,10 +55,19 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         ]);
     } else {
         $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}' AND completed!=1";
-        $todos = $app['db']->fetchAll($sql);
+
+        //these variables are passed via URL
+        $limit = ( isset( $_GET['limit'] ) ) ? $_GET['limit'] : 5; 
+        $page = ( isset( $_GET['page'] ) ) ? $_GET['page'] : 1; //starting page
+        $links = 5;
+        $paginator = new Paginator($app['db'], $sql);
+        $results = $paginator->getData( $limit, $page );
+        $pagination_links = $paginator->createLinks($links, 'pagination pagination-sm');
+
 
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'results' => $results, 
+            'pagination_links' => $pagination_links
         ]);
     }
 })

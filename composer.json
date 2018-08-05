@@ -23,7 +23,8 @@
         "symfony/validator": "~2.3",
         "doctrine/dbal": "~2.2",
         "deralex/yaml-config-service-provider": "1.0.x-dev",
-		"ttskch/pagination-service-provider" : "~1.0"
+		"ttskch/pagination-service-provider" : "~1.0",
+		"dflydev/doctrine-orm-service-provider": "1.0.6"
     },
     "autoload": {
         "psr-0": { "": "src/" }		

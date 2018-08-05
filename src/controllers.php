@@ -1,25 +1,33 @@
 <?php
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
-const PER_PAGE = 5;
+use App\Entity\Todos;
+use App\Entity\Users;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
     return $twig;
 }));
+
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
         'readme' => file_get_contents('README.md'),
     ]);
 });
+
 $app->match('/login', function (Request $request) use ($app) {
-    $username = $request->get('username');
+    
+	$username = $request->get('username');
     $password = $request->get('password');
-    if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-        if ($user){
+    
+	if ($username) {
+        
+		$user = $app['orm.em']->getRepository('App\Entity\Users')->findBy([
+			'username' => $username,
+			'password' => $password
+		]);
+		
+		if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
         } else {
@@ -28,51 +36,68 @@ $app->match('/login', function (Request $request) use ($app) {
     }
     return $app['twig']->render('login.html', array());
 });
+
 $app->get('/logout', function () use ($app) {
     $app['session']->set('user', null);
     return $app->redirect('/');
 });
+
 $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
+	
+	$todoArr = array();
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-		$jsonview = '';
-        return $app['twig']->render('todo.html', [
-            'todo'     => $todo,
-			'jsonview' => $jsonview
+		
+		$todo = $app['orm.em']->getRepository('App\Entity\Todos')->find($id);
+		
+		if (! $todo) {
+			$app['session']->getFlashBag()->set('error', 'No Todo found for id '.$id);
+		} else {
+			$todoArr = array('id' => $todo->getId(),
+							 'todo_status' => $todo->getTodoStatus(),
+							 'description' => $todo->getDescription(),
+							 'completed_date' => $todo->getCompletedDate() ? $todo->getCompletedDate()->format('m/d/Y h:i:s') : ''
+							);
+		}
+		
+		return $app['twig']->render('todo.html', [
+            'todo'     => $todoArr,
+			'jsonview' => ''
         ]);
     } else {
 		
 		$page = $request->get('page', 1);
 		
-		$sth = $app['db']->prepare("SELECT id, description, todo_status, completed_date FROM todos WHERE user_id = ?");
-		$sth->bindValue(1, $user['id'], PDO::PARAM_INT);
-		$sth->execute();
-		$todosdb = $sth->fetchAll();
+		$todosdb = $app['orm.em']->getRepository('App\Entity\Todos')->findBy([
+													'user' => $user[0]->getId(),
+												]);
+		
+		
+		//development environemnt was giving a memory exhaust error, this line seems to fix that.
+		$app['orm.em']->getConnection()->getWrappedConnection()->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);		
 		
 		//this is preparation for pagination task.
 		$todos = array();
 		for ($i = 0; $i < count($todosdb); $i++) {
 			$completed_date = '-';
-			if($todosdb[$i]["todo_status"] == 'Completed') {
-				$completed_date = $todosdb[$i]["completed_date"]; 
+			if($todosdb[$i]->getTodoStatus() == 'Completed') {
+				$completed_date = $todosdb[$i]->getCompletedDate()->format('m/d/Y h:i:s'); 
 			}
 			$todos[] = array(				
 				'id' => $i+1,
-				'description' => "<a href='".$request->getBaseUrl()."/todo/".$todosdb[$i]["id"]."'>".$todosdb[$i]['description']."</a>",
-				'status'      => $todosdb[$i]["todo_status"],
+				'description' => "<a href='".$request->getBaseUrl()."/todo/".$todosdb[$i]->getId()."'>".$todosdb[$i]->getDescription()."</a>",
+				'status'      => $todosdb[$i]->getTodoStatus(),
 				'completed_date' => $completed_date,
-				'action'      => "<form method='post' action='".$request->getBaseUrl()."/todo/delete/".$todosdb[$i]["id"]."' id='deleteentity".$todosdb[$i]["id"]."'>
+				'action'      => "<form method='post' action='".$request->getBaseUrl()."/todo/delete/".$todosdb[$i]->getId()."' id='deleteentity".$todosdb[$i]->getId()."'>
 										<button type='submit' title='Delete' class='btn btn-xs btn-danger'><span class='glyphicon glyphicon-remove glyphicon-white'></span></button>
 										<input type='hidden' name='page' value='".$page."'>
 								  </form>"
 			);
 		}
 		
-		$pagination = $app['knp_paginator']->paginate($todos, $page, PER_PAGE);
+		$pagination = $app['knp_paginator']->paginate($todos, $page, $app['config']['pagination']['per_page_entity']);
 		
 		return $app['twig']->render('todos.html', [
 			'pagination' => $pagination,
@@ -81,8 +106,10 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
     }
 })
 ->value('id', null);
+
 $app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
+    
+	if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
     
@@ -92,28 +119,43 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     //server side validation is necessary, client side is convenience.
 	if (empty($description)) {
 	
-		// add flash messages
+		// add flash message
 		$app['session']->getFlashBag()->set('error', 'Description is required.');
 		
 	} else {    
-		$sql = "INSERT INTO todos (user_id, description, todo_status) VALUES (?,?,?)";
-		$stmt = $app['db']->prepare($sql);
-		$stmt->execute(array($user['id'], $description,'Pending'));
-
+	
+		$userObj = $app['orm.em']->getRepository('App\Entity\Users')->find($user[0]->getId());
+		$todo = new Todos();
+		$todo->setUser($userObj);  
+		$todo->setTodoStatus('Pending');
+		$todo->setDescription($description);
+		$app['orm.em']->persist($todo);
+		$app['orm.em']->flush();
+		
 		$app['session']->getFlashBag()->set('success', 'Todo added successfully.');
 	}
 	
 	return $app->redirect($request->getBaseUrl().'/todo?page='.$page);
     
 });
+
 $app->match('/todo/delete/{id}', function ($id, Request $request) use ($app) {
     
-	$page = $request->get('page',1);
-	$sth = $app['db']->prepare("DELETE FROM todos WHERE id = ?");
-	$sth->bindValue(1, $id, PDO::PARAM_INT);
-	$sth->execute();
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 	
-    $app['session']->getFlashBag()->set('success', 'Todo deleted successfully.');
+	$page = $request->get('page',1);
+	
+	$todo = $app['orm.em']->getRepository('App\Entity\Todos')->find($id);
+	
+	if (! $todo) {
+		$app['session']->getFlashBag()->set('error', 'No Todo found for id '.$id);
+	} else {
+		$app['orm.em']->remove($todo);
+		$app['orm.em']->flush();
+		$app['session']->getFlashBag()->set('success', 'Todo deleted successfully.');
+	}    
 	
     return $app->redirect('/todo?page='.$page);
 });
@@ -126,55 +168,64 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
 
     if ($id){
 		
-		//added user_id condition as all todos are private. User should not see todos of others.
-		$sth = $app['db']->prepare("SELECT * FROM todos WHERE id= ? and user_id = ?");
-		$sth->bindValue(1, $id,         PDO::PARAM_INT);
-		$sth->bindValue(2, $user['id'], PDO::PARAM_INT);
-		$sth->execute();
-		$todo = $sth->fetch();		
-        
-		$jsonview = '';
+		//added user_id condition as all todos are private. User should not see todos of others.		
+		$todo = $app['orm.em']->getRepository('App\Entity\Todos')->findBy([
+			'user' => $user[0]->getId(),
+			'id' => $id
+		]);
 		
+		$jsonview = '';
 		if($todo) {
-			$jsonview = json_encode($todo);
-				return $app['twig']->render('todo.html', [
-				'todo'     => $todo,
+			$todoArr = array('id' => $todo[0]->getId(),
+						 'todo_status' => $todo[0]->getTodoStatus(),
+						 'description' => $todo[0]->getDescription(),
+						 'completed_date' => $todo[0]->getCompletedDate() ? $todo[0]->getCompletedDate()->format('m/d/Y h:i:s') : ''
+						);
+						
+			$jsonview = json_encode($todoArr);
+			return $app['twig']->render('todo.html', [
+				'todo'     => $todoArr,
 				'jsonview' => $jsonview
 			]);
 		} else {
-			$app['session']->getFlashBag()->set('error', 'Invalid Todo.');
+			$app['session']->getFlashBag()->set('error', 'No Todo found for id '.$id);
 			return $app->redirect('/todo/'.$id);
 		}
-		
-		
     } else {
-        $app['session']->getFlashBag()->set('error', 'Invalid Todo.');
+        $app['session']->getFlashBag()->set('error', 'No Todo found for id '.$id);
 		return $app->redirect('/todo/'.$id);
     }
-})
-->value('id', null);
+});
 
-
-//Mark a Todo as completed.
 $app->match('/todo/complete/{id}', function ($id) use ($app) {
 	
-	$currenttime = date_create('now')->format('Y-m-d H:i:s');
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 	
-	$sql = "UPDATE todos SET todo_status=?, completed_date=? WHERE id = ?";
-	$stmt = $app['db']->prepare($sql);
-	$stmt->execute(array('Completed', $currenttime, $id));
+	$todoArr = array();
+	$todo = $app['orm.em']->getRepository('App\Entity\Todos')->find($id);
 	
-	$app['session']->getFlashBag()->set('success', 'Todo marked Completed successfully.');
+	if (! $todo) {
+		$app['session']->getFlashBag()->set('error', 'No Todo found for id '.$id);
+	} else {		
+		$updated = new \DateTime("now");
+		$todo->setTodoStatus('Completed');
+		$todo->setCompletedDate($updated);
+		
+		$app['orm.em']->persist($todo);
+		$app['orm.em']->flush();
+		$app['session']->getFlashBag()->set('success', 'Todo marked as Completed successfully.');
+		
+		$todoArr = array('id' => $todo->getId(),
+						 'todo_status' => $todo->getTodoStatus(),
+						 'description' => $todo->getDescription(),
+						 'completed_date' => $todo->getCompletedDate() ? $todo->getCompletedDate()->format('m/d/Y h:i:s') : ''
+					);
+	}
 	
-	$sth = $app['db']->prepare("SELECT * FROM todos WHERE id = ?");
-	$sth->bindValue(1, $id, PDO::PARAM_INT);
-	$sth->execute();
-	$todo = $sth->fetch();
-	
-	$jsonview = '';
 	return $app['twig']->render('todo.html', [
-		'todo'     => $todo,
-		'jsonview' => $jsonview
+		'todo'     => $todoArr,
+		'jsonview' => ''
 	]);
-})
-->value('id', null);
+});

@@ -4,12 +4,11 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>Description</th><th>Status</th>
+        <th>Description</th><th>Status</th>	
 		{% if todo.todo_status == "Completed" %}
 			<th>Date</th>
 		{% endif %}
-		<th>Action</th><th></th>		
-		<th></th>
+		<th>Action</th><th></th><th></th><th></th>
 		<tbody>
         <tr>
             <td>{{ todo.description }}</td>

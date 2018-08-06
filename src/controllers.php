@@ -24,7 +24,7 @@ $app->match('/login', function (Request $request) use ($app) {
         
 		$user = $app['orm.em']->getRepository('App\Entity\Users')->findBy([
 			'username' => $username,
-			'password' => $password
+			'password' => MD5($password)
 		]);
 		
 		if ($user){

@@ -13,12 +13,12 @@
                 <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
                 <input type="password" class="form-control" name="password" placeholder="Password">
             </div>
+			{% include "usermessages.html" %}
             <div class="form-group">
                 <div class="col-sm-12 controls">
                     <button type="submit" class="btn btn-primary pull-right"><i class="glyphicon glyphicon-log-in"></i> login</button>
                 </div>
             </div>
-
-        </form>
+        </form>		
     </div>
 {% endblock %}

@@ -3,3 +3,5 @@ database:
     dbname  : ac_todos
     user    : root
     password:
+pagination:
+    per_page_entity: 5

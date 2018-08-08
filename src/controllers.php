@@ -22,10 +22,7 @@ $app->match('/login', function (Request $request) use ($app) {
     
 	if ($username) {
         
-		$user = $app['orm.em']->getRepository('App\Entity\Users')->findBy([
-			'username' => $username,
-			'password' => MD5($password)
-		]);
+		$user = $app['orm.em']->getRepository('App\Entity\Users')->getUser($app['orm.em'], $username, $password);
 		
 		if ($user){
             $app['session']->set('user', $user);
@@ -71,7 +68,7 @@ $app->get('/todo/{id}', function ($id, Request $request) use ($app) {
 		$page = $request->get('page', 1);
 		
 		$todosdb = $app['orm.em']->getRepository('App\Entity\Todos')->findBy([
-													'user' => $user[0]->getId(),
+													'user' => $user[0]['id'],
 												]);
 		
 		
@@ -124,7 +121,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 		
 	} else {    
 	
-		$userObj = $app['orm.em']->getRepository('App\Entity\Users')->find($user[0]->getId());
+		$userObj = $app['orm.em']->getRepository('App\Entity\Users')->find($user[0]['id']);
 		$todo = new Todos();
 		$todo->setUser($userObj);  
 		$todo->setTodoStatus('Pending');
@@ -170,7 +167,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
 		
 		//added user_id condition as all todos are private. User should not see todos of others.		
 		$todo = $app['orm.em']->getRepository('App\Entity\Todos')->findBy([
-			'user' => $user[0]->getId(),
+			'user' => $user[0]['id'],
 			'id' => $id
 		]);
 		

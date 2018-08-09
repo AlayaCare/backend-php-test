@@ -4,17 +4,41 @@
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo:</h1>
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>Description</th><th>Status</th>	
+		{% if todo.todo_status == "Completed" %}
+			<th>Date</th>
+		{% endif %}
+		<th>Action</th><th></th><th></th><th></th>
+		<tbody>
         <tr>
-            <td>{{ todo.id }}</td>
-            <td>{{ todo.user_id }}</td>
             <td>{{ todo.description }}</td>
-            <td>
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                    <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                </form>
+			<td>{{ todo.todo_status }}</td>
+			{% if todo.todo_status == "Completed" %}
+				<td>{{ todo.completed_date }}</td>
+			{% endif %}
+			<td>
+                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}" id="deletetodo">
+                    <button type="submit" title="Delete" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                </form>				
             </td>
-        </tr>
+			{% if todo.todo_status == "Pending" %}
+				<td>
+					<form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}" style="margin:0 auto" id="completetodo">
+						<button type="submit" title="Mark as Completed" class="btn btn-xs btn-ok">
+							<span class="glyphicon glyphicon-ok glyphicon-white"></span>
+						</button>
+					</form>
+				</td>
+			{% endif %}
+			<td>
+				<a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json" class="btn btn-info btn-primary btn-xs" role="button" title="View as JSON">JSON</a>
+		    </td>		
+			{% if jsonview %}	
+				<td><input type=""text" value="{{ jsonview }}"></td>
+			{% endif %}
+	    </tr>
+		<tr><td colspan="7">{% include "usermessages.html" %}</td></tr>
+		</tbody>
     </table>
 </div>
 

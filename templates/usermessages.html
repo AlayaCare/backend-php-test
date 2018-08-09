@@ -1,0 +1,9 @@
+{% if app.session.flashBag.has('success') %}
+<div class="alert alert-success">
+    {% for flashMessage in app.session.flashBag.get('success') %} {{ flashMessage }} {% endfor %}
+</div>
+{% endif %} {% if app.session.flashBag.has('error') %}
+<div class="alert alert-danger">
+    {% for flashMessage in app.session.flashBag.get('error') %} {{ flashMessage }} {% endfor %}
+</div>
+{% endif %}

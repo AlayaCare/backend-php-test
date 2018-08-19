@@ -8,7 +8,6 @@ CREATE TABLE users (
 CREATE TABLE todos (
   id INT(11) NOT NULL AUTO_INCREMENT,
   user_id INT(11) NOT NULL,
-  completed INT(11) NOT NULL DEFAULT 0,
   description VARCHAR(255),
   PRIMARY KEY (id),
   FOREIGN KEY (user_id) REFERENCES users(id)

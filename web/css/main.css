@@ -1,6 +1,18 @@
 body {
   padding-top: 50px;
 }
+.msg{
+	background: rgb(113,223,113);
+	color: rgb(38,38,38);
+	padding: 0.813em 0;
+}
+.msg li{
+	padding: 0.813em 0;
+	margin-bottom: 0.500em;
+}
+.msg li:last-child{
+	margin:0;
+}
 
 .login-form > div {
     margin-top: 10px;

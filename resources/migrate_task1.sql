@@ -1,0 +1,1 @@
+ALTER TABLE todos MODIFY description VARCHAR(255) NOT NULL;

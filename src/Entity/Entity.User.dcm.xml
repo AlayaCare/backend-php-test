@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                          http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd">
+
+    <entity name="Entity\User" table="users">
+
+        <indexes>
+            <index name="PRIMARY" columns="id"/>
+        </indexes>
+
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="username" column="username" type="string" column-definition="VARCHAR(255) NOT NULL" />
+        <field name="password" column="password" type="string" column-definition="VARCHAR(255) NOT NULL" />
+
+    </entity>
+
+</doctrine-mapping>

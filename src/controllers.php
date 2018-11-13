@@ -1,7 +1,11 @@
 <?php
 
+require 'dao.php';
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Entity\Todo;
+use Entity\User;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -20,15 +24,12 @@ $app->get('/', function () use ($app) {
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
-
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-
-        if ($user){
+        $user = userLogin($app,$username,$password);
+        if ($user) {
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
-        }
+        } 
     }
 
     return $app['twig']->render('login.html', array());
@@ -46,19 +47,15 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-
+    if ($id) {
+        $todo = getTodoById($app,$id);
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
-
+        $todos = getTodoList($app);
         return $app['twig']->render('todos.html', [
-            'todos' => $todos,
+            'todos' => $todos
         ]);
     }
 })
@@ -70,16 +67,10 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    if ($id) {
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
-        if ($todo) {
-        	return $app->json($todo);
-        } else {
-        	return $app->json(null);
-        }
+    $todo = getTodoById($app,$id);
+    if ($todo) {
+        return $app->json($todo);
     }
-
     return $app->json(null);
 })
 ->value('id', null);
@@ -90,39 +81,28 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         return $app->redirect('/login');
     }
 
-    $user_id = $user['id'];
-    $description = $request->get('description');
-
-    if ($user_id && $description) {
-    	try {
-	    	$sql = "INSERT INTO todos (user_id, description, completed) VALUES ('$user_id', '$description', 0)";
-	    	$app['db']->executeUpdate($sql);
-	    	$app['session']->getFlashBag()->add('success', 'ToDo successfully added to your list!');	
-    	} catch (Exception $ex) {
-    		$app['session']->getFlashBag()->add('danger', 'Operation could not be executed! Please try again!');
-    	}
+    if (null == $request->get('description') || '' == $request->get('description'))
+    {
+        $app['session']->getFlashBag()->add('danger', 'Error! You must inform a Description!');
     } else {
-    	$app['session']->getFlashBag()->add('danger', 'You must be logged in and inform a Description!');
+        if (addTodo($app,$request->get('description'))) {
+            $app['session']->getFlashBag()->add('success', 'ToDo successfully added to your list!');
+        
+        } else {
+            $app['session']->getFlashBag()->add('danger', 'Error! ToDo not added!');
+        }
     }
 
     return $app->redirect('/todo');
 });
-
 
 $app->post('/todo/{id}/completed/{completed}', function ($id,$completed) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    if ($id && null != $completed) {
-    	try {
-    		$sql = "UPDATE todos SET completed = '$completed' WHERE id = '$id' ";
-    		$app['db']->executeUpdate($sql);	
-    	} catch (Exception $ex) {
-    		$app['session']->getFlashBag()->add('danger', 'Operation could not be executed! Please try again!');
-    	}
-    } else {
-    	$app['session']->getFlashBag()->add('danger', 'You must inform ToDo id and completion status!');
+    if(!changeTodoCompletion($app,$id,$completed)) {
+        $app['session']->getFlashBag()->add('danger', 'Error! ToDo status not updated!');    
     }
 
     return $app->redirect('/todo');
@@ -130,21 +110,16 @@ $app->post('/todo/{id}/completed/{completed}', function ($id,$completed) use ($a
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-	if (null === $user = $app['session']->get('user')) {
+    if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
 
-    if ($id) {
-    	try {
-	    	$sql = "DELETE FROM todos WHERE id = '$id'";
-	    	$app['db']->executeUpdate($sql);	
-	    	$app['session']->getFlashBag()->add('success', 'ToDo successfully removed!');
-    	} catch (Exception $ex) {
-    		$app['session']->getFlashBag()->add('danger', 'Operation could not be executed! Please try again!');
-    	}
-    } else {
-    	$app['session']->getFlashBag()->add('danger', 'Select a ToDo to remove!');
-    }
+    if(deleteTodo($app,$id)) {
+        $app['session']->getFlashBag()->add('success', 'ToDo successfully removed!');
     
+    } else {
+        $app['session']->getFlashBag()->add('danger', 'Error! ToDo not removed!');    
+    }
+
     return $app->redirect('/todo');
 });

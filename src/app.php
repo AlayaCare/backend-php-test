@@ -8,6 +8,7 @@ use Silex\Provider\ValidatorServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
+use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
 
 $app = new Application();
@@ -19,6 +20,7 @@ $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
+
 $app->register(new DoctrineServiceProvider, array(
     'db.options' => array(
         'driver'    => 'pdo_mysql',
@@ -27,6 +29,21 @@ $app->register(new DoctrineServiceProvider, array(
         'user'      => $app['config']['database']['user'],
         'password'  => $app['config']['database']['password'],
         'charset'   => 'utf8',
+    ),
+));
+
+$app->register(new DoctrineOrmServiceProvider, array(
+    'orm.proxies_dir' => __DIR__.'/Entity/Proxy',
+    'orm.default_cache' => 'array',
+    'db.orm.auto_generate_proxies' => true,
+    'orm.em.options' => array(
+        'mappings' => array(
+            array(
+                'type' => 'xml',
+                'path' => __DIR__.'/Entity',
+                'namespace' => 'Entity\\',
+            ),
+        ),
     ),
 ));
 

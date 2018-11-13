@@ -94,9 +94,13 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
 
     if ($user_id && $description) {
-    	$sql = "INSERT INTO todos (user_id, description, completed) VALUES ('$user_id', '$description', 0)";
-    	$app['db']->executeUpdate($sql);
-    	$app['session']->getFlashBag()->add('success', 'ToDo successfully added to your list!');
+    	try {
+	    	$sql = "INSERT INTO todos (user_id, description, completed) VALUES ('$user_id', '$description', 0)";
+	    	$app['db']->executeUpdate($sql);
+	    	$app['session']->getFlashBag()->add('success', 'ToDo successfully added to your list!');	
+    	} catch (Exception $ex) {
+    		$app['session']->getFlashBag()->add('danger', 'Operation could not be executed! Please try again!');
+    	}
     } else {
     	$app['session']->getFlashBag()->add('danger', 'You must be logged in and inform a Description!');
     }
@@ -111,8 +115,12 @@ $app->post('/todo/{id}/completed/{completed}', function ($id,$completed) use ($a
     }
 
     if ($id && null != $completed) {
-    	$sql = "UPDATE todos SET completed = '$completed' WHERE id = '$id' ";
-    	$app['db']->executeUpdate($sql);
+    	try {
+    		$sql = "UPDATE todos SET completed = '$completed' WHERE id = '$id' ";
+    		$app['db']->executeUpdate($sql);	
+    	} catch (Exception $ex) {
+    		$app['session']->getFlashBag()->add('danger', 'Operation could not be executed! Please try again!');
+    	}
     } else {
     	$app['session']->getFlashBag()->add('danger', 'You must inform ToDo id and completion status!');
     }
@@ -122,9 +130,21 @@ $app->post('/todo/{id}/completed/{completed}', function ($id,$completed) use ($a
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+	if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
-
+    if ($id) {
+    	try {
+	    	$sql = "DELETE FROM todos WHERE id = '$id'";
+	    	$app['db']->executeUpdate($sql);	
+	    	$app['session']->getFlashBag()->add('success', 'ToDo successfully removed!');
+    	} catch (Exception $ex) {
+    		$app['session']->getFlashBag()->add('danger', 'Operation could not be executed! Please try again!');
+    	}
+    } else {
+    	$app['session']->getFlashBag()->add('danger', 'Select a ToDo to remove!');
+    }
+    
     return $app->redirect('/todo');
 });

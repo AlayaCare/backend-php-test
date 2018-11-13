@@ -26,7 +26,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}" onsubmit="return confirm('Confirm ToDo remove?');">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>

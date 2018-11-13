@@ -74,11 +74,27 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
 
     if ($user_id && $description) {
-    	$sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+    	$sql = "INSERT INTO todos (user_id, description, completed) VALUES ('$user_id', '$description', 0)";
     	$app['db']->executeUpdate($sql);
     	$app['session']->getFlashBag()->add('success', 'ToDo successfully added to your list!');
     } else {
     	$app['session']->getFlashBag()->add('danger', 'You must be logged in and inform a Description!');
+    }
+
+    return $app->redirect('/todo');
+});
+
+
+$app->post('/todo/{id}/completed/{completed}', function ($id,$completed) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id && null != $completed) {
+    	$sql = "UPDATE todos SET completed = '$completed' WHERE id = '$id' ";
+    	$app['db']->executeUpdate($sql);
+    } else {
+    	$app['session']->getFlashBag()->add('danger', 'You must inform ToDo id and completion status!');
     }
 
     return $app->redirect('/todo');

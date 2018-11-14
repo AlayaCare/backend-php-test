@@ -38,8 +38,24 @@
             </tr>
         {% endfor %}
         <tr>
+            <td colspan="6" align="center">
+                <a {% if page > 1 %} href="{{ app.request.baseurl }}/todo/page/1" {% endif %}>
+                    <span class="glyphicon glyphicon-fast-backward glyphicon-white"></span>
+                </a>&nbsp
+                <a {% if page > 1 %} href="{{ app.request.baseurl }}/todo/page/{{ page-1 < 1 ? 1 : page-1 }}" {% endif %}>
+                    <span class="glyphicon glyphicon-backward glyphicon-white"></span>
+                </a>&nbsp
+                <a {% if page < lastPage %} href="{{ app.request.baseurl }}/todo/page/{{ page+1 > lastPage ? lastPage : page+1 }}" {% endif %}>
+                    <span class="glyphicon glyphicon-forward glyphicon-white"></span>
+                </a>&nbsp
+                <a {% if page < lastPage %} href="{{ app.request.baseurl }}/todo/page/{{ lastPage }}" {% endif %}>
+                    <span class="glyphicon glyphicon-fast-forward glyphicon-white"></span>
+                </a>&nbsp
+            </td>
+        </tr>
+        <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="6">
+                <td colspan="6" align="center">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." maxlength="255">
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>

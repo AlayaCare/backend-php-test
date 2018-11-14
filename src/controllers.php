@@ -54,10 +54,30 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         ]);
     } else {
         $todos = getTodoList($app);
+        $page = 1;
+        $lastPage = ceil($todos->count()/5);
         return $app['twig']->render('todos.html', [
-            'todos' => $todos
+            'todos' => $todos,
+            'page' => $page,
+            'lastPage' => $lastPage
         ]);
     }
+})
+->value('id', null);
+
+
+$app->get('/todo/page/{page}', function ($page) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $todos = getTodoList($app,$page);
+    $lastPage = ceil($todos->count()/5);
+    return $app['twig']->render('todos.html', [
+        'todos' => $todos,
+        'page' => $page,
+        'lastPage' => $lastPage
+    ]);
 })
 ->value('id', null);
 
@@ -103,6 +123,12 @@ $app->post('/todo/{id}/completed/{completed}', function ($id,$completed) use ($a
 
     if(!changeTodoCompletion($app,$id,$completed)) {
         $app['session']->getFlashBag()->add('danger', 'Error! ToDo status not updated!');    
+    } else {
+        if ($completed == 1) {
+            $app['session']->getFlashBag()->add('success', 'ToDo #'.$id.' marked as completed!');
+        } else {
+            $app['session']->getFlashBag()->add('info', 'ToDo #'.$id.' marked as pending!');
+        }
     }
 
     return $app->redirect('/todo');
@@ -115,10 +141,10 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     }
 
     if(deleteTodo($app,$id)) {
-        $app['session']->getFlashBag()->add('success', 'ToDo successfully removed!');
+        $app['session']->getFlashBag()->add('success', 'ToDo #'.$id.' successfully removed!');
     
     } else {
-        $app['session']->getFlashBag()->add('danger', 'Error! ToDo not removed!');    
+        $app['session']->getFlashBag()->add('danger', 'Error! ToDo #'.$id.' not removed!');    
     }
 
     return $app->redirect('/todo');

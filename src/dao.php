@@ -3,6 +3,7 @@
 use Entity\Todo;
 use Entity\User;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 function userLogin($app,$username,$password) {
     $em = $app['orm.em'];
@@ -20,15 +21,27 @@ function userLogin($app,$username,$password) {
     return null;
 }
 
-function getTodoList($app) {
+function getTodoList($app,$page=1) {
     $user = $app['session']->get('user');
     $em = $app['orm.em'];
 
     $rsm = new ResultSetMappingBuilder($em);
     $rsm->addRootEntityFromClassMetadata('Entity\\Todo', 't');
-
     $query = $em->createQuery('SELECT t FROM Entity\\Todo t where t.userId = '.$user->getId(), $rsm);
-    return $query->getResult();
+
+    $paginator = paginate($query,$page);
+    return $paginator;
+}
+
+function paginate($dql,$page=1,$limit=5) {
+    $paginator = new Paginator($dql);
+    $paginator->setUseOutputWalkers(false);
+    
+    $paginator->getQuery()
+        ->setFirstResult($limit * ($page - 1)) // Offset
+        ->setMaxResults($limit); // Limit
+
+    return $paginator;
 }
 
 function getTodoById($app,$id) {

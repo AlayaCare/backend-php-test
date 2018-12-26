@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Constraints as Assert;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -11,8 +12,8 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 
 
 $app->get('/', function () use ($app) {
-    return $app['twig']->render('index.html', [
-        'readme' => file_get_contents('README.md'),
+      return $app['twig']->render('index.html', [
+        'readme' => file_get_contents('C:\Program Files (x86)\EasyPHP-Devserver-17\eds-www\test\README.MD'),
     ]);
 });
 
@@ -20,7 +21,7 @@ $app->get('/', function () use ($app) {
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');
-
+    
     if ($username) {
         $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
         $user = $app['db']->fetchAssoc($sql);
@@ -72,12 +73,20 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
+    
+    $errors = $app['validator']->validate($description, new Assert\NotBlank());         
+     
+    if (count($errors) > 0) {
+        $app['session']->getFlashBag()->add("INFO", "Description is required"); 
+          
+    } else {
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->add("SUCCESS", "Success, TODO was added!"); 
+    } 
     return $app->redirect('/todo');
 });
+
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {

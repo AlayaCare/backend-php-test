@@ -6,7 +6,7 @@
     <h1>Todo List:</h1>
 
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th>Completed</th><th>Remove</th>
+        <th>#</th><th>User</th><th>Description</th><th>Completed</th><th>Json</th><th>Remove</th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
@@ -27,6 +27,11 @@
                     </form>
                 </td>
                 <!-- End Completed-->
+                 <td>
+                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
+                       JSON
+                    </a>
+                </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

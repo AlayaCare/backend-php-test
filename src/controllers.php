@@ -73,10 +73,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     return $app->redirect('/todo');
 });
 
-
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
+    $app['session']->getFlashBag()->add("SUCCESS", "Todo Was Deleted");
     return $app->redirect('/todo');
 });
 
@@ -85,9 +85,10 @@ $app->post('/todo/completed/{id}/{completed}', function ($id,$completed) use ($a
        return $app->redirect('/login');
     }        
     ($completed==0) ? $completed = 1: $completed = 0;       
+    ($completed==0) ? $completedMsg = "unsolved": $completedMsg = 'solved'; 
     $sql = "UPDATE todos SET completed = '$completed' WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
-    $app['session']->getFlashBag()->add("SUCCESS", "Todo was updated!"); 
+    $app['session']->getFlashBag()->add("INFO", "Todo is '$completedMsg'!"); 
     return $app->redirect('/todo');
 });
 

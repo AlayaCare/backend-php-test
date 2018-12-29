@@ -1,7 +1,6 @@
 <?php
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints as Assert;
 use service\Pagination as Pagination;
 use model\TodoDao as TodoDao;
@@ -88,8 +87,17 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 });
 //Delete a todo
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-    TodoDao::delete($id, $app);
-    return $app->redirect('/todo');
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }else{
+        $todo = TodoDao::getTodoById($id, $app);        
+        if(!$app['session']->get('user') != $todo['user_id']){
+            return $app->redirect('/login');   
+        }else{
+            TodoDao::delete($id, $app);
+            return $app->redirect('/todo');
+        }
+    }   
 });
 //Change value (completed) in a todo
 $app->post('/todo/completed/{id}/{completed}', function ($id, $completed) use ($app) {    

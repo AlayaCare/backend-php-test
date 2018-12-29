@@ -39,7 +39,7 @@ class TodoDao {
     */
     public function getTodoById(int $id, $app){
         $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $app['db']->fetchAssoc($sql);        
         return $todo;
     }
     

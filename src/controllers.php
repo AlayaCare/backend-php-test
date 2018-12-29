@@ -13,7 +13,7 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 //Go to index
 $app->get('/', function () use ($app) {
       return $app['twig']->render('index.html', [
-        'readme' => file_get_contents('C:\Program Files (x86)\EasyPHP-Devserver-17\eds-www\test\README.MD'),
+        'readme' => file_get_contents('..\README.MD'),
     ]);
 });
 //Go to login page
@@ -25,6 +25,8 @@ $app->match('/login', function (Request $request) use ($app) {
         if ($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
+        } else {
+            $app['session']->getFlashBag()->add("ERROR", "Wrong user name or password!");    
         }
     }
     return $app['twig']->render('login.html', array());
@@ -50,8 +52,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         //List all todos
         if(isset($_GET['page'])){
             $currenPage = $_GET['page'];
-        } 
-        else{
+        } else{
             $currenPage = 1;
         }
         $pageSize = 5;

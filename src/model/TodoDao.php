@@ -4,20 +4,7 @@ namespace model;
 
 class TodoDao {
     
-    /**
-    * Get a todo by id
-    * @param string $username 
-    * @param string $password
-    * @param $app
-    * @return representation of user
-    */
-    public function login(string $username, string $password, $app){      
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
-        return $user;
-    }
-    
-    /**
+     /**
     * Get list of todo
     * @param $app
     * @param int $user_id

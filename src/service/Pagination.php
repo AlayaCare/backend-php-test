@@ -4,7 +4,7 @@ namespace service;
 
 class Pagination {
     
-     /**
+    /**
     * Get pagination
     * @param int $currenPage
     * @param int $pageSize, Number of todo per page
@@ -18,7 +18,7 @@ class Pagination {
         $end = ((($currenPage + $total) < $QTDPages) ? $currenPage + $total : $QTDPages);
         ($total > ($currenPage * $pageSize)) ? $next = '?page='.($currenPage + 1):$next = null;      
         ($currenPage - 1)>0 ? $previous = '?page='.($currenPage - 1):$previous = null;
-        $pages = array();
+        $pages = [];
         if($QTDPages > 1 && $currenPage <= $QTDPages){
             for($i = $start; $i <= $end; $i++){
                 $linkText = $i;

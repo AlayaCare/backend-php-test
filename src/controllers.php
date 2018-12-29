@@ -4,6 +4,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 use service\Pagination as Pagination;
 use model\TodoDao as TodoDao;
+use model\UserDao as UserDao;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -12,19 +13,21 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 
 //Go to index
 $app->get('/', function () use ($app) {
-      return $app['twig']->render('index.html', [
-        'readme' => file_get_contents('C:\Program Files (x86)\EasyPHP-Devserver-17\eds-www\test\README.MD'),
+    return $app['twig']->render('index.html', [
+        'readme' => file_get_contents('..\README.MD'),
     ]);
 });
 //Go to login page
 $app->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
     $password = $request->get('password');    
-    if ($username) {
-        $user = TodoDao::login($username, $password, $app);        
-        if ($user){
+    if($username){
+        $user = UserDao::login($username, $password, $app);        
+        if($user){
             $app['session']->set('user', $user);
             return $app->redirect('/todo');
+        }else{
+            $app['session']->getFlashBag()->add("ERROR", "Wrong user name or password!");    
         }
     }
     return $app['twig']->render('login.html', array());
@@ -36,22 +39,21 @@ $app->get('/logout', function () use ($app) {
 });
 //Go to one single todo or list all todos
 $app->get('/todo/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
+    if(null === $user = $app['session']->get('user')){
         return $app->redirect('/login');
     }
     //Get asingle todo
-    if ($id){
+    if($id){
         $todo = TodoDao::getTodoById($id, $app);
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
             'todoJson' => json_encode($todo, JSON_PRETTY_PRINT),
         ]);
-    } else {  
+    }else{  
         //List all todos
         if(isset($_GET['page'])){
             $currenPage = $_GET['page'];
-        } 
-        else{
+        }else{
             $currenPage = 1;
         }
         $pageSize = 5;
@@ -72,36 +74,35 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 ->value('id', null);
 //Add a todo
 $app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
+    if(null === $user = $app['session']->get('user')){
         return $app->redirect('/login');
     }
     $user_id = $user['id'];
     $description = $request->get('description');    
     $errors = $app['validator']->validate($description, new Assert\NotBlank());     
-    if (count($errors) > 0) {
+    if(count($errors) > 0){
         $app['session']->getFlashBag()->add("INFO", "Description is required");           
-    } else {
+    }else{
         TodoDao::add($user_id, $description, $app);
     } 
     return $app->redirect('/todo');
 });
 //Delete a todo
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
+$app->post('/todo/delete/{id}', function ($id) use ($app) {
+    if(null === $user = $app['session']->get('user')) {
+       return $app->redirect('/login');
+    } 
+    $todo = TodoDao::getTodoById($id, $app);        
+    if($user['id'] != $todo['user_id']){
+        return $app->redirect('/login');   
     }else{
-        $todo = TodoDao::getTodoById($id, $app);        
-        if(!$app['session']->get('user') != $todo['user_id']){
-            return $app->redirect('/login');   
-        }else{
-            TodoDao::delete($id, $app);
-            return $app->redirect('/todo');
-        }
-    }   
+        TodoDao::delete($id, $app);
+        return $app->redirect('/todo');
+    }      
 });
 //Change value (completed) in a todo
 $app->post('/todo/completed/{id}/{completed}', function ($id, $completed) use ($app) {    
-    if (null === $user = $app['session']->get('user')) {
+    if(null === $user = $app['session']->get('user')){
        return $app->redirect('/login');
     }        
     TodoDao::changeCompleted($id, $completed, $app);

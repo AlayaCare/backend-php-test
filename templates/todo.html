@@ -1,33 +1,34 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
-    <h1>Todo:</h1>
-    <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th>Status</th><th>Delete</th>       
-        <tr>
-            <td>{{ todo.id }}</td>
-            <td>{{ todo.user_id }}</td>
-            <td>{{ todo.description }}</td>
-            <td>  
-                {% if todo.completed == 0 %}
-                    UNSOLVED
-                {% else %}
-                    SOLVED
-                {% endif %} 
-            </td>
-            <td>
-                <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                    <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                </form>
-            </td>
-        </tr>     
-    </table> 
-    <h4>TODO JSON FORMATTED:</h4>
-    <div>
-        {{  todoJson }} 
+<center>
+    <div style="width: 50%;">
+        <h1 align="center">Todo:</h1>
+        <table class="table table-striped">
+            <th>#</th><th>User</th><th>Description</th><th>Status</th><th>Remove</th>       
+            <tr>
+                <td>{{ todo.id }}</td>
+                <td>{{ todo.user_id }}</td>
+                <td class="braeak-line">{{ todo.description }}</td>
+                <td>  
+                    {% if todo.completed == 0 %}
+                        UNSOLVED
+                    {% else %}
+                        SOLVED
+                    {% endif %} 
+                </td>
+                <td>
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                    </form>
+                </td>
+            </tr>     
+        </table>
+        <div class="text-center">
+            <h4>TODO JSON FORMATTED:</h4>
+            {{  todoJson }} 
+        </div>
     </div>
-       
-</div>
+</center>
 
 {% endblock %}

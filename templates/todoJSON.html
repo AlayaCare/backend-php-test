@@ -1,8 +1,10 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<div class="text-center">
     <h4>TODO JSON FORMATTED:</h4>
-    <div>
-        {{  todoJson }} 
+    <div class="text-center">
+        <textarea style="width: 200px; height: 200px; overflow-y:scroll">{{  todoJson }}</textarea>
     </div>
+</div>
 {% endblock %}

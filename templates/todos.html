@@ -1,36 +1,103 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="col-md-4 col-md-offset-4">
-    <h1>Todo List:</h1>
-    <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
-        {% for todo in todos %}
-            <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
-                <td>
-                    <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
-                    </a>
-                </td>
-                <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
-        <tr>
-            <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
-                </td>
-            </form>
-        </tr>
-    </table>
-</div>
+
+<center>
+    <div style="width: 50%;">
+        <h1 align="center">Todo List:</h1>    
+       <!--BEGIN Messages of validations (bootstrap mgs css)-->
+       {% for messages in app.session.flashbag.get('SUCCESS') %}    
+           <div class="alert alert-success" role="alert">
+              {{ messages }}
+           </div>   
+       {% endfor %}
+
+       {% for messages in app.session.flashbag.get('INFO') %}   
+          <div class="alert alert-info" role="alert">
+              {{ messages }}
+          </div>   
+       {% endfor %}
+       <!--END Messages Messages of validations-->
+
+       <table id="todosTable" class="table table-striped">
+           <th>#</th><th>User</th><th>Description</th><th>Completed</th><th>Json</th><th>Remove</th>
+           {% for todo in todos %}
+               <tr>
+                   <td>{{ todo.id }}</td>
+                   <td>{{ todo.user_id }}</td>
+                   <td>
+                       <a class="braeak-line" href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                          {{ todo.description }}
+                       </a>
+                   </td>
+                    <!-- Begin Completed-->
+                   <td>
+                       <form method="post" action="{{ app.request.baseurl }}/todo/completed/{{ todo.id }}/{{ todo.completed }}">
+                           {% if todo.completed == 0 %}
+                               <button type="submit" class="btn btn-xs btn-primary"><span class="alert-info">UNSOLVED</span></button>
+                           {% else %}
+                               <button type="submit" class="btn btn-xs btn-primary"><span class="alert-success">SOLVED</span></button>
+                           {% endif %}                
+                       </form>
+                   </td>
+                   <!-- End Completed-->
+                    <td>
+                       <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
+                          JSON
+                       </a>
+                   </td>
+                   <td>
+                       <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                           <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                       </form>                     
+                   </td>
+
+               </tr>
+           {% endfor %}
+           <tr>
+               <form method="post" action="{{ app.request.baseurl }}/todo/add">
+                   <td colspan="5">
+                       <input  type="textbox" name="description" class="small-3 small-center half-width" placeholder="Description...">
+                   </td>
+                   <td>
+                       <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                   </td>
+               </form>
+           </tr>
+
+       </table>       
+        <nav aria-label="Navigation">
+            <ul class="pagination">
+                {% if previous != null %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">
+                          First
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ previous }}">
+                            Previous
+                        </a>
+                    </li>             
+                {% endif %}
+
+                {% for page in pages %}
+                    <li class="page-item {{ page.class }}"><a class="page-link " href="{{ page.link }}">{{page.linkText}}</a></li>
+                {% endfor %}
+
+                {% if next != null %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ next }}">
+                            Next
+                        </a>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ total }}">
+                            Last
+                        </a>
+                    </li>                		
+                {% endif %}
+            </ul>
+        </nav>       
+   </div>
+</center>
 {% endblock %}

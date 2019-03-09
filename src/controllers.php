@@ -2,6 +2,8 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Models\Todo;
+use Models\User;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -22,11 +24,11 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $userModel = new User($app);
+        $user = $userModel->get($username, $password);
 
         if ($user){
-            $app['session']->set('user', $user);
+            $app['session']->set('user', $user[0]);
             return $app->redirect('/todo');
         }
     }
@@ -46,16 +48,20 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
+    $todoModel = new Todo($app);
+
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = $todoModel->get([
+            ['id', 'eq', $id]
+        ]);
 
         return $app['twig']->render('todo.html', [
-            'todo' => $todo,
+            'todo' => $todo[0],
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+        $todos = $todoModel->get([
+            ['user_id', 'eq', $user['id']]
+        ]);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -69,8 +75,11 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "SELECT * FROM todos WHERE id = '${id}';";
-    $todo = $app['db']->fetchAll($sql);
+    $todoModel = new Todo($app);
+    
+    $todo = $todoModel->get([
+        ['id', 'eq', $id]
+    ]);
 
     if (empty($todo)) {
         return json_encode([
@@ -94,9 +103,11 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if (empty($description)) {
         $app['session']->getFlashBag()->set('danger', 'Error: A TODO must contain a description!');
     } else {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
-
+        $todoModel = new Todo($app);
+        $update = $todoModel->add([
+            'user_id' => $user_id,
+            'description' => '"' . $description . '"'
+        ]);
         $app['session']->getFlashBag()->set('success', 'TODO added successfully!');
     }
 
@@ -105,9 +116,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
-
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $todoModel = new Todo($app);
+    $update = $todoModel->delete($id);
 
     return $app->redirect('/todo');
 });

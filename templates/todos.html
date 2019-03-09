@@ -32,14 +32,16 @@
             </form>
         </tr>
 
-        {% for error in app.session.flashbag.get('error') %}
-            <tr>
-                <td colspan="4">
-                    <div class="alert alert-danger">
-                        {{ error }}
-                    </div>
-                </td>
-            </tr>
+        {% for type, message in app.session.flashbag %}
+            {% for text in message %}
+                <tr>
+                    <td colspan="4">
+                        <div class="alert alert-{{ type }}">
+                                {{ text }}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
         {% endfor %}
     </table>
 </div>

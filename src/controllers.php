@@ -92,10 +92,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = trim($request->get('description'));
 
     if (empty($description)) {
-        $app['session']->getFlashBag()->set('error', 'Error: A TODO must contain a description!');
+        $app['session']->getFlashBag()->set('danger', 'Error: A TODO must contain a description!');
     } else {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
+
+        $app['session']->getFlashBag()->set('success', 'TODO added successfully!');
     }
 
     return $app->redirect('/todo');

@@ -64,6 +64,24 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (is_null($app['session']->get('user'))) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "SELECT * FROM todos WHERE id = '${id}';";
+    $todo = $app['db']->fetchAll($sql);
+
+    if (empty($todo)) {
+        return json_encode([
+            'success' => 0,
+            'message' => 'Invalid TODO id.'
+        ]);
+    }
+
+    return json_encode(array_pop($todo));
+});
+
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {

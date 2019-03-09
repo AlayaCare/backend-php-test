@@ -121,3 +121,10 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+$app->match('/todo/update/{id}', function ($id) use ($app) {
+    $todoModel = new Todo($app);
+    $update = $todoModel->complete($id);
+
+    return $app->redirect('/todo');
+});

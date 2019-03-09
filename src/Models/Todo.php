@@ -37,4 +37,16 @@ class Todo {
 
         return $query;
     }
+
+    public function complete($id, $user_id = '') {
+        $query = $this->queryBuilder->update($this->table_name)
+        ->set('completed', 1)
+        ->where(
+            $this->queryBuilder->expr()->eq('id', $id)
+        );
+        //->andWhere('user_id', $user['id']);
+        $this->app['db']->executeUpdate($query);
+
+        return $query;
+    }
 }

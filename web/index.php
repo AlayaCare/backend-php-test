@@ -14,4 +14,12 @@ if (php_sapi_name() === 'cli-server' && is_file($filename)) {
 $app = require __DIR__.'/../src/app.php';
 require __DIR__.'/../config/dev.php';
 require __DIR__.'/../src/controllers.php';
+
+/* Including Entity files */
+require __DIR__.'/../src/AC/Entity/Todo.php';
+require __DIR__.'/../src/AC/Entity/User.php';
+/* Including Repository files */
+require __DIR__.'/../src/AC/Repository/IRepository.php';
+require __DIR__.'/../src/AC/Repository/Repository.php';
+require __DIR__.'/../src/AC/Repository/UserRepository.php';
 $app->run();

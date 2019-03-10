@@ -9,6 +9,8 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+use AC\Repository\UserRepository;
+use AC\Repository\TodoRepository;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -19,6 +21,7 @@ $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
+
 $app->register(new DoctrineServiceProvider, array(
     'db.options' => array(
         'driver'    => 'pdo_mysql',
@@ -29,5 +32,12 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+
+$app["repository.users"] = $app->share(function() use($app){
+    return new UserRepository($app);
+});
+$app["repository.todos"] = $app->share(function() use($app){
+    return new TodoRepository($app);
+});
 
 return $app;

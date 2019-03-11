@@ -83,6 +83,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $app['session']->getFlashBag()->add('todo_errors', 'A Todo can not be created without a description.');
     }else{
         $app['repository.todos']->insert($todo);
+        $app['session']->getFlashBag()->add('todo_messages', 'A Todo was created successfully.');
     }
     return $app->redirect('/todo');
 });
@@ -96,8 +97,8 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $todo = $app['repository.todos']->findByIdAndUserId($id,$user['id']);
     if ($todo){
         $app['repository.todos']->remove($id);
+        $app['session']->getFlashBag()->add('todo_messages', 'A Todo was removed successfully.');
     }else{
-
         return $app['twig']->render('error.html', [
             'error' => ErrorCode::DOES_NOT_EXIST,
         ]);

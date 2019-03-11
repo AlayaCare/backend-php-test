@@ -5,6 +5,7 @@ use Symfony\Component\HttpFoundation\Response;
 use AC\Core\ErrorCode;
 use AC\Entity\Todo;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use AC\Core\StatusEnum;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -115,6 +116,26 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     if ($todo){
         $app['repository.todos']->remove($id);
         $app['session']->getFlashBag()->add('todo_messages', 'A Todo was removed successfully.');
+    }else{
+        return $app['twig']->render('error.html', [
+            'error' => ErrorCode::DOES_NOT_EXIST,
+        ]);
+    }
+
+
+    return $app->redirect('/todo');
+});
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    $todo = $app['repository.todos']->findByIdAndUserId($id,$user['id']);
+    if ($todo){
+        $todo->setStatus(StatusEnum::COMPLETED);
+        $app['repository.todos']->update($todo);
+        $app['session']->getFlashBag()->add('todo_messages', 'A Todo was completed successfully.');
     }else{
         return $app['twig']->render('error.html', [
             'error' => ErrorCode::DOES_NOT_EXIST,

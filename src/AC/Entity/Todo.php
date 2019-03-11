@@ -4,6 +4,7 @@
 namespace AC\Entity;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Constraints as Assert;
+use AC\Core\StatusEnum;
 
 /**
  * Class Todo
@@ -15,10 +16,12 @@ class Todo implements IEntity
     private $id;
     private $user_id;
     private $description;
+    private $status;
 
 
     public function __construct()
     {
+        $this->status=StatusEnum::TODO;
     }
 
 
@@ -32,6 +35,9 @@ class Todo implements IEntity
         }
         if(isset($data['description'])){
             $this->description=$data['description'];
+        }
+        if(isset($data['status'])){
+            $this->status=$data['status'];
         }
     }
 
@@ -71,10 +77,30 @@ class Todo implements IEntity
         $this->description = $description;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    /**
+     * @param mixed $status
+     */
+    public function setStatus($status)
+    {
+        $this->status = $status;
+    }
+
+    public function isNotComplete(){
+        return $this->getStatus()==StatusEnum::TODO;
+    }
+
 
     public function toArray()
     {
-        return ['description' => $this->description, 'id' => $this->id, 'user_id' => $this->user_id];
+        return ['description' => $this->description, 'id' => $this->id, 'user_id' => $this->user_id, 'status' => $this->status];
     }
 
     static public function loadValidatorMetadata(ClassMetadata $metadata)

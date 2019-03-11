@@ -58,7 +58,7 @@ class TodoRepository extends Repository implements IRepository
 
     public function update(IEntity $entity)
     {
-        return $this->app["db"]->update("todos", ["description" => $entity->getDescription()], ["id" => $entity->getId()]);
+        return $this->app["db"]->update("todos", ["description" => $entity->getDescription(),'status'=>$entity->getStatus()], ["id" => $entity->getId()]);
     }
 
     public function remove($id)

@@ -67,6 +67,23 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    if ($id){
+        $todo=$app['repository.todos']->findByIdAndUserId($id,$user['id']);
+        if($todo){
+            return new JsonResponse($todo->toArray(), 200);
+        }else{
+            return new JsonResponse(['error'=>ErrorCode::UNAUTHORIZED], 200);
+        }
+    } else {
+        return new JsonResponse(['error'=>ErrorCode::DOES_NOT_EXIST], 200);
+    }
+})
+    ->value('id', null);
+
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {

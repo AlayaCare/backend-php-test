@@ -18,7 +18,7 @@ class TodoRepository extends Repository implements IRepository
 
     public function findById($id)
     {
-        $queryResult=$this->app["db"]->fetchAssoc("SELECT * FROM todos where id=? limit 1", [(int) $id]);
+        $queryResult=$this->fetchAssoc("SELECT * FROM todos where id=? limit 1", [(int) $id]);
         if($queryResult)
             return $this->toObject($queryResult);
         return $queryResult;
@@ -26,7 +26,7 @@ class TodoRepository extends Repository implements IRepository
 
     public function findByIdAndUserId($id,$user_id)
     {
-        $queryResult = $this->app["db"]->fetchAssoc("SELECT * FROM todos where id=? and user_id=?limit 1", [(int)$id, (int)$user_id]);
+        $queryResult = $this->fetchAssoc("SELECT * FROM todos where id=? and user_id=?limit 1", [(int)$id, (int)$user_id]);
         if($queryResult)
             return $this->toObject($queryResult);
         return $queryResult;
@@ -34,7 +34,7 @@ class TodoRepository extends Repository implements IRepository
 
     public function findAll()
     {
-        $queryResult=$this->app["db"]->fetchAll("SELECT * FROM todos");
+        $queryResult=$this->fetchAll("SELECT * FROM todos");
         $todoList=[];
         foreach ($queryResult as $todoData){
             array_push($todoList,$this->toObject($todoData));
@@ -43,7 +43,7 @@ class TodoRepository extends Repository implements IRepository
     }
     public function findAllByUser($user_id)
     {
-        $queryResult=$this->app["db"]->fetchAll("SELECT * FROM todos WHERE user_id=?",[$user_id]);
+        $queryResult=$this->fetchAll("SELECT * FROM todos WHERE user_id=?",[$user_id]);
         $todoList=[];
         foreach ($queryResult as $todoData){
             array_push($todoList,$this->toObject($todoData));
@@ -53,7 +53,7 @@ class TodoRepository extends Repository implements IRepository
 
     public function countByUser($user_id){
         $sql = 'SELECT COUNT(*) AS `total` FROM todos WHERE user_id=?';
-        $count = $this->app['db']->fetchAssoc($sql, [$user_id]);
+        $count = $this->fetchAssoc($sql, [$user_id]);
         return (int)$count['total'];
     }
 
@@ -67,7 +67,7 @@ class TodoRepository extends Repository implements IRepository
         ORDER BY %s %s
     LIMIT %d,%d',
             $sort_by,strtoupper($sorting),$paginator->getStartIndex(), $paginator->getPerPage());
-        $todos = $this->app['db']->fetchAll($sql);
+        $todos = $this->fetchAll($sql);
         $todoList=[];
         foreach ($todos as $todoData){
             array_push($todoList,$this->toObject($todoData));
@@ -77,17 +77,17 @@ class TodoRepository extends Repository implements IRepository
 
     public function insert(IEntity $entity)
     {
-        return $this->app["db"]->insert("todos", ["description" => $entity->getDescription(),'user_id'=>$entity->getUserId()]);
+        return $this->db()->insert("todos", ["description" => $entity->getDescription(),'user_id'=>$entity->getUserId()]);
     }
 
     public function update(IEntity $entity)
     {
-        return $this->app["db"]->update("todos", ["description" => $entity->getDescription(),'status'=>$entity->getStatus()], ["id" => $entity->getId()]);
+        return $this->db()->update("todos", ["description" => $entity->getDescription(),'status'=>$entity->getStatus()], ["id" => $entity->getId()]);
     }
 
     public function remove($id)
     {
-        return $this->app["db"]->delete("todos", ["id" => $id]);
+        return $this->db()->delete("todos", ["id" => $id]);
     }
 
     public function toObject(array $data)

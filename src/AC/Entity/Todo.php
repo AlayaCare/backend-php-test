@@ -2,6 +2,8 @@
 
 
 namespace AC\Entity;
+use Symfony\Component\Validator\Mapping\ClassMetadata;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Todo
@@ -73,5 +75,10 @@ class Todo implements IEntity
     public function toArray()
     {
         return ['description' => $this->description, 'id' => $this->id, 'user_id' => $this->user_id];
+    }
+
+    static public function loadValidatorMetadata(ClassMetadata $metadata)
+    {
+        $metadata->addPropertyConstraint('description', new Assert\NotBlank());
     }
 }

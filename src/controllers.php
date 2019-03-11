@@ -4,6 +4,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use AC\Core\ErrorCode;
 use AC\Entity\Todo;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -77,9 +78,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $todo=new Todo();
     $todo->fill(['description'=>$description,'user_id'=>$user_id]);
-
-    $app['repository.todos']->insert($todo);
-
+    $errors = $app["validator"]->validate($todo);
+    if(count($errors) > 0){
+        $app['session']->getFlashBag()->add('todo_errors', 'A Todo can not be created without a description.');
+    }else{
+        $app['repository.todos']->insert($todo);
+    }
     return $app->redirect('/todo');
 });
 

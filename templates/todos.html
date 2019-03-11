@@ -40,6 +40,7 @@
                 </td>
             </tr>
         {% endfor %}
+
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
@@ -55,7 +56,10 @@
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>
+
         </tr>
+
     </table>
+    {% include 'pagination.html' %}
 </div>
 {% endblock %}

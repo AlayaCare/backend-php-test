@@ -51,6 +51,30 @@ class TodoRepository extends Repository implements IRepository
         return $todoList;
     }
 
+    public function countByUser($user_id){
+        $sql = 'SELECT COUNT(*) AS `total` FROM todos WHERE user_id=?';
+        $count = $this->app['db']->fetchAssoc($sql, [$user_id]);
+        return (int)$count['total'];
+    }
+
+    public function findAllPaginator($paginator,$user_id,$sort_by,$sorting){
+        $sql = sprintf('SELECT
+        *
+    FROM
+        todos
+    WHERE
+        user_id='.$user_id.'
+        ORDER BY %s %s
+    LIMIT %d,%d',
+            $sort_by,strtoupper($sorting),$paginator->getStartIndex(), $paginator->getPerPage());
+        $todos = $this->app['db']->fetchAll($sql);
+        $todoList=[];
+        foreach ($todos as $todoData){
+            array_push($todoList,$this->toObject($todoData));
+        }
+        return $todoList;
+    }
+
     public function insert(IEntity $entity)
     {
         return $this->app["db"]->insert("todos", ["description" => $entity->getDescription(),'user_id'=>$entity->getUserId()]);

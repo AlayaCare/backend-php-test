@@ -1,7 +1,7 @@
 <?php
 
 use Symfony\Component\Debug\Debug;
-
+use AC\Controller\TodoController;
 require_once __DIR__.'/../vendor/autoload.php';
 
 Debug::enable();
@@ -22,4 +22,7 @@ require __DIR__.'/../src/AC/Entity/User.php';
 require __DIR__.'/../src/AC/Repository/IRepository.php';
 require __DIR__.'/../src/AC/Repository/Repository.php';
 require __DIR__.'/../src/AC/Repository/UserRepository.php';
+
+require __DIR__.'/../src/AC/Controller/TodoController.php';
+$app->mount("/",  new TodoController());
 $app->run();

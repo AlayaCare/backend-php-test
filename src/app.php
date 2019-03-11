@@ -11,6 +11,7 @@ use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
 use AC\Repository\UserRepository;
 use AC\Repository\TodoRepository;
+use AC\Core\PaginatorServiceProvider;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -19,6 +20,7 @@ $app->register(new ValidatorServiceProvider());
 $app->register(new ServiceControllerServiceProvider());
 $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
+$app->register(new PaginatorServiceProvider());
 
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
 

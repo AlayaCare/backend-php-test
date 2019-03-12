@@ -15,11 +15,16 @@ class UserRepository extends Repository implements IRepository
 
     public function __construct(Application $app){
         parent::__construct($app);
+        $this->table = 'users';
     }
 
     public function findById($id)
     {
-        $queryResult=$this->app["db"]->fetchAssoc("SELECT * FROM users where id=? limit 1", [(int) $id]);
+        $sql=$this->builder->select('u')
+            ->from($this->table)
+            ->where('u.id =:id')
+            ->setParameter(':id',(int) $id);
+        $queryResult=$this->fetchAssoc($sql);
         if($queryResult)
             return $this->toObject($queryResult);
         return $queryResult;
@@ -27,7 +32,9 @@ class UserRepository extends Repository implements IRepository
 
     public function findAll()
     {
-        $queryResult=$this->app["db"]->fetchAll("SELECT * FROM users");
+        $sql=$this->builder->select('*')
+            ->from($this->table);
+        $queryResult=$this->fetchAll($sql);
         $userList=[];
         foreach ($queryResult as $userData){
            array_push($userList,$this->toObject($userData));
@@ -53,7 +60,12 @@ class UserRepository extends Repository implements IRepository
 
     public function login($username,$password)
     {
-        $queryResult=$this->app["db"]->fetchAssoc("SELECT * FROM users where username=? and password=? limit 1", [$username,md5($password)]);
+        $sql=$this->builder->select('*')
+            ->from($this->table)
+            ->where($this->builder->expr()->eq('username',"'".$username."'" ))
+            ->andWhere($this->builder->expr()->eq('password',"'".md5($password)."'" ))
+            ->setMaxResults(1);
+        $queryResult=$this->fetchAssoc($sql);
         if($queryResult)
             return $this->toObject($queryResult);
         return $queryResult;

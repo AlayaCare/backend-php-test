@@ -4,6 +4,7 @@ namespace AC\Repository;
 
 use AC\Entity\IEntity;
 use AC\Entity\Todo;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Silex\Application;
 
 /***
@@ -14,11 +15,16 @@ class TodoRepository extends Repository implements IRepository
 {
     public function __construct(Application $app){
         parent::__construct($app);
+        $this->table='todos';
     }
 
     public function findById($id)
     {
-        $queryResult=$this->fetchAssoc("SELECT * FROM todos where id=? limit 1", [(int) $id]);
+        $sql=$this->builder->select('t')
+            ->from($this->table)
+            ->where('t.id =:id')
+            ->setParameter(':id',(int) $id);
+        $queryResult=$this->fetchAssoc($sql);
         if($queryResult)
             return $this->toObject($queryResult);
         return $queryResult;
@@ -26,7 +32,11 @@ class TodoRepository extends Repository implements IRepository
 
     public function findByIdAndUserId($id,$user_id)
     {
-        $queryResult = $this->fetchAssoc("SELECT * FROM todos where id=? and user_id=?limit 1", [(int)$id, (int)$user_id]);
+        $sql=$this->builder->select('*')
+            ->from($this->table)
+            ->where($this->builder->expr()->eq('id', (int)$id))
+        ->andWhere($this->builder->expr()->eq('user_id', (int)$user_id));
+        $queryResult = $this->fetchAssoc($sql);
         if($queryResult)
             return $this->toObject($queryResult);
         return $queryResult;
@@ -34,7 +44,9 @@ class TodoRepository extends Repository implements IRepository
 
     public function findAll()
     {
-        $queryResult=$this->fetchAll("SELECT * FROM todos");
+        $sql=$this->builder->select('*')
+            ->from($this->table);
+        $queryResult=$this->fetchAll($sql);
         $todoList=[];
         foreach ($queryResult as $todoData){
             array_push($todoList,$this->toObject($todoData));
@@ -43,7 +55,10 @@ class TodoRepository extends Repository implements IRepository
     }
     public function findAllByUser($user_id)
     {
-        $queryResult=$this->fetchAll("SELECT * FROM todos WHERE user_id=?",[$user_id]);
+        $sql=$this->builder->select('*')
+            ->from($this->table)
+            ->where($this->builder->expr()->eq('user_id', $user_id));
+        $queryResult=$this->fetchAll($sql);
         $todoList=[];
         foreach ($queryResult as $todoData){
             array_push($todoList,$this->toObject($todoData));
@@ -52,21 +67,20 @@ class TodoRepository extends Repository implements IRepository
     }
 
     public function countByUser($user_id){
-        $sql = 'SELECT COUNT(*) AS `total` FROM todos WHERE user_id=?';
-        $count = $this->fetchAssoc($sql, [$user_id]);
+        $sql=$this->builder->select('COUNT(*) AS total')
+            ->from($this->table)
+            ->where($this->builder->expr()->eq('user_id', $user_id));
+        $count = $this->fetchAssoc($sql);
         return (int)$count['total'];
     }
 
     public function findAllPaginator($paginator,$user_id,$sort_by,$sorting){
-        $sql = sprintf('SELECT
-        *
-    FROM
-        todos
-    WHERE
-        user_id='.$user_id.'
-        ORDER BY %s %s
-    LIMIT %d,%d',
-            $sort_by,strtoupper($sorting),$paginator->getStartIndex(), $paginator->getPerPage());
+        $sql=$this->builder->select('*')
+            ->from($this->table)
+            ->where($this->builder->expr()->eq('user_id', $user_id))
+            ->addOrderBy($sort_by,$sorting)
+        ->setMaxResults($paginator->getPerPage())
+        ->setFirstResult($paginator->getStartIndex());
         $todos = $this->fetchAll($sql);
         $todoList=[];
         foreach ($todos as $todoData){
@@ -82,12 +96,17 @@ class TodoRepository extends Repository implements IRepository
 
     public function update(IEntity $entity)
     {
-        return $this->db()->update("todos", ["description" => $entity->getDescription(),'status'=>$entity->getStatus()], ["id" => $entity->getId()]);
+        $sql=$this->builder->update($this->table)
+                 ->set('description', "'".$entity->getDescription()."'")
+                 ->set('status', "'".$entity->getStatus()."'")
+             ->where($this->builder->expr()->eq('id', $entity->getId()));
+        return $this->db()->executeUpdate($sql);
     }
 
     public function remove($id)
     {
-        return $this->db()->delete("todos", ["id" => $id]);
+        $sql=$this->builder->delete($this->table)->where($this->builder->expr()->eq('id', $id));
+        return $this->db()->executeUpdate($sql);
     }
 
     public function toObject(array $data)

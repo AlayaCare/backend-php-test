@@ -11,9 +11,12 @@ use Silex\Application;
  */
 abstract class Repository{
     protected $app;
+    protected $builder;
+    protected $table;
 
     public function __construct(Application $app){
         $this->app = $app;
+        $this->builder = $app['db']->createQueryBuilder();
     }
 
     protected function db()

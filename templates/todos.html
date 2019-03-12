@@ -3,34 +3,63 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+    {% for todo_message in app.session.getFlashBag.get('todo_messages') %}
+    <div class="alert alert-success alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Success!!!</strong> {{ todo_message }}
+    </div>
+    {% endfor %}
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th>
+        <th>User</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th></th>
+        <th></th>
         {% for todo in todos %}
             <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
+                <td>{{ todo.getId() }}</td>
+                <td>{{ todo.getUserId() }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
+                       {{ todo.getDescription() }}
                     </a>
                 </td>
+                <td>{{ todo.getStatus() }}</td>
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.getId() }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
                 </td>
+                <td>
+                    {% if todo.isNotComplete() %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.getId() }}">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
+                    </form>
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
+
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" required="required" name="description" class="small-6 small-center" placeholder="Description...">
+                    {% for message in app.session.getFlashBag.get('todo_errors') %}
+                    <div class="alert alert-danger alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <strong>Error</strong> {{ message }}
+                    </div>
+                    {% endfor %}
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>
+
         </tr>
+
     </table>
+    {% include 'pagination.html' %}
 </div>
 {% endblock %}

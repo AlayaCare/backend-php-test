@@ -22,7 +22,8 @@
         "symfony/twig-bridge": "~2.3",
         "symfony/validator": "~2.3",
         "doctrine/dbal": "~2.2",
-        "deralex/yaml-config-service-provider": "1.0.x-dev"
+        "deralex/yaml-config-service-provider": "1.0.x-dev",
+        "erusev/parsedown": "^1.7"
     },
     "autoload": {
         "psr-0": { "": "src/" }
@@ -31,5 +32,8 @@
         "branch-alias": {
             "dev-master": "1.1.x-dev"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8"
     }
 }

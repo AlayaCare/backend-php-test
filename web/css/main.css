@@ -5,3 +5,64 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+
+body > .container {
+    padding-top: 70px;
+}
+
+.login-form > .input-group {
+    margin-bottom: 10px;
+}
+
+.alert.alert-dismissible .close {
+    top: -22px
+}
+table.table {
+    margin-bottom: 10px;
+}
+table.table tr td {
+    position: relative;
+}
+table.table tr.strikeout td:nth-child(1):before,
+table.table tr.strikeout td:nth-child(2):before,
+table.table tr.strikeout td:nth-child(3):before {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    border-bottom: 1px solid #666;
+    width: 100%;
+}
+nav {
+    height: 34px;
+}
+nav .pagination {
+    margin: 0;
+    float: right;
+}
+nav .pagination .page-link {
+    padding: 4px 8px;
+}
+#add-todo-wrapper {
+    margin-top: 20px;
+}
+#add-todo-wrapper input {
+    width: 80%;
+    padding: 4px;
+}
+#add-todo-wrapper button {
+    float: right;
+}
+.pagination-info {
+    float: left;
+}
+.spinner {
+    height: 70px;
+    position: relative;
+}
+.spinner .fa-spin {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 15px;
+}

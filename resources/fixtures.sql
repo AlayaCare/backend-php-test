@@ -1,7 +1,7 @@
 INSERT INTO users (username, password) VALUES
-('user1', 'user1'),
-('user2', 'user2'),
-('user3', 'user3');
+('user1', SHA1('user1')),
+('user2', SHA1('user2')),
+('user3', SHA1('user3'));
 
 INSERT INTO todos (user_id, description) VALUES
 (1, 'Vivamus tempus'),

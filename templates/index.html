@@ -2,5 +2,7 @@
 
 {% block content %}
     <h1>README</h1>
-    <pre class="well">{{ readme }}</pre>
+    <div class="well">
+        {{ readme|raw }}
+    </div>
 {% endblock %}

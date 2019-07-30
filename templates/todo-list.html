@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="todo-list" class="col-md-4 col-md-offset-4">
+    <h1>${ heading }</h1>
+    <div v-if="isLoaded">
+        <div class="row" v-if="message.content">
+            <div class="alert alert-dismissible show" :class="'alert-' + message.type" role="alert">
+                <p>${ message.content }</p>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+        <table class="table table-striped">
+            <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Description</th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr v-for="(todo, index) in todos" :key="todo.id" :class="todo.completed == 1 ? 'strikeout' : ''">
+                <td>${ todo.id }</td>
+                <td>${ todo.user_id }</td>
+                <td>${ todo.description }</td>
+                <td>
+                    <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white" @click="deleteItem(todo.id)"></span></button>
+                </td>
+                <td>
+                    <button type="submit" class="btn btn-xs btn-success" v-if="todo.completed == 0"><span class="glyphicon glyphicon-ok glyphicon-white" @click="completeItem(todo.id)"></span></button>
+                    <button type="submit" class="btn btn-xs btn-default" v-else><span class="glyphicon glyphicon-repeat glyphicon-white" @click="undoItem(todo.id)"></span></button>
+                </td>
+            </tr>
+        </table>
+        <div id="pagination-wrapper" v-if="pagination !== false">
+            <div class="pagination-info">
+                <small>
+                    <strong>${ (pagination.currentPage - 1) * pagination.itemsPerPage + 1 }</strong> to
+                    <strong>${ (pagination.currentPage - 1) * pagination.itemsPerPage + pagination.currentPageItems }</strong> of
+                    <strong>${ pagination.totalCount }</strong> todos
+                </small>
+            </div>
+            <nav v-if="pagination.totalCount > 1">
+                <ul class="pagination">
+                    <li class="page-item" v-if="pagination.currentPage > 1">
+                        <a class="page-link" href="#" @click="fetchTodoData(pagination.currentPage - 1)" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                            <span class="sr-only">Previous</span>
+                        </a>
+                    </li>
+                    <li v-for="p in pagination.totalPages" class="page-item" :class="(p == pagination.currentPage) ? ' active' : ''"><a class="page-link" href="#" @click="fetchTodoData(p)">${ p }</a></li>
+                    <li class="page-item" v-if="pagination.currentPage < pagination.totalPages">
+                        <a class="page-link" href="#" @click="fetchTodoData(pagination.currentPage + 1)" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                            <span class="sr-only">Next</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <table id="add-todo-wrapper" class="table">
+            <tr>
+                <td>
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." v-model="description" required>
+                </td>
+                <td>
+                    <button type="submit" class="btn btn-sm btn-primary" @click="addItem">Add</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="spinner" v-else>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+    </div>
+</div>
+<script>
+    new Vue({
+        el: '#todo-list',
+        delimiters: ['${', '}'],
+        data: {
+            heading: 'Todo List:',
+            todos: [],
+            description: null,
+            pagination: false,
+            message: {
+                type: null,
+                content: null
+            },
+            isLoaded: false
+        },
+        methods: {
+            fetchTodoData(num) {
+                let self = this;
+                self.isLoaded = false;
+                axios.get(window.location.origin + '/todos/' + num)
+                    .then(function (response) {
+                        self.todos = response.data.todos;
+                        self.pagination = response.data.pagination;
+                        self.isLoaded = true;
+                    }).catch(error => {
+                        console.log(error);
+                        self.isLoaded = true;
+                    });
+            },
+            addItem() {
+                let self = this;
+                self.isLoaded = false;
+                axios.post(window.location.origin + '/todo/add/' + self.description)
+                    .then(function (response) {
+                        if (response.data.type === 'success') {
+                            self.todos = self.todos.filter(function (todo) {
+                                if (todo.id !== response.data.id) {
+                                    return todo;
+                                }
+                            });
+                            //update todolist and pagination
+                            self.todos = response.data.todos;
+                            self.pagination = response.data.pagination;
+                            self.description = '';
+                        }
+
+                        self.message.type = response.data.type;
+                        self.message.content = response.data.message;
+                        self.isLoaded = true;
+                    }).catch(error => {
+                        console.log(error);
+                    });
+            },
+            deleteItem(item_id) {
+                let self = this;
+                self.isLoaded = false;
+                axios.post(window.location.origin + '/todo/delete/' + item_id)
+                    .then(function (response) {
+                        if (response.data.type === 'success') {
+                            self.todos = self.todos.filter(function (todo) {
+                                if (todo.id !== response.data.id) {
+                                    return todo;
+                                }
+                            });
+                            //update todolist and pagination
+                            self.todos = response.data.todos;
+                            self.pagination = response.data.pagination;
+                        }
+
+                        self.message.type = response.data.type;
+                        self.message.content = response.data.message;
+                        self.isLoaded = true;
+                    }).catch(error => {
+                        console.log(error);
+                    });
+            },
+            completeItem(item_id) {
+                let self = this;
+                self.isLoaded = false;
+                axios.post(window.location.origin + '/todo/complete/' + item_id)
+                    .then(function (response) {
+                        if (response.data.type === 'success') {
+                            self.todos = self.todos.filter(function (todo) {
+                                if (todo.id === response.data.id) {
+                                    todo.completed = '1';
+                                }
+                                return todo;
+                            });
+                        }
+                        self.message.type = response.data.type;
+                        self.message.content = response.data.message;
+                        self.isLoaded = true;
+                    }).catch(error => {
+                        console.log(error);
+                        self.isLoaded = true;
+                    });
+            },
+            undoItem(item_id) {
+                let self = this;
+                self.isLoaded = false;
+                axios.post(window.location.origin + '/todo/undo/' + item_id)
+                    .then(function (response) {
+                        if (response.data.type === 'success') {
+                            self.todos = self.todos.filter(function (todo) {
+                                if (todo.id === response.data.id) {
+                                    todo.completed = '0';
+                                }
+                                return todo;
+                            });
+                        }
+                        self.message.type = response.data.type;
+                        self.message.content = response.data.message;
+                        self.isLoaded = true;
+                    }).catch(error => {
+                        console.log(error);
+                    });
+            }
+        },
+        mounted() {
+            this.fetchTodoData(1);
+        }
+    });
+</script>
+{% endblock %}

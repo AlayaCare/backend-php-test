@@ -1,4 +1,4 @@
-Alayacare PHP backend skill test
+AskNicely PHP backend skill test
 ==========================
 
 
@@ -13,13 +13,13 @@ Credentials:
 * password: **user1**
 
 #### Homepage:
-![Homepage](/web/img/homepage.png?raw=true "Homepage")
+![Homepage](https://github.com/asknicely/backend-php-test/blob/master/web/img/homepage.png?raw=true "Homepage")
 
 #### Login page:
-![Login page](/web/img/login-page.png?raw=true "Login page")
+![Login page](https://github.com/asknicely/backend-php-test/blob/master/web/img/login-page.png?raw=true "Login page")
 
 #### Todos:
-![Todos](/web/img/todos.png?raw=true "Todos")
+![Todos](https://github.com/asknicely/backend-php-test/blob/master/web/img/todos.png?raw=true "Todos")
 
 ### Requirements
 * php 5.3+
@@ -43,7 +43,10 @@ You will be asked to improve the code of this app with the following tasks.
 
 You can complete the tasks in any order.
 
-Separate your commits by task and use the following format for your commit messages: TASK-{task number}: {meaningful message}
+### What we are looking for?
+1. Separate your <b>commits by task</b> and use the following format for your commit messages: TASK-{task number}: {meaningful message}
+2. We care about UI/UX, any attention to detail in the UI will be noticed. Please dont hack in UI changes. 
+3. Simple clear code comments are helpful.   
 
 ### Tasks
 * TASK 1: As a user I can't add a todo without a description.
@@ -54,11 +57,18 @@ Separate your commits by task and use the following format for your commit messa
 * TASK 4: As a user I can see a confirmation message when I add/delete a todo.
     - Hint: Use session FlashBag.
 * TASK 5: As a user I can see my list of todos paginated.
-* TASK 6: Implement an ORM database access layer so we don’t have SQL in the controller code.
+* TASK 6: Choose a task below:
+ <br>BACKEND (focus) Implement an ORM database access layer so we don’t have SQL in the controller code.
+ <br><i>OR</i><br>
+ FRONTEND (focus) Using JQuery, VueJs, or React render the todo list dynamically and allow the delete + completed buttons to work dynamically via an Ajax<br>
+ (You do not need to make pagination to work). We care about the user experience here, this might be animation?  
+ 
+    
 
 Extra tasks:
-- Fix any bug you may find.
-- Fix any security issue you may find.
+- Fix any bugs you may find.
+- Fix any security issues you may find.
+- Adding a few unit tests to show us that you undersatnd how they work is a bonus. 
 
 ### Documentation
 This app use [Silex](http://silex.sensiolabs.org/), a  micro-framework based on the Symfony2 Components.
@@ -68,18 +78,18 @@ Documentation can be found here: http://silex.sensiolabs.org/documentation
 ### How to submit your work?
 
 1. ##### First you need to fork this repository.
-![Forking a repo](/web/img/fork.png?raw=true "Forking a repo")
+![Forking a repo](https://github.com/asknicely/backend-php-test/blob/master/web/img/fork.png?raw=true "Forking a repo")
 
 2. ##### Then clone your fork locally.
-![Cloning a repo](/web/img/clone.png?raw=true "Cloning a repo")
+![Cloning a repo](https://github.com/asknicely/backend-php-test/blob/master/web/img/clone.png?raw=true "Cloning a repo")
 
 3. ##### Install the app locally. See the [Installation Guide] (#Installation).
 
 4. ##### Once you've completed your work, you can submit a pull-request to the remote repository.
-![ a Pull Request](/web/img/pull-request.png?raw=true "Creating a Pull Request")
+![ a Pull Request](https://github.com/asknicely/backend-php-test/blob/master/web/img/pull-request.png?raw=true "Creating a Pull Request")
 
 5. ##### Review your changes and validate.
-![Validating a Pull Request](/web/img/pull-request-review.png?raw=true "Validating a Pull Request")
+![Validating a Pull Request](https://github.com/asknicely/backend-php-test/blob/master/web/img/pull-request-review.png?raw=true "Validating a Pull Request")
 
 
 

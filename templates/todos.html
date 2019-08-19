@@ -15,6 +15,17 @@
     </div>
     {% endfor %}
 
+    <!--
+    Task 4:
+    Display message when adding / deleting an item
+    -->
+    {% for alert in app.session.flashbag.get('info') %}
+    <div class="alert alert-info alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {{ alert }}
+    </div>
+    {% endfor %}
+
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th colspan="2"></th>
         {% for todo in todos %}
@@ -32,7 +43,7 @@
                         <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok-sign"></span></button>
                     </form>
                     {% else %}
-                        Done
+                        <span class="label label-success">Done</span>
                     {% endif %}
                 </td>
                 <td>

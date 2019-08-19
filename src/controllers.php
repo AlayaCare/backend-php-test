@@ -86,6 +86,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
         $app['db']->executeUpdate($sql, [
             $user_id, $description
         ]);
+        $app['session']->getFlashBag()->add('info', 'You have added an item.');
     } else {
         $app['session']->getFlashBag()->add('error', 'A description cannot be empty.');
     }
@@ -98,6 +99,7 @@ $app->post('/todo/done/{id}', function ($id) use ($app) {
     $app['db']->executeUpdate($sql, [
         'done', $id
     ]);
+    $app['session']->getFlashBag()->add('info', 'You marked item ' . $id . ' as done');
 
     return $app->redirect('/todo#' . $id);
 });
@@ -107,6 +109,7 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = ?";
     $app['db']->executeUpdate($sql, [$id]);
+    $app['session']->getFlashBag()->add('info', 'You have delete item ' . $id);
 
     return $app->redirect('/todo');
 });

@@ -3,6 +3,18 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+
+    <!--
+    Task 1:
+    Display messages stored in session flash message
+    -->
+    {% for alert in app.session.flashbag.get('error') %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Woops!</strong> {{ alert }}
+    </div>
+    {% endfor %}
+
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
         {% for todo in todos %}

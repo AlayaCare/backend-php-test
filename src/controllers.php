@@ -41,7 +41,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
+$app->get('/todo/{id}/{format}', function (Request $request, $id, $format) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -58,13 +58,23 @@ $app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = ?";
-        $todos = $app['db']->fetchAll($sql, [
-            $user['id']
-        ]);
+        $limit = 5;
+        $page = $request->get('page', 1) ;
+        $start = $limit * ($page - 1);
+
+        $sql = "SELECT SQL_CALC_FOUND_ROWS * FROM todos WHERE user_id = ? LIMIT ?, ?";
+        $todos = $app['db']->fetchAll(
+            $sql,
+            [$user['id'], $start, $limit],
+            [\PDO::PARAM_INT, \PDO::PARAM_INT, \PDO::PARAM_INT]
+        );
+
+        $totalPages = ceil($app['db']->fetchColumn('SELECT FOUND_ROWS()') / $limit);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
+            'totalPages' => $totalPages,
+            'currentPage' => $page
         ]);
     }
 })

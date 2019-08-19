@@ -41,7 +41,7 @@ $app->get('/logout', function () use ($app) {
 });
 
 
-$app->get('/todo/{id}', function ($id) use ($app) {
+$app->get('/todo/{id}/{format}', function ($id, $format) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
     }
@@ -50,6 +50,10 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         $sql = "SELECT * FROM todos WHERE id = ?";
         $todo = $app['db']->fetchAssoc($sql, [$id]);
 
+        if ($format === 'json') {
+            return $app->json($todo, Response::HTTP_OK)
+                ->setEncodingOptions(JSON_NUMERIC_CHECK);
+        }
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
@@ -64,7 +68,9 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         ]);
     }
 })
-->value('id', null);
+->value('id', null)
+->value('format', null)
+;
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {

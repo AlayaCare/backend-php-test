@@ -22,8 +22,8 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $sql = "SELECT * FROM users WHERE username = ? and password = ?";
+        $user = $app['db']->fetchAssoc($sql, [$username, $password]);
 
         if ($user){
             $app['session']->set('user', $user);
@@ -47,15 +47,17 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $sql = "SELECT * FROM todos WHERE id = ?";
+        $todo = $app['db']->fetchAssoc($sql, [$id]);
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
-        $todos = $app['db']->fetchAll($sql);
+        $sql = "SELECT * FROM todos WHERE user_id = ?";
+        $todos = $app['db']->fetchAll($sql, [
+            $user['id']
+        ]);
 
         return $app['twig']->render('todos.html', [
             'todos' => $todos,
@@ -74,8 +76,10 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
 
     if ($description !== '') {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        $sql = "INSERT INTO todos (user_id, description) VALUES (?, ?)";
+        $app['db']->executeUpdate($sql, [
+            $user_id, $description
+        ]);
     } else {
         $app['session']->getFlashBag()->add('error', 'A description cannot be empty.');
     }
@@ -83,11 +87,20 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     return $app->redirect('/todo');
 });
 
+$app->post('/todo/done/{id}', function ($id) use ($app) {
+    $sql = "UPDATE todos SET status = ? WHERE id = ?";
+    $app['db']->executeUpdate($sql, [
+        'done', $id
+    ]);
+
+    return $app->redirect('/todo#' . $id);
+});
+
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    $sql = "DELETE FROM todos WHERE id = ?";
+    $app['db']->executeUpdate($sql, [$id]);
 
     return $app->redirect('/todo');
 });

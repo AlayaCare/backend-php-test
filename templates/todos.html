@@ -16,15 +16,24 @@
     {% endfor %}
 
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th colspan="2"></th>
         {% for todo in todos %}
             <tr>
-                <td>{{ todo.id }}</td>
+                <td><a name="todo-{{ todo.id }}">{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
                        {{ todo.description }}
                     </a>
+                </td>
+                <td>
+                    {% if todo.status == 'pending' %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok-sign"></span></button>
+                    </form>
+                    {% else %}
+                        Done
+                    {% endif %}
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">

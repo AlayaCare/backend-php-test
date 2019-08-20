@@ -31,7 +31,7 @@
         {% for todo in todos %}
             <tr>
                 <td><a name="todo-{{ todo.id }}">{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
+                <td>{{ user.id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
                        {{ todo.description }}

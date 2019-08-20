@@ -14,10 +14,19 @@
                        {{ todo.description }}
                     </a>
                 </td>
+                    
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                        <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
-                    </form>
+                    <div class="actions">
+                        <form method="post" action="{{ app.request.baseurl }}/todo/{{ todo.id }}">
+                            <button type="submit" class="btn btn-{{ todo.complete ? 'success' : 'primary' }} btn-xs" name='complete' value='{{ not todo.complete }}'>
+                                <span class="glyphicon glyphicon-{{ todo.complete ? 'check' : 'unchecked' }} glyphicon-white"></span>
+                            </button>
+                        </form>
+                        <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                            <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                        </form>
+                    </div>
+
                 </td>
             </tr>
         {% endfor %}
@@ -25,6 +34,9 @@
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                        {% if error is defined and error %}
+                            <small>{{ error }}</small>
+                        {% endif %}
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>

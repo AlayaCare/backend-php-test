@@ -64,6 +64,21 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
+$app->post('/todo/{id}', function (Request $request, $id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id) {
+        $complete = $request->request->get('complete');
+        $sql = "UPDATE todos SET complete = ? WHERE id = ?";
+        $app['db']->executeUpdate($sql, [(int) $complete, (int) $id]);
+    }
+
+    return $app->redirect('/todo');
+})
+->value('id', null);
+
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     if (null === $user = $app['session']->get('user')) {
@@ -88,3 +103,11 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+// $app->match('/todo/complete/{id}', function ($id) use ($app) {
+
+//     $sql = "DELETE FROM todos WHERE id = ?";
+//     $app['db']->executeUpdate($sql, [(int) $id]);
+
+//     return $app->redirect('/todo');
+// });

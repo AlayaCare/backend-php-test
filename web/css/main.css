@@ -5,3 +5,16 @@ body {
 .login-form > div {
     margin-top: 10px;
 }
+
+.bg-transparent {
+    background-color: transparent;
+}
+
+.actions {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.actions .btn {
+    margin: 0 2px;
+}

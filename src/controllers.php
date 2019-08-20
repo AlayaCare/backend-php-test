@@ -64,21 +64,6 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 })
 ->value('id', null);
 
-$app->post('/todo/{id}', function (Request $request, $id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
-
-    if ($id) {
-        $complete = $request->request->get('complete');
-        $sql = "UPDATE todos SET complete = ? WHERE id = ?";
-        $app['db']->executeUpdate($sql, [(int) $complete, (int) $id]);
-    }
-
-    return $app->redirect('/todo');
-})
-->value('id', null);
-
 $app->get('/todo/{id}/json', function ($id) use ($app) {
     if (null === $user = $app['session']->get('user')) {
         return $app->redirect('/login');
@@ -103,18 +88,49 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    if ($description) {
+    if (!empty($description)) {
         $sql = "INSERT INTO todos (user_id, description) VALUES (?, ?)";
-        $app['db']->executeUpdate($sql, [(int) $user_id, $description]);
+        $response = $app['db']->executeUpdate($sql, [(int) $user_id, $description]);
+
+        if ($response) {
+            $app['session']->getFlashBag()->add('success', 'Nice! Item added!');
+        } else {
+            $app['session']->getFlashBag()->add('danger', 'Ops! Item not added!');
+        }
+
+    } else {
+        $app['session']->getFlashBag()->add('danger', 'Ops! Description is required.');
     }
+
     return $app->redirect('/todo');
 });
-
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
     $sql = "DELETE FROM todos WHERE id = ?";
-    $app['db']->executeUpdate($sql, [(int) $id]);
+    $response = $app['db']->executeUpdate($sql, [(int) $id]);
+    
+    if ($response) {
+        $app['session']->getFlashBag()->add('success', 'Nice! Item deleted!');
+    } else {
+        $app['session']->getFlashBag()->add('danger', 'Ops! Item not deleted!');
+    }
 
     return $app->redirect('/todo');
 });
+
+$app->post('/todo/complete/{id}', function (Request $request, $id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id) {
+        $complete = $request->request->get('complete');
+        $sql = "UPDATE todos SET complete = ? WHERE id = ?";
+        $app['db']->executeUpdate($sql, [(int) $complete, (int) $id]);
+        $app['session']->getFlashBag()->add('success', 'Nice! Item completed!');
+    }
+
+    return $app->redirect('/todo');
+})
+->value('id', null);

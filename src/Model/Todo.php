@@ -2,6 +2,9 @@
 
 namespace Model;
 
+use Helper\Pagination;
+
+
 class Todo {
 
     public static function find($id, $app) {
@@ -14,6 +17,22 @@ class Todo {
         $sql = "SELECT * FROM todos WHERE user_id = ?";
         $todos = $app['db']->fetchAll($sql, [(int) $userId]);
         return $todos;
+    }
+
+    public static function countByUserId($userId, $app) {
+        $sql = "SELECT COUNT(*) FROM todos WHERE user_id = ?";
+        $total = $app['db']->fetchColumn($sql, [(int) $userId]);
+        return $total;
+    }
+
+    public function listByPage($userId, $app) {
+        $total = self::countByUserId($userId, $app);
+        $pagination = Pagination::prepare($total);
+        $sql = "SELECT * FROM todos WHERE user_id = ? LIMIT {$pagination['limit']} OFFSET {$pagination['offset']}";
+        $todos = $app['db']->fetchAll($sql, [
+            (int) $userId
+        ]);
+        return [$todos, $pagination];
     }
 
     public static function add($request, $app) {
@@ -52,6 +71,8 @@ class Todo {
         $app['db']->executeUpdate($sql, [(int) $complete, (int) $id]);
         $app['session']->getFlashBag()->add('todos.success', 'Nice! Item completed!');
     }
+
+  
 
 }
 

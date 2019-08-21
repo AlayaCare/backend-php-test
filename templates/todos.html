@@ -47,5 +47,17 @@
             </form>
         </tr>
     </table>
+    <nav class="text-center">
+        <div>Showing {{ start }}-{{ end }} of {{ total }} items</div>
+        <ul class="pagination">
+            <li><a href="{{ app.request.baseurl }}/todo?page=1"><span>&laquo;</span></a></li>
+            {% for p in range(1, pages) %}
+            <li class="{{ p == currentPage ? 'active' : '' }}"><a href="{{ app.request.baseurl }}/todo?page={{ p }}">{{ p }}</a></li>
+
+            {% endfor %}
+            <li><a href="{{ app.request.baseurl }}/todo?page={{ pages }}"><span>&raquo;</span></a></li>
+        </ul>
+    </nav>
+
 </div>
 {% endblock %}

@@ -44,9 +44,14 @@ $app->get('/todo/{id}', function ($id) use ($app) {
             'todo' => $todo,
         ]);
     } else {
-       $todos = Model\Todo::findByUserId($user['id'], $app);
+        list($todos, $pagination) = Model\Todo::listByPage($user['id'], $app);
         return $app['twig']->render('todos.html', [
-            'todos' => $todos
+            'todos' => $todos,
+            'total' => $pagination['total'],
+            'currentPage' => $pagination['currentPage'],
+            'pages' => $pagination['pages'],
+            'start' => $pagination['start'],
+            'end' => $pagination['end']
         ]);
     }
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Entity;
+use JsonSerializable;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\JoinColumn;
@@ -11,7 +12,7 @@ use Doctrine\ORM\Mapping\JoinColumn;
  * @ORM\Entity()
  * @ORM\Table(name="todos")
  */
-class Todo
+class Todo implements JsonSerializable
 {
     /**
      * @var int
@@ -106,4 +107,13 @@ class Todo
         return $this;
     }
 
+    public function jsonSerialize()
+    {
+        return array(
+            'id'         => $this->id,
+            'user_id'    => $this->user->getId(),
+            'description'=> $this->description,
+            'status'     => $this->status,
+        );
+    }
 }

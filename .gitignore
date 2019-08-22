@@ -1,3 +1,7 @@
 /vendor/
 composer.lock
 config/config.yml
+.idea
+__CG__*.php
+docker-compose.yaml
+.phpunit.result.cache

@@ -1,4 +1,4 @@
-Alayacare PHP backend skill test
+AskNicely PHP backend skill test
 ==========================
 
 
@@ -43,7 +43,10 @@ You will be asked to improve the code of this app with the following tasks.
 
 You can complete the tasks in any order.
 
-Separate your commits by task and use the following format for your commit messages: TASK-{task number}: {meaningful message}
+### What we are looking for?
+1. Separate your <b>commits by task</b> and use the following format for your commit messages: TASK-{task number}: {meaningful message}
+2. We care about UI/UX, any attention to detail in the UI will be noticed. Please dont hack in UI changes. 
+3. Simple clear code comments are helpful.   
 
 ### Tasks
 * TASK 1: As a user I can't add a todo without a description.
@@ -54,11 +57,18 @@ Separate your commits by task and use the following format for your commit messa
 * TASK 4: As a user I can see a confirmation message when I add/delete a todo.
     - Hint: Use session FlashBag.
 * TASK 5: As a user I can see my list of todos paginated.
-* TASK 6: Implement an ORM database access layer so we don’t have SQL in the controller code.
+* TASK 6: Choose a task below:
+ <br>BACKEND (focus) Implement an ORM database access layer so we don’t have SQL in the controller code.
+ <br><i>OR</i><br>
+ FRONTEND (focus) Using JQuery, VueJs, or React render the todo list dynamically and allow the delete + completed buttons to work dynamically via an Ajax<br>
+ (You do not need to make pagination to work). We care about the user experience here, this might be animation?  
+ 
+    
 
 Extra tasks:
-- Fix any bug you may find.
-- Fix any security issue you may find.
+- Fix any bugs you may find.
+- Fix any security issues you may find.
+- Adding a few unit tests to show us that you undersatnd how they work is a bonus. 
 
 ### Documentation
 This app use [Silex](http://silex.sensiolabs.org/), a  micro-framework based on the Symfony2 Components.

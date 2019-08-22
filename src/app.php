@@ -9,6 +9,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+use Dflydev\Silex\Provider\DoctrineOrm\DoctrineOrmServiceProvider;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -29,5 +30,20 @@ $app->register(new DoctrineServiceProvider, array(
         'charset'   => 'utf8',
     ),
 ));
+
+$app->register(new DoctrineOrmServiceProvider(), [
+    'orm.proxies_dir'             => __DIR__ . '/App/Entity/Proxy',
+    'orm.auto_generate_proxies'   => true,
+    'orm.em.options'              => [
+        'mappings' => [
+            [
+                'type'                         => 'annotation',
+                'namespace'                    => 'App\\Entity\\',
+                'path'                         => __DIR__ . '/App/Entity',
+                'use_simple_annotation_reader' => false,
+            ],
+        ],
+    ]
+]);
 
 return $app;

@@ -3,16 +3,48 @@
 {% block content %}
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+
+    <!--
+    Task 1:
+    Display messages stored in session flash message
+    -->
+    {% for alert in app.session.flashbag.get('error') %}
+    <div class="alert alert-danger alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Woops!</strong> {{ alert }}
+    </div>
+    {% endfor %}
+
+    <!--
+    Task 4:
+    Display message when adding / deleting an item
+    -->
+    {% for alert in app.session.flashbag.get('info') %}
+    <div class="alert alert-info alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {{ alert }}
+    </div>
+    {% endfor %}
+
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th colspan="2"></th>
         {% for todo in todos %}
             <tr>
-                <td>{{ todo.id }}</td>
-                <td>{{ todo.user_id }}</td>
+                <td><a name="todo-{{ todo.id }}">{{ todo.id }}</td>
+                <td>{{ user.id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
                        {{ todo.description }}
                     </a>
+                </td>
+                <td>
+                    {% if todo.status == 'pending' %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok-sign"></span></button>
+                    </form>
+                    {% else %}
+                        <span class="label label-success">Done</span>
+                    {% endif %}
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
@@ -32,5 +64,16 @@
             </form>
         </tr>
     </table>
+    {% if totalPages > 1 %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% for page in range(1, totalPages) %}
+            <li class="{{currentPage == page ? 'active'}}">
+                <a href="{{ app.request.baseurl }}/todo?page={{ page }}">{{ page }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

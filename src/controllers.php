@@ -30,8 +30,12 @@ $app->match('/login', function (Request $request) use ($app) {
                 ]
             );
 
+        $userLoggedIn = [
+            'id' => $user->getId(),
+            'username' => $user->getUsername()
+        ];
         if ($user){
-            $app['session']->set('user', $user);
+            $app['session']->set('user', $userLoggedIn);
             return $app->redirect('/todo');
         }
     }
@@ -72,7 +76,7 @@ $app->get('/todo/{id}/{format}', function (Request $request, $id, $format) use (
         $page  = $request->get('page', 1) ;
         $start = $limit * ($page - 1);
         $start = $start < 0 ? 0 : $start;
-        $user  = $entityManager->getRepository('\App\Entity\User')->find($user->getId());
+        $user  = $entityManager->getRepository('\App\Entity\User')->find($user['id']);
         $totalPages = ceil($user->getTodos()->count() / $limit);
 
 
@@ -105,7 +109,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     if ($description !== '') {
         $todo = new \App\Entity\Todo();
         $todo->setDescription($description)
-            ->setUser($entityManager->getRepository('\App\Entity\User')->find($user->getId()))
+            ->setUser($entityManager->getRepository('\App\Entity\User')->find($user['id']))
             ->setStatus('pending');
         $entityManager->persist($todo);
         $entityManager->flush();

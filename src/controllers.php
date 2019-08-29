@@ -1,9 +1,7 @@
 <?php
 
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Constraints\Length;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -61,15 +59,19 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app['twig']->render('completed.html', [
             'todo' => $todo,
         ]);
+        }
         
-        
-        }else{    
+        if (sizeof($todo) > 1 ){    
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
     
         }
+
+        $app['session']->getFlashBag()->add('error', 'Could not find TODO');
+
+        return $app->redirect('/todo');
 
 
     } else {

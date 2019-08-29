@@ -31,13 +31,14 @@
                     </a>
                 </td>
                 <td>
+                    {% if todo.status != 'DONE' %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span> done</button>
+                    </form>{% endif %}
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
-                    {% if todo.status != 'DONE' %}
-                    <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
-                     <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
-                    </form>{% endif %}
+                   
                 </td>
             </tr>
         {% endfor %}

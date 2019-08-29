@@ -96,17 +96,21 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
-
     $errors = $app['validator']->validate($description, new Assert\NotBlank());
 
     if (count($errors) > 0) {
-        return (string) 'Description'.$errors;
+
+        $app['session']->getFlashBag()->add('error', 'Description'.$errors);
+
+        return $app->redirect('/todo');
+       
     } else {
 
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
         $app['db']->executeUpdate($sql);
-    
+
+        $app['session']->getFlashBag()->add('success', 'TODO added sucessfully');
+
         return $app->redirect('/todo');
     }
 
@@ -122,6 +126,8 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
+    $app['session']->getFlashBag()->add('success', 'TODO removed sucessfully');
+    
     return $app->redirect('/todo');
 });
 

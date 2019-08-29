@@ -137,3 +137,18 @@ $app->match('/todo/done/{id}', function ($id) use ($app) {
 
     return $app->redirect('/todo');
 });
+
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    
+    if ($id){
+
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+        return json_encode($todo);
+    }
+});

@@ -2,6 +2,8 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\Length;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -47,14 +49,36 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 
     if ($id){
+        $sql = "SELECT * FROM completed WHERE todo_id = '$id'";
+        $completed = $app['db']->fetchAssoc($sql);
+
         $sql = "SELECT * FROM todos WHERE id = '$id'";
         $todo = $app['db']->fetchAssoc($sql);
+
+        if (sizeof($completed) > 1 ){
+        $todo += ["status" => 'done'];
+
+        return $app['twig']->render('completed.html', [
+            'todo' => $todo,
+        ]);
+        
+        
+        }else{    
 
         return $app['twig']->render('todo.html', [
             'todo' => $todo,
         ]);
+    
+        }
+
+
     } else {
-        $sql = "SELECT * FROM todos WHERE user_id = '${user['id']}'";
+        
+        $sql = "SELECT T.id as id, T.user_id AS user_id, T.description AS description, IF (C.id IS NOT NULL, 'DONE', 'todo') AS `status`
+        FROM todos AS T
+        LEFT JOIN completed AS C ON T.id = C.todo_id
+        WHERE T.user_id=${user['id']}";
+
         $todos = $app['db']->fetchAll($sql);
 
         return $app['twig']->render('todos.html', [
@@ -73,16 +97,42 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+
+    $errors = $app['validator']->validate($description, new Assert\NotBlank());
+
+    if (count($errors) > 0) {
+        return (string) 'Description'.$errors;
+    } else {
+
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+    
+        return $app->redirect('/todo');
+    }
+
+
+});
+
+
+$app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');
 });
 
 
-$app->match('/todo/delete/{id}', function ($id) use ($app) {
+$app->match('/todo/done/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+    
+    $sql = "INSERT INTO `completed` (`id`, `user_id`, `todo_id`) VALUES (NULL, '${user['id']}', '$id')";
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
     $app['db']->executeUpdate($sql);
 
     return $app->redirect('/todo');

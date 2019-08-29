@@ -6,18 +6,25 @@
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
         {% for todo in todos %}
-            <tr>
+            <tr       
+            {% if todo.status == 'DONE' %}
+            class="success"
+            {% endif %} >
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
                     <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}">
-                       {{ todo.description }}
+                       {{ todo.description }}{% if todo.status == 'DONE' %}   ✔ {% endif %}
                     </a>
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
                     </form>
+                    {% if todo.status != 'DONE' %}
+                    <form method="post" action="{{ app.request.baseurl }}/todo/done/{{ todo.id }}">
+                     <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-check glyphicon-white"></span></button>
+                    </form>{% endif %}
                 </td>
             </tr>
         {% endfor %}

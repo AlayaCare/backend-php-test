@@ -73,9 +73,12 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user_id = $user['id'];
     $description = $request->get('description');
 
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-
+    if($description) {
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+    } else {
+        $app['session']->getFlashBag()->add('error_messages', 'A ToDo can\'t be created without a description.');
+    }
     return $app->redirect('/todo');
 });
 

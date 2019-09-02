@@ -24,7 +24,7 @@
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
                 <td colspan="3">
-                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
+                    <input type="textbox" name="description" class="small-6 small-center" placeholder="Description..." required="required">
                 </td>
                 <td>
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
@@ -32,5 +32,10 @@
             </form>
         </tr>
     </table>
+    {% for error_message in app.session.getFlashBag.get('error_messages') %}
+        <div>
+            <p class="label-danger text-center p-2">{{ error_message }}</p>
+        </div>
+    {% endfor %} 
 </div>
 {% endblock %}

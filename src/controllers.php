@@ -82,6 +82,29 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     return $app->redirect('/todo');
 });
 
+$app->post('/todo/done/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "UPDATE todos SET status = 1 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+});
+
+
+$app->post('/todo/undone/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    $sql = "UPDATE todos SET status = 0 WHERE id = '$id'";
+    $app['db']->executeUpdate($sql);
+
+    return $app->redirect('/todo');
+}); 
+
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 

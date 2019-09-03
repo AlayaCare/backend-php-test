@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -63,6 +64,30 @@ $app->get('/todo/{id}', function ($id) use ($app) {
     }
 })
 ->value('id', null);
+
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
+
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        if ($todo) {
+            if($todo['user_id'] === $user['id']) {
+                return new JsonResponse($todo);
+            } else {
+                return new JsonResponse(array('error' => "You are not authorized to see this ToDo."));
+            }      
+        } else {
+            return new JsonResponse(array('error' => 'No ToDo found with the id '. $id));
+        } 
+    } else {
+        return new JsonResponse(array('error' => 'You need to provide an id.'));
+    }
+})
+->value('id', null); 
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {

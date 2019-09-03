@@ -4,7 +4,12 @@
 <div class="col-md-6 col-md-offset-3">
     <h1>Todo:</h1>
     <table class="table table-striped text-center">
-        <th class="text-center">#</th><th class="text-center">User</th><th>Description</th><th class="text-center">Done</th><th></th>
+        <th class="text-center">#</th>
+        <th class="text-center">User</th>
+        <th>Description</th>
+        <th class="text-center">Done</th>
+        <th></th>
+        <th></th>
         <tr>
             <td>{{ todo.id }}</td>
             <td class="text-center">{{ todo.user_id }}</td>
@@ -26,10 +31,15 @@
             </td>
             <td class="text-center">
                 <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
-                    <button type="submit" class="btn btn-xs btn-danger" title="Delete">
+                    <button type="submit" class="btn btn-xs btn-danger pull-right" title="Delete">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </form>
+            </td>
+            <td class="text-left">
+                <a href="{{ app.request.baseurl }}/todo/{{ todo.id }}/json">
+                    <button class="btn btn-xs btn-info pull-left">Json</button>
+                </a>
             </td>
         </tr>
     </table>

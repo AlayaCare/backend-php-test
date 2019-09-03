@@ -2,6 +2,23 @@
 
 {% block content %}
 <div class="col-md-6 col-md-offset-3">
+
+    {% for message in app.session.getFlashBag.get('success') %}
+        <div>
+            <p class="alert alert-success text-center">{{ message }}</p>
+        </div>
+    {% endfor %} 
+    {% for message in app.session.getFlashBag.get('info') %}
+        <div>
+            <p class="alert alert-info text-center">{{ message }}</p>
+        </div>
+    {% endfor %} 
+    {% for message in app.session.getFlashBag.get('error') %}
+        <div>
+            <p class="alert alert-danger text-center">{{ message }}</p>
+        </div>
+    {% endfor %}
+
     <h1>Todo List:</h1>
     <table class="table table-striped text-center">
         <th class="text-center">#</th>
@@ -61,7 +78,7 @@
     </table>
     {% for error_message in app.session.getFlashBag.get('error_messages') %}
         <div>
-            <p class="label-danger text-center p-2">{{ error_message }}</p>
+            <p class="alert alert-danger text-center p-2">{{ error_message }}</p>
         </div>
     {% endfor %} 
 </div>

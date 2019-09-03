@@ -100,9 +100,15 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     if($description) {
         $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        $app['db']->executeUpdate($sql);
+        
+        if($app['db']->executeUpdate($sql)) {
+            $app['session']->getFlashBag()->add('success', 'Success!! ToDo added to your list!');
+        } else {
+            $app['session']->getFlashBag()->add('error', 'Fail! ToDo couldn\'t be added to your list. Try again later!');
+        }
+    
     } else {
-        $app['session']->getFlashBag()->add('error_messages', 'A ToDo can\'t be created without a description.');
+        $app['session']->getFlashBag()->add('error_messages', 'Error! A ToDo can\'t be created without a description.');
     }
     return $app->redirect('/todo');
 });
@@ -132,9 +138,33 @@ $app->post('/todo/undone/{id}', function ($id) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    if (null === $user = $app['session']->get('user')) {
+        return $app->redirect('/login');
+    }
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    if ($id){
+        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $todo = $app['db']->fetchAssoc($sql);
+
+        if ($todo) {
+            if($todo['user_id'] === $user['id']) {
+                $sql = "DELETE FROM todos WHERE id = '$id'";
+                
+                if ($app['db']->executeUpdate($sql)) {
+                    $app['session']->getFlashBag()->add('info' , 'Success! The ToDo with id '. $id . ' was DELETED from your list.');
+                } else {
+                    $app['session']->getFlashBag()->add('error', 'Error! ToDo couldn\'t be deleted from your list. Try again later!');
+                }
+
+            } else {
+                $app['session']->getFlashBag()->add('error' , "Error! You are not authorized to DELETE this ToDo.");
+            }      
+        } else {
+            $app['session']->getFlashBag()->add('error' , 'Error! No ToDo found with the id '. $id);
+        } 
+    } else {
+        $app['session']->getFlashBag()->add('error' , 'You need to provide an id.');
+    }
 
     return $app->redirect('/todo');
 });

@@ -20,6 +20,7 @@
     {% endfor %}
 
     <h1>Todo List:</h1>
+    {% if todos %}
     <table class="table table-striped text-center">
         <th class="text-center">#</th>
         <th class="text-center">User</th>
@@ -67,7 +68,7 @@
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
-                <td colspan="4">
+                <td colspan="5">
                     <input type="textbox" name="description" class="form-control"  placeholder="Description..." required="required">
                 </td>
                 <td class="text-center">
@@ -81,5 +82,21 @@
             <p class="alert alert-danger text-center p-2">{{ error_message }}</p>
         </div>
     {% endfor %} 
+    <div class="text-center">
+        {% include 'pagination.html' %}
+    </div>
+    {% else %}
+        <p>No Todos found.</p>
+        <form method="post" action="{{ app.request.baseurl }}/todo/add">
+            <div class="form-row">
+                <div class="col-7">
+                    <input type="textbox" name="description" class="form-control"  placeholder="Description..." required="required">
+                </div>
+                <div class="col">
+                    <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                </div>  
+            </div>
+        </form>
+    {% endif %}
 </div>
 {% endblock %}

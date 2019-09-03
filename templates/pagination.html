@@ -1,0 +1,19 @@
+{% if pagination.isNeeded() %}
+	<ul class="pagination">
+		<li><a href="{{ pagination.firstPageUrl() }}">&laquo;&laquo; First</a></li>
+		{% if pagination.isPreviousPage() %}
+			<li><a href="{{ pagination.previousPageUrl() }}">&laquo; Prev</a></li>
+		{% endif %}
+		{% for page in range(pagination.getPaginator().shortPageStart(), pagination.getPaginator().shortPageEnd()) %}
+			{% if pagination.getPaginator().getCurrentPage() == page %}
+				<li  class="active"><a href="{{ pagination.pageUrl(page) }}">{{page}}</a></li>
+			{% else %}
+				<li><a href="{{ pagination.pageUrl(page) }}">{{page}}</a></li>
+			{% endif %}
+		{% endfor %}
+		{% if pagination.isNextPage() %}
+			<li><a href="{{ pagination.nextPageUrl() }}">Next &raquo;</a></li>
+		{% endif %}
+		<li><a href="{{ pagination.lastPageUrl() }}">Last &raquo;&raquo;</a></li>
+	</ul>
+{% endif %}

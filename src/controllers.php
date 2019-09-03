@@ -5,6 +5,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Kosinix\Paginator;
 use Kosinix\Pagination;
+use Models\Todo;
+use Models\User;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -25,10 +27,9 @@ $app->match('/login', function (Request $request) use ($app) {
     $password = $request->get('password');
 
     if ($username) {
-        $sql = "SELECT * FROM users WHERE username = '$username' and password = '$password'";
-        $user = $app['db']->fetchAssoc($sql);
+        $user = User::findByUsername($username, $app);
 
-        if ($user){
+        if ($user && ($user['password'] === $password)) {
             $app['session']->set('user', $user);
             return $app->redirect('/todos');
         }
@@ -49,8 +50,7 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "SELECT * FROM todos WHERE id = '$id'";
-    $todo = $app['db']->fetchAssoc($sql);
+    $todo = Todo::findById($id, $app);
 
     return $app['twig']->render('todo.html', [
         'todo' => $todo,
@@ -64,22 +64,12 @@ $app->get('/todos/{page}/{sort_by}/{sorting}', function (Request $request, $page
         return $app->redirect('/login');
     }
 
-    $sql = 'SELECT COUNT(*) AS `total` FROM todos WHERE user_id='.$user['id'] ;
-    $count = $app['db']->fetchAssoc($sql);
-    $count = (int) $count['total'];
+    $count = (int) Todo::countById($user, $app);
 
     /** @var \Kosinix\Paginator $paginator */
     $paginator =  $app['paginator']($count, $page);
 
-    $sql = sprintf('SELECT * FROM todos WHERE user_id='. $user['id']. '
-                    ORDER BY %s %s
-                    LIMIT %d,%d',
-            $sort_by, 
-            strtoupper($sorting), 
-            $paginator->getStartIndex(), 
-            $paginator->getPerPage());
-
-    $todos = $app['db']->fetchAll($sql);
+    $todos = Todo::list($user, $sort_by, $sorting, $paginator, $app);
 
     $pagination = new Pagination($paginator, $app['url_generator'], 'templates', $sort_by, $sorting);
 
@@ -103,8 +93,7 @@ $app->get('/todo/{id}/json', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = Todo::findById($id, $app);
 
         if ($todo) {
             if($todo['user_id'] === $user['id']) {
@@ -131,9 +120,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $description = $request->get('description');
 
     if($description) {
-        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-        
-        if($app['db']->executeUpdate($sql)) {
+        if (Todo::create($user, $description, $app)) {
             $app['session']->getFlashBag()->add('success', 'Success!! ToDo added to your list!');
         } else {
             $app['session']->getFlashBag()->add('error', 'Fail! ToDo couldn\'t be added to your list. Try again later!');
@@ -150,8 +137,7 @@ $app->post('/todo/done/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "UPDATE todos SET status = 1 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    Todo::updateDone($id, $app);
 
     return $app->redirect('/todos');
 });
@@ -162,8 +148,7 @@ $app->post('/todo/undone/{id}', function ($id) use ($app) {
         return $app->redirect('/login');
     }
 
-    $sql = "UPDATE todos SET status = 0 WHERE id = '$id'";
-    $app['db']->executeUpdate($sql);
+    Todo::updateUndone($id, $app);
 
     return $app->redirect('/todos');
 }); 
@@ -175,14 +160,13 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
     }
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
-        $todo = $app['db']->fetchAssoc($sql);
+        $todo = Todo::findById($id, $app);
 
         if ($todo) {
+
             if($todo['user_id'] === $user['id']) {
-                $sql = "DELETE FROM todos WHERE id = '$id'";
-                
-                if ($app['db']->executeUpdate($sql)) {
+
+                if (Todo::delete($id, $app)) {
                     $app['session']->getFlashBag()->add('info' , 'Success! The ToDo with id '. $id . ' was DELETED from your list.');
                 } else {
                     $app['session']->getFlashBag()->add('error', 'Error! ToDo couldn\'t be deleted from your list. Try again later!');

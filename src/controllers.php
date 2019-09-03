@@ -3,6 +3,7 @@
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Michelf\Markdown;
 use Kosinix\Paginator;
 use Kosinix\Pagination;
 use Models\Todo;
@@ -16,8 +17,9 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
 
 
 $app->get('/', function () use ($app) {
+    $readmeHtml = Markdown::defaultTransform(file_get_contents('README.md'));
     return $app['twig']->render('index.html', [
-        'readme' => file_get_contents('README.md'),
+        'readme' => $readmeHtml,
     ]);
 });
 

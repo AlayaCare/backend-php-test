@@ -22,7 +22,11 @@
         "symfony/twig-bridge": "~2.3",
         "symfony/validator": "~2.3",
         "doctrine/dbal": "~2.2",
-        "deralex/yaml-config-service-provider": "1.0.x-dev"
+        "deralex/yaml-config-service-provider": "1.0.x-dev",
+        "league/commonmark": "^1.0",
+        "michelf/php-markdown": "^1.8",
+        "kosinix/pagination-silex": "dev-master",
+        "kosinix/paginator": "dev-master"
     },
     "autoload": {
         "psr-0": { "": "src/" }

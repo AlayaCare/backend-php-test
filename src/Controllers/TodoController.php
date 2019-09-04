@@ -66,9 +66,19 @@ $todo->get('/{id}', function ($id) use ($app) {
 
     $todo = Todo::findById($id, $app);
 
-    return $app['twig']->render('todo.html', [
-        'todo' => $todo,
-    ]);
+    if ($todo) {
+        if($todo['user_id'] === $user['id']) {
+            return $app['twig']->render('todo.html', [
+                'todo' => $todo,
+            ]);
+        } else {
+            $app['session']->getFlashBag()->add('error' , "You are not authorized to see this ToDo.");
+        }      
+    } else {
+        $app['session']->getFlashBag()->add('error' , 'No ToDo found with the id '. $id);
+    }
+
+    return $app->redirect('/todo/list');
 })
 ->value('id', null);
 
@@ -101,7 +111,17 @@ $todo->post('/done/{id}', function ($id) use ($app) {
         return $app->redirect('/user/login');
     }
 
-    Todo::updateDone($id, $app);
+    $todo = Todo::findById($id, $app);
+
+    if ($todo) {
+        if($todo['user_id'] === $user['id']) {
+            Todo::updateDone($id, $app);
+        } else {
+            $app['session']->getFlashBag()->add('error' , "You are not authorized to modify this ToDo.");
+        }      
+    } else {
+        $app['session']->getFlashBag()->add('error' , 'No ToDo found with the id '. $id);
+    }
 
     return $app->redirect('/todo/list');
 });
@@ -112,7 +132,17 @@ $todo->post('/undone/{id}', function ($id) use ($app) {
         return $app->redirect('/user/login');
     }
 
-    Todo::updateUndone($id, $app);
+    $todo = Todo::findById($id, $app);
+
+    if ($todo) {
+        if($todo['user_id'] === $user['id']) {
+            Todo::updateUndone($id, $app);
+        } else {
+            $app['session']->getFlashBag()->add('error' , "You are not authorized to modify this ToDo.");
+        }      
+    } else {
+        $app['session']->getFlashBag()->add('error' , 'No ToDo found with the id '. $id);
+    }
 
     return $app->redirect('/todo/list');
 }); 

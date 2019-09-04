@@ -9,14 +9,16 @@ $user = $app['controllers_factory'];
 
 $user->match('/login', function (Request $request) use ($app) {
     $username = $request->get('username');
-    $password = $request->get('password');
-
+    $password = hash("sha256", $request->get('password'));
+    
     if ($username) {
         $user = User::findByUsername($username, $app);
 
         if ($user && ($user['password'] === $password)) {
             $app['session']->set('user', $user);
             return $app->redirect('/todo/list');
+        } else {
+            $app['session']->getFlashBag()->add('error', 'Error! Invalid Username and/or Password!');
         }
     }
 

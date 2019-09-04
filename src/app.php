@@ -9,6 +9,7 @@ use Silex\Provider\ServiceControllerServiceProvider;
 use Silex\Provider\HttpFragmentServiceProvider;
 use Silex\Provider\DoctrineServiceProvider;
 use DerAlex\Silex\YamlConfigServiceProvider;
+use Services\PaginatorServiceProvider;
 
 $app = new Application();
 $app->register(new SessionServiceProvider());
@@ -18,6 +19,8 @@ $app->register(new ServiceControllerServiceProvider());
 $app->register(new TwigServiceProvider());
 $app->register(new HttpFragmentServiceProvider());
 
+// Paginator
+$app->register(new PaginatorServiceProvider());
 $app->register(new YamlConfigServiceProvider(__DIR__.'/../config/config.yml'));
 $app->register(new DoctrineServiceProvider, array(
     'db.options' => array(

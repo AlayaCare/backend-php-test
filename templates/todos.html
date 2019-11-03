@@ -1,12 +1,24 @@
 {% extends "layout.html" %}
 
 {% block content %}
+
 <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+    <p class="bg-success js-result-success">
+        {% for message in app.session.getFlashBag.get('success') %}
+        {{ message }}
+        {% endfor %}
+    </p>
+
+    <p class="bg-danger js-result-error">
+        {% for message in app.session.getFlashBag.get('error') %}
+        {{ message }}
+        {% endfor %}
+    </p>
     <table class="table table-striped">
         <th>#</th><th>User</th><th>Description</th><th></th>
         {% for todo in todos %}
-            <tr>
+            <tr style="{{ todo.completed_at is not null ? 'text-decoration: line-through' }}">
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
@@ -15,11 +27,17 @@
                     </a>
                 </td>
                 <td>
-                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}">
+                    <form method="post" action="{{ app.request.baseurl }}/todo/delete/{{ todo.id }}" class="delete-form">
                         <button type="submit" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>
+                    </form>
+
+                    <form method="post" action="{{ app.request.baseurl }}/todo/complete/{{ todo.id }}" class="complete-form">
+                        <button type="submit" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok glyphicon-white"></span></button>
                     </form>
                 </td>
             </tr>
+
+
         {% endfor %}
         <tr>
             <form method="post" action="{{ app.request.baseurl }}/todo/add">
@@ -31,6 +49,17 @@
                 </td>
             </form>
         </tr>
+
+        {% if paginator is defined and paginator.PageCount > 1 %}
+        <tr>
+            <td colspan="3">
+
+                {{ paginator.prePageOutput|raw }}
+
+                {{ paginator.nextPageOutput|raw }}
+            </td>
+        </tr>
+        {% endif %}
     </table>
 </div>
 {% endblock %}

@@ -2,6 +2,7 @@
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     $twig->addGlobal('user', $app['session']->get('user'));
@@ -47,13 +48,27 @@ $app->get('/logout', function () use ($app) {
     return $app->redirect('/');
 });
 
+$app->get('/todo/{id}/json', function ($id) use ($app) {
+    
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
+
+    $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
+    $todo = $app['db']->fetchAssoc($sql);  
+    if($todo){
+        return new JsonResponse($todo);
+    }
+    return new Response('The todo does not exist',404); 
+})
+->assert('id','\d+')
+->before($requireUser);
 
 $app->get('/todo/{id}', function ($id) use ($app) {
     $user = $app['session']->get('user');
     $user_id = $user['id'];
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
+        $sql = "SELECT * FROM todos WHERE id = '$id' AND userß_id = '$user_id'";
         $todo = $app['db']->fetchAssoc($sql);
 
         return $app['twig']->render('todo.html', [
@@ -74,13 +89,11 @@ $app->get('/todo/{id}', function ($id) use ($app) {
 
 
 $app->post('/todo/add', function (Request $request) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
-
+    $user = $app['session']->get('user');
     $user_id = $user['id'];
+
     $description = $request->get('description');
-    
+
     if(empty($description)){
         $app['session']->getFlashBag()->set('message',"The description can not be empty");
     }else{
@@ -95,6 +108,8 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
 
     $sql = "DELETE FROM todos WHERE id = '$id' AND user_id = '$user_id'";
     $app['db']->executeUpdate($sql);

@@ -9,6 +9,13 @@ $app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
     return $twig;
 }));
 
+$requireUser = function(Request $request) use($app){
+    $user = $app['session']->get('user');
+    if (null === $user) {
+        return $app->redirect('/login');
+    }
+    return null;
+};
 
 $app->get('/', function () use ($app) {
     return $app['twig']->render('index.html', [
@@ -42,12 +49,11 @@ $app->get('/logout', function () use ($app) {
 
 
 $app->get('/todo/{id}', function ($id) use ($app) {
-    if (null === $user = $app['session']->get('user')) {
-        return $app->redirect('/login');
-    }
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
 
     if ($id){
-        $sql = "SELECT * FROM todos WHERE id = '$id'";
+        $sql = "SELECT * FROM todos WHERE id = '$id' AND user_id = '$user_id'";
         $todo = $app['db']->fetchAssoc($sql);
 
         return $app['twig']->render('todo.html', [
@@ -62,6 +68,8 @@ $app->get('/todo/{id}', function ($id) use ($app) {
         ]);
     }
 })
+->before($requireUser)
+->assert('id','\d+')
 ->value('id', null);
 
 
@@ -72,20 +80,27 @@ $app->post('/todo/add', function (Request $request) use ($app) {
 
     $user_id = $user['id'];
     $description = $request->get('description');
-
-    $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
-    $app['db']->executeUpdate($sql);
-    $app['session']->getFlashBag()->set('message',"The todo:".$description.' has been added');
+    
+    if(empty($description)){
+        $app['session']->getFlashBag()->set('message',"The description can not be empty");
+    }else{
+        $sql = "INSERT INTO todos (user_id, description) VALUES ('$user_id', '$description')";
+        $app['db']->executeUpdate($sql);
+        $app['session']->getFlashBag()->set('message',"The todo:".$description.' has been added');
+    }
 
     return $app->redirect('/todo');
-});
+})
+->before($requireUser);
 
 
 $app->match('/todo/delete/{id}', function ($id) use ($app) {
 
-    $sql = "DELETE FROM todos WHERE id = '$id'";
+    $sql = "DELETE FROM todos WHERE id = '$id' AND user_id = '$user_id'";
     $app['db']->executeUpdate($sql);
     $app['session']->getFlashBag()->set('message',"The todo:".$id.' has been removed');
 
     return $app->redirect('/todo');
-});
+})
+->assert('id','\d+')
+->before($requireUser);

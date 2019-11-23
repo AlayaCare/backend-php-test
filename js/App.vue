@@ -1,7 +1,13 @@
 <template>
    <div class="col-md-4 col-md-offset-4">
     <h1>Todo List:</h1>
+
+    <div v-if="message != null" class="alert alert-primary" role="alert">
+      {{ message }}
+    </div>
+
     <table class="table table-striped">
+        <tbody>
         <tr>
             <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         </tr>
@@ -26,6 +32,7 @@
                 <button @click.prevent="addItem()"  class="btn btn-sm btn-primary">Add</button>
             </td>
         </tr>
+        </tbody>
     </table>
   </div>
 </template>
@@ -40,6 +47,7 @@ export default {
         return {
             todoList: [],
             description: "",
+            message:null,
         };
     },
     mounted: async function() {
@@ -48,14 +56,23 @@ export default {
     methods:{
         deleteItem: async function(id){
             await this.launchRequest("/todo/delete/"+id,"GET");
+            this.message = "The todo:"+id+" has been removed.";
             this.todoList = await this.launchRequest("/todos/json","GET");
         },
         markItemCompleted: async function(id){
             await this.launchRequest("/todo/complete/"+id,"GET");
+            this.message = "The todo:"+id+' has been marked as completed.';
             this.todoList = await this.launchRequest("/todos/json","GET");
         },
         addItem: async function(){
+            if(this.description == ""){
+                this.message = "The description can not be empty";
+                return;
+            }
+            this.message = null;
             await this.launchRequest("/todo/add","POST",{description:this.description});
+            this.message = "The todo:"+this.description + " has been added";
+            this.description = "";
             this.todoList = await this.launchRequest("/todos/json","GET");
         },
     }

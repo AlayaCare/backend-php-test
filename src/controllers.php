@@ -151,7 +151,7 @@ $app->post('/todo/add', function (Request $request) use ($app) {
     $user = $app['session']->get('user');
     $user_id = $user['id'];
 
-    $description = $request->get('description');
+    $description = addslashes($request->get('description'));
 
     if(empty($description)){
         $app['session']->getFlashBag()->set('message',"The description can not be empty");

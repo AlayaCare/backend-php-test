@@ -128,6 +128,24 @@ $app->get('/todos/{page}', function (Request $request,$page) use ($app) {
 ->before($requireUser)
 ->bind("todo_list");
 
+$app->get('/todos/json', function () use ($app) {
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
+
+    $sql = "SELECT * FROM todos WHERE user_id = '$user_id' ORDER BY id DESC";
+    $todos = $app['db']->fetchAll($sql);  
+
+    return new JsonResponse($todos);
+   
+})
+->before($requireUser)
+->bind("todo_list_json");
+
+$app->match('/vue', function (Request $request) use ($app) {
+    return $app['twig']->render('todos-vue.html'); 
+})
+->before($requireUser)
+->bind("todo_vue");
 
 $app->post('/todo/add', function (Request $request) use ($app) {
     $user = $app['session']->get('user');

@@ -18,7 +18,7 @@
                 {{ todo.description }}
             </td>
             <td>
-                <button v-if="todo.completed == 0" @click.prevent="markItemCompleted(todo.id)" class="btn btn-xs"><span class="glyphicon glyphicon-ok glyphicon-green"></span></button>
+                <button v-if="todo.completed == 0" @click.prevent="markItemCompleted(todo.id)" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-ok glyphicon-green"></span></button>
             </td>
             <td>
                 <button @click.prevent="deleteItem(todo.id)" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove glyphicon-white"></span></button>

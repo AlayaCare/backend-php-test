@@ -23,7 +23,7 @@
                 <td>
                     {%if todo.completed == 0 %}
                     <form method="post" action="{{ app.request.baseurl }}{{url('todo_complete',{id:todo.id})}}">
-                        <button type="submit" class="btn btn-xs"><span class="glyphicon glyphicon-ok glyphicon-green"></span></button>
+                        <button type="submit" class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-ok glyphicon-green"></span></button>
                     </form>
                     {% endif %}
                 </td>

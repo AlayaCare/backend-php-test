@@ -3,5 +3,9 @@ body {
 }
 
 .login-form > div {
-    margin-top: 10px;
+    margin-top: 10px;ß
+}
+
+.completed {
+    text-decoration: line-through;
 }

@@ -10,15 +10,22 @@
     {% endfor %}
 
     <table class="table table-striped">
-        <th>#</th><th>User</th><th>Description</th><th></th>
+        <th>#</th><th>User</th><th>Description</th><th></th><th></th>
         {% for todo in todos %}
             <tr>
                 <td>{{ todo.id }}</td>
                 <td>{{ todo.user_id }}</td>
                 <td>
-                    <a href="{{ app.request.baseurl }}{{url('todo_item',{id:todo.id})}}">
+                    <a {%if todo.completed == 1 %} class="completed" {%endif%} href="{{ app.request.baseurl }}{{url('todo_item',{id:todo.id})}}">
                        {{ todo.description }}
                     </a>
+                </td>
+                <td>
+                    {%if todo.completed == 0 %}
+                    <form method="post" action="{{ app.request.baseurl }}{{url('todo_complete',{id:todo.id})}}">
+                        <button type="submit" class="btn btn-xs"><span class="glyphicon glyphicon-ok glyphicon-green"></span></button>
+                    </form>
+                    {% endif %}
                 </td>
                 <td>
                     <form method="post" action="{{ app.request.baseurl }}{{url('todo_delete',{id:todo.id})}}">
@@ -32,7 +39,7 @@
                 <td colspan="3">
                     <input type="textbox" name="description" class="small-6 small-center" placeholder="Description...">
                 </td>
-                <td>
+                <td colspan="2">
                     <button type="submit" class="btn btn-sm btn-primary">Add</button>
                 </td>
             </form>

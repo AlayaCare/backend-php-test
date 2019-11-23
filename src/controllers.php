@@ -162,3 +162,19 @@ $app->match('/todo/delete/{id}', function ($id) use ($app) {
 ->assert('id','\d+')
 ->before($requireUser)
 ->bind("todo_delete");
+
+
+$app->match('/todo/complete/{id}', function ($id) use ($app) {
+    $user = $app['session']->get('user');
+    $user_id = $user['id'];
+
+    $sql = "UPDATE todos SET completed = '1' WHERE id = '$id' AND user_id = '$user_id'";
+    $app['db']->executeUpdate($sql);
+
+    $app['session']->getFlashBag()->set('message',"The todo:".$id.' has been marked as completed');
+
+    return $app->redirect('/todos');
+})
+->assert('id','\d+')
+->before($requireUser)
+->bind("todo_complete");

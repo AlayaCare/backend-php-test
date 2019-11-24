@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="app">
+
+</div>
+{% endblock %}
+
+{% block footer %}
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js"></script>
+<script src="/js/vue-todos.umd.js"></script>
+    
+<script>
+if (typeof window !== 'undefined' && window.Vue && window.vuetodos) {
+  window.vuetodos(window.Vue,{
+    baseurl :"{{ app.request.baseurl }}", 
+    element:"#app"
+  });
+}
+</script>
+{% endblock %}

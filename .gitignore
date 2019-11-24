@@ -1,3 +1,6 @@
 /vendor/
 composer.lock
 config/config.yml
+.idea
+node_modules
+package-lock.json

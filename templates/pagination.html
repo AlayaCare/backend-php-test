@@ -1,0 +1,25 @@
+{% macro navigation(pageNumber, totalPages, endpointName) %}
+    <div class="pagination-area">
+        <ul class="nav pagination">
+        {%if totalPages > 1 %}
+            <li class="prev">
+                {% if pageNumber > 1 %}
+                        <a data-listing href="{{ url(endpointName, {page: pageNumber-1 }) }}">Prev</a>
+                {%  else %}
+                    <span>Prev</span>
+                {% endif %}
+            </li>
+            {% for page in 1..totalPages %}
+                <li {% if pageNumber == page %}class="active" {% endif %}><a data-listing href="{{ url(endpointName,{page: page }) }}">{{ page }}</a></li>
+            {% endfor %}
+            <li class="next">
+                {% if pageNumber < totalPages %}
+                        <a data-listing href="{{ url(endpointName,{page: pageNumber+1 } ) }}">Next</a>
+                {% else %}
+                    <span>Next</span>
+                {% endif %}
+            </li>
+        {% endif %}
+        </ul>
+    </div>
+{% endmacro%}

@@ -5,9 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title '' %} - Todos</title>
-
+    {% block header %}
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ app.request.basepath }}/css/main.css" rel="stylesheet" type="text/css" />
+    {% endblock %}
   </head>
   <body>
 
@@ -18,16 +19,17 @@
         </div>
         <div id="navbar" class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
-            <li><a href="/todo">Todo list</a></li>
+            <li><a href="{{url('todo_list')}}">Todo list</a></li>
+            <li><a href="{{url('todo_vue')}}">Try Vue</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             {% if user %}
-              <li><a href="/logout"><span class="glyphicon glyphicon-user"></span> {{ user.username }} Logout</a></li>
+              <li><a href="{{url('logout')}}"><span class="glyphicon glyphicon-user"></span> {{ user.username }} Logout</a></li>
             {% else %}
-              <li><a href="/login">Login</a></li>
+              <li><a href="{{url('login')}}">Login</a></li>
             {% endif %}
           </ul>
-        </div>
+        </div>ß
       </div>
     </nav>
 
@@ -36,8 +38,9 @@
         {% block content %}{% endblock %}
       </div>
     </div>
-
+    {% block footer %}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    {% endblock %}
   </body>
 </html>

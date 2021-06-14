@@ -1,4 +1,4 @@
-Alayacare PHP backend skill test
+AskNicely PHP backend skill test
 ==========================
 
 
@@ -43,7 +43,10 @@ You will be asked to improve the code of this app with the following tasks.
 
 You can complete the tasks in any order.
 
-Separate your commits by task and use the following format for your commit messages: TASK-{task number}: {meaningful message}
+### What we are looking for?
+1. Separate your <b>commits by task</b> and use the following format for your commit messages: TASK-{task number}: {meaningful message}
+2. We care about UI/UX, any attention to detail in the UI will be noticed. Please dont hack in UI changes. 
+3. Simple clear code comments are helpful.   
 
 ### Tasks
 * TASK 1: As a user I can't add a todo without a description.
@@ -54,15 +57,20 @@ Separate your commits by task and use the following format for your commit messa
 * TASK 4: As a user I can see a confirmation message when I add/delete a todo.
     - Hint: Use session FlashBag.
 * TASK 5: As a user I can see my list of todos paginated.
-* TASK 6: Implement an ORM database access layer so we don’t have SQL in the controller code.
+* TASK 6: Choose a task below:
+    - BACKEND (focus): Implement an ORM database access layer so we don’t have SQL in the controller code, or
+    - FRONTEND (focus): Use JQuery, VueJs, or React to render the todo list dynamically and allow the delete + completed buttons to work dynamically via Ajax. You do not need pagination to work within your new front end.  We care about the user experience here -- this might be animation?  
+ 
+    
 
 Extra tasks:
-- Fix any bug you may find.
-- Fix any security issue you may find.
+- Fix any bugs you may find.
+- Fix any security issues you may find.
+- Adding a few unit tests to show us that you undersatnd how they work is a bonus. 
 
 ### Documentation
-This app use [Silex](http://silex.sensiolabs.org/), a  micro-framework based on the Symfony2 Components.
-Documentation can be found here: http://silex.sensiolabs.org/documentation
+This app use Silex, a  micro-framework based on the Symfony2 Components.
+Documentation can be found here: https://silex.symfony.com/doc/1.3/
 
 
 ### How to submit your work?
